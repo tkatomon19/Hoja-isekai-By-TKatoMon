@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hoja de Personaje RPG - Login y Panel</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Login Section -->
+  <div id="loginPage" class="login-container">
+    <h2>Iniciar Sesión</h2>
+    <input type="text" id="username" placeholder="Usuario">
+    <input type="password" id="password" placeholder="Contraseña">
+    <button class="btn" onclick="login()">Entrar</button>
+  </div>
+
+  <!-- Main Content (Hidden by default) -->
+  <div id="mainPage" style="display:none;">
+    <div class="container">
+      <!-- Admin Panel (Visible only to admin) -->
+      <div id="adminPanel" class="card" style="display:none;">
+        <h2>Panel de Admin</h2>
+        <p>Permiso para crear usuarios:</p>
+        <button class="btn" onclick="crearUsuario()">Crear Nuevo Usuario</button>
+      </div>
+
+      <!-- Datos del Personaje -->
+      <div class="card">
+        <h1>Hoja de Personaje RPG</h1>
+        <div class="grid">
+          <div class="half">
+            <label for="charName">Nombre</label>
+            <input type="text" id="charName" placeholder="Nombre del personaje">
+            <label for="charRace">Raza</label>
+            <input type="text" id="charRace" placeholder="Raza del personaje">
+            <label for="charLang">Idiomas</label>
+            <input type="text" id="charLang" placeholder="Ej: Español, Inglés">
+            <label for="charPerso">Personalidad</label>
+            <input type="text" id="charPerso" placeholder="Personalidad">
+          </div>
+          <div class="half">
+            <label>Imagen</label>
+            <div id="imgContainer" style="width:90%; height:220px; border:2px dashed #ccc; display:flex; align-items:center; justify-content:center; cursor:pointer; margin:auto;">
+              <span>Click para cargar imagen</span>
+            </div>
+            <input type="file" id="imgUpload" style="display:none;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Elementos -->
+      <div class="card">
+        <h2>Elementos</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Fuego</th>
+              <th>Aire</th>
+              <th>Agua</th>
+              <th>Electro</th>
+              <th>Tierra</th>
+              <th>Luz</th>
+              <th>Oscuridad</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="number" id="elemFire" value="10" min="10" max="100"></td>
+              <td><input type="number" id="elemAir" value="10" min="10" max="100"></td>
+              <td><input type="number" id="elemWater" value="10" min="10" max="100"></td>
+              <td><input type="number" id="elemElectro" value="10" min="10" max="100"></td>
+              <td><input type="number" id="elemEarth" value="10" min="10" max="100"></td>
+              <td><input type="number" id="elemLight" value="10" min="10" max="100"></td>
+              <td><input type="number" id="elemDark" value="10" min="10" max="100"></td>
+            </tr>
+          </tbody>
+        </table>
+        <small>*1-30: Bajo | 31-70: Estándar | 71-100: Potenciado</small>
+      </div>
+
+      <!-- Atributos -->
+      <div class="card">
+        <h2>Atributos</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Fuerza</th>
+              <th>Inteligencia</th>
+              <th>Agilidad</th>
+              <th>Metabolismo</th>
+              <th>A.M</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <input type="number" id="attrFuerza" value="10" min="10">
+                <div id="modFuerza">0</div>
+              </td>
+              <td>
+                <input type="number" id="attrInt" value="10" min="10">
+                <div id="modInt">0</div>
+              </td>
+              <td>
+                <input type="number" id="attrAgil" value="10" min="10">
+                <div id="modAgil">0</div>
+              </td>
+              <td>
+                <input type="number" id="attrMetab" value="10" min="10">
+                <div id="modMetab">0</div>
+              </td>
+              <td>
+                <input type="number" id="attrAM" value="10" min="10">
+                <div id="modAM">0</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <small>Modificador = (Valor - 10) / 2</small>
+      </div>
+
+      <!-- Estadísticas -->
+      <div class="card">
+        <h2>Estadísticas</h2>
+        <div class="stats-grid">
+          <div class="stat">Vida: <span id="calcVida">0 / 0</span></div>
+          <div class="stat">Armadura: <span id="calcArmor">10</span></div>
+          <div class="stat">Místyculas: <span id="calcMistyculas">0 / 0</span></div>
+          <div class="stat">XP: <span id="calcXP">0 / 0</span></div>
+          <div class="stat">Nivel: <span id="calcNivel">1 / 20</span></div>
+        </div>
+        <div class="stats-input">
+          <input type="number" id="inputXP" placeholder="Añadir XP" value="0" min="0" style="width:80px;">
+          <button class="btn" onclick="agregarXP()">Añadir XP</button>
+        </div>
+        <div style="text-align:center;">
+          <button class="btn" onclick="resetAcciones()">Nueva Ronda</button>
+          <button class="btn" onclick="openModal('editStatsModal')">Editar Estadísticas</button>
+        </div>
+      </div>
+
+      <!-- Fórmulas Avanzadas -->
+      <div class="card" style="text-align:center;">
+        <button class="btn" onclick="openModal('formulasModal')">Mostrar Fórmulas Avanzadas</button>
+      </div>
+
+      <!-- Acciones & Combate -->
+      <div class="card">
+        <h2>Acciones & Combate</h2>
+        <div id="accionesDisplay" style="text-align:center; font-size:1.1em; margin-bottom:15px;"></div>
+        <!-- Panel de Combate -->
+        <div class="combat-panel">
+          <div><input type="number" id="inputDamage" placeholder="Daño" value="0" min="0"></div>
+          <div><input type="number" id="inputHeal" placeholder="Curar" value="0" min="0"></div>
+          <div><input type="number" id="inputMistyRegen" placeholder="Recuperar Místyculas" value="0" min="0"></div>
+        </div>
+        <div class="combat-buttons">
+          <button class="btn" onclick="aplicarDaño()">Aplicar Daño</button>
+          <button class="btn" onclick="aplicarCura()">Aplicar Cura</button>
+          <button class="btn" onclick="regenerarMisty()">Recuperar Místyculas</button>
+        </div>
+        <hr>
+        <div style="text-align:center; margin-top:10px;">
+          <p><strong>Aplicar Costos de Acción:</strong></p>
+          <button class="btn" onclick="aplicarAccionCompleja()">Acción Compleja (-2)</button>
+          <button class="btn" onclick="aplicarAccionMenor()">Acción Menor (-1)</button>
+          <button class="btn" onclick="aplicarReaccion()">Reacción (-3)</button>
+          <button class="btn" onclick="aplicarAccionObjeto()">Acción Objeto (-1)</button>
+          <button class="btn" onclick="aplicarAccionBonus()">Acción Bonus (+1)</button>
+          <button class="btn" onclick="aplicarAccionLegendaria()">Acción Legendaria (-10 a -20)</button>
+          <button class="btn" onclick="alert('Hablar no cuesta acciones.')">Hablar (0)</button>
+        </div>
+      </div>
+
+      <!-- Secciones: Habilidades, Hechizos, Mascotas, Objetos -->
+      <div class="card">
+        <h2>Habilidades</h2>
+        <div class="item-list" id="skillsList"></div>
+        <div style="text-align:center;">
+          <button class="btn" onclick="openModal('skillModal')">Agregar / Editar Habilidad</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Hechizos</h2>
+        <div class="item-list" id="spellsList"></div>
+        <div style="text-align:center;">
+          <button class="btn" onclick="openModal('spellModal')">Agregar / Editar Hechizo</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Mascotas</h2>
+        <div class="item-list" id="petsList"></div>
+        <div style="text-align:center;">
+          <button class="btn" onclick="openModal('petModal')">Agregar / Editar Mascota</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Objetos</h2>
+        <div class="item-list" id="itemsList"></div>
+        <div style="text-align:center;">
+          <button class="btn" onclick="openModal('itemModal')">Agregar / Editar Objeto</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Genérico -->
+<div id="modalOverlay" class="modal">
+  <div class="modal-content">
+    <span class="modal-close" onclick="closeModal()">×</span>
+    <div id="modalBody"></div>
+    <button class="btn" id="modalSaveBtn">Guardar</button>
+  </div>
+</div>
+
+<script src="scripts.js"></script>
+</body>
+</html>
