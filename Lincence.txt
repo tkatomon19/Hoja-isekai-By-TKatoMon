@@ -1,0 +1,41 @@
+Licencia de Uso de Software Propietario Personalizada
+
+Copyright (c) 2025 JUAN FELIPE JIMENEZ PERILLA
+
+Se concede permiso, bajo los términos y condiciones establecidos a continuación, a [Nombre del Usuario Autorizado] (en adelante, "el Usuario") para usar el software "Hoja de personaje  Isekai Delivery system (en adelante, "el Software"). Este Software es de propiedad exclusiva de JUAN FELIPE JIMENEZ PERILLA (en adelante, "el Creador").
+
+1. Concesión de Licencia:
+   a) El Creador otorga al Usuario un derecho no exclusivo, intransferible y limitado para utilizar el Software únicamente en el entorno autorizado (por ejemplo, en un servidor de Discord o en la página web oficial).
+   b) El Software no podrá ser copiado, distribuido, modificado, sublicenciado o comercializado sin el consentimiento previo y por escrito del Creador.
+
+2. Restricciones de Uso:
+   a) El Software solo podrá ser utilizado por el Usuario autorizado. Cualquier uso, reproducción o distribución en entornos o plataformas distintas a los autorizados requerirá un acuerdo comercial adicional y el pago de una tarifa extra.
+   b) Queda estrictamente prohibido modificar, adaptar o crear trabajos derivados del Software sin la autorización expresa del Creador. En caso de realizar modificaciones, se deberá negociar y abonar una tarifa adicional.
+
+3. Pagos y Tarifas Adicionales:
+   a) El uso autorizado del Software es gratuito para el entorno específico autorizado (por ejemplo, para su uso en el servidor de Discord o la página web oficial), siempre y cuando se mantenga dentro de los límites establecidos.
+   b) Para utilizar el Software en otros medios, modificarlo o distribuir versiones adaptadas, el Usuario deberá pagar una tarifa adicional, cuyo monto será determinado por el Creador en cada caso.
+
+4. Propiedad Intelectual:
+   a) El Creador retiene todos los derechos, títulos e intereses sobre el Software, incluyendo todas las copias, modificaciones y obras derivadas.
+   b) El Usuario reconoce que el Software y toda la documentación asociada están protegidos por las leyes de derechos de autor y demás leyes de propiedad intelectual aplicables.
+
+5. Garantías y Limitación de Responsabilidad:
+   a) EL SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍA NINGUNA, EXPRESA O IMPLÍCITA, INCLUYENDO, SIN LIMITACIÓN, GARANTÍAS DE COMERCIABILIDAD O IDONEIDAD PARA UN PROPÓSITO PARTICULAR.
+   b) EN NINGÚN CASO, EL CREADOR SERÁ RESPONSABLE DE DAÑOS DIRECTOS, INDIRECTOS, INCIDENTALES, ESPECIALES O CONSECUENTES, INCLUYENDO PÉRDIDA DE DATOS O BENEFICIOS, QUE SURJAN DEL USO O LA IMPOSIBILIDAD DE USAR EL SOFTWARE.
+
+6. Terminación:
+   a) Esta licencia se rescindirá automáticamente si el Usuario incumple cualquiera de los términos aquí establecidos.
+   b) Tras la terminación, el Usuario deberá cesar inmediatamente el uso del Software y destruir todas las copias que tenga en su poder.
+
+7. Disposiciones Generales:
+   a) Esta licencia constituye el acuerdo completo entre el Usuario y el Creador respecto al uso del Software.
+   b) Cualquier disputa derivada de o relacionada con esta licencia se regirá por las leyes del país del Creador.
+   c) El acceso y uso del Software por parte del Usuario implica la aceptación de todos los términos y condiciones establecidos en esta licencia.
+
+8. Uso Comercial y Modificaciones:
+   a) El Software está destinado únicamente para el uso autorizado. Su uso en entornos no autorizados o su modificación requerirá el consentimiento previo y por escrito del Creador, y estará sujeto a una tarifa adicional determinada por el mismo.
+   b) Cualquier intento de utilizar, modificar o distribuir el Software sin autorización se considerará una violación de los derechos de propiedad intelectual del Creador y estará sujeto a acciones legales.
+
+[Firma del Creador]
+[Fecha]
