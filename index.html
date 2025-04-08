@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Hoja de personaje para el Sistema de Entrega Isekai">
+    <title>Sistema de Entrega Isekai - Hoja de Personaje</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <script src="scripts.js" defer></script>
+</head>
+<body>
+    <main class="container">
+        <div class="card">
+            <header>
+                <h1>Sistema de Entrega Isekai</h1>
+            </header>
+            
+            <!-- Información básica -->
+            <section class="form-group" aria-labelledby="basicInfo">
+                <h2 id="basicInfo" class="section-title">Información Básica</h2>
+                <div class="form-field">
+                    <label for="charName">Nombre del Personaje:</label>
+                    <input type="text" 
+                           id="charName" 
+                           class="form-control" 
+                           required 
+                           minlength="2" 
+                           maxlength="50"
+                           aria-required="true">
+                    <span class="error-message" id="charNameError"></span>
+                </div>
+            </section>
+
+            <!-- Atributos -->
+            <section class="form-group" aria-labelledby="attributesTitle">
+                <h2 id="attributesTitle" class="section-title">Atributos</h2>
+                <div id="attributes" class="attributes-grid" role="group" aria-label="Atributos del personaje">
+                    <div class="attribute-field">
+                        <label for="strength">Fuerza:</label>
+                        <input type="number" 
+                               id="strength" 
+                               class="form-control" 
+                               value="10" 
+                               min="10" 
+                               required>
+                        <span class="modifier" id="strengthMod">(+0)</span>
+                    </div>
+                    <div class="attribute-field">
+                        <label for="intelligence">Inteligencia:</label>
+                        <input type="number" 
+                               id="intelligence" 
+                               class="form-control" 
+                               value="10" 
+                               min="1" 
+                               required>
+                        <span class="modifier" id="intelligenceMod">(+0)</span>
+                    </div>
+                    <div class="attribute-field">
+                        <label for="agility">Agilidad:</label>
+                        <input type="number" 
+                               id="agility" 
+                               class="form-control" 
+                               value="10" 
+                               min="1" 
+                               required>
+                        <span class="modifier" id="agilityMod">(+0)</span>
+                    </div>
+                    <div class="attribute-field">
+                        <label for="metabolism">Metabolismo:</label>
+                        <input type="number" 
+                               id="metabolism" 
+                               class="form-control" 
+                               value="10" 
+                               min="1" 
+                               required>
+                        <span class="modifier" id="metabolismMod">(+0)</span>
+                    </div>
+                    <div class="attribute-field">
+                        <label for="magicAffinity">A.M:</label>
+                        <input type="number" 
+                               id="magicAffinity" 
+                               class="form-control" 
+                               value="10" 
+                               min="1" 
+                               required>
+                        <span class="modifier" id="magicAffinityMod">(+0)</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Estadísticas -->
+            <section class="form-group" aria-labelledby="statsTitle">
+                <h2 id="statsTitle" class="section-title">Estadísticas</h2>
+                <div class="stats-container">
+                    <!-- Puntos de Vida -->
+                    <div class="stat-item">
+                        <label>Puntos de Vida</label>
+                        <div class="stat-value" id="healthValue">100/100</div>
+                        <div class="stat-bar">
+                            <div id="healthBar" class="progress-bar"></div>
+                        </div>
+                        <div class="stat-controls">
+                            <button class="btn btn-edit" onclick="character.editStat('hp', 'current')">Actual</button>
+                            <button class="btn btn-edit" onclick="character.editStat('hp', 'base')">Base</button>
+                        </div>
+                    </div>
+
+                    <!-- Místyculas -->
+                    <div class="stat-item">
+                        <label>Místyculas</label>
+                        <div class="stat-value" id="mistyculasValue">50/50</div>
+                        <div class="stat-bar">
+                            <div id="mistyculasBar" class="progress-bar"></div>
+                        </div>
+                        <div class="stat-controls">
+                            <button class="btn btn-edit" onclick="character.editStat('mp', 'current')">Actual</button>
+                            <button class="btn btn-edit" onclick="character.editStat('mp', 'base')">Base</button>
+                        </div>
+                    </div>
+
+                    <!-- Armadura -->
+                    <div class="stat-item">
+                        <label>Armadura</label>
+                        <div class="stat-value" id="armorValue">10/10</div>
+                        <div class="stat-bar">
+                            <div id="armorBar" class="progress-bar"></div>
+                        </div>
+                        <div class="stat-controls">
+                            <button class="btn btn-edit" onclick="character.editStat('armor', 'base')">Base</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Elementos -->
+            <div class="elements-container">
+                <h2>Elementos</h2>
+                <div class="elements-grid">
+                    <!-- Los elementos se generarán dinámicamente aquí -->
+                </div>
+            </div>
+
+            <!-- Panel de Combate Simplificado -->
+            <div class="combat-panel">
+                <h2>Panel de Combate</h2>
+                
+                <!-- Acciones -->
+                <div class="actions-section">
+                    <div class="actions-header">
+                        <h3>Acciones Disponibles: <span id="actionPoints">3</span>/<span id="maxActions">3</span></h3>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-action" onclick="character.useAction('simple')">Acción Simple (-1)</button>
+                        <button class="btn btn-action" onclick="character.useAction('complex')">Acción Compleja (-2)</button>
+                        <button class="btn btn-action" onclick="character.useAction('reaction')">Reacción (-1)</button>
+                        <button class="btn btn-action" onclick="character.useAction('legendary')">Legendaria (-3)</button>
+                    </div>
+                    <div class="combat-controls">
+                        <button class="btn btn-bonus" onclick="character.addBonusAction()">Acción Bonus</button>
+                        <button class="btn btn-reset" onclick="character.newRound()">Nueva Ronda</button>
+                    </div>
+                </div>
+    
+                <!-- Modificadores de Combate -->
+                <div class="combat-modifiers">
+                    <!-- Daño -->
+                    <div class="modifier-group">
+                        <label for="damageInput">Daño</label>
+                        <div class="input-with-button">
+                            <input type="number" id="damageInput" min="0" class="form-control">
+                            <button class="btn btn-danger" onclick="character.applyDamage()">Aplicar</button>
+                        </div>
+                    </div>
+    
+                    <!-- Curación -->
+                    <div class="modifier-group">
+                        <label for="healInput">Curación</label>
+                        <div class="input-with-button">
+                            <input type="number" id="healInput" min="0" class="form-control">
+                            <button class="btn btn-heal" onclick="character.applyHeal()">Curar</button>
+                        </div>
+                    </div>
+    
+                    <!-- Recuperar Místyculas -->
+                    <div class="modifier-group">
+                        <label for="mpRecoveryInput">Recuperar Místyculas</label>
+                        <div class="input-with-button">
+                            <input type="number" id="mpRecoveryInput" min="0" class="form-control">
+                            <button class="btn btn-mp" onclick="character.recoverMP()">Recuperar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Habilidades -->
+            <section class="form-group" aria-labelledby="skillsTitle">
+                <h2 id="skillsTitle" class="section-title">Habilidades</h2>
+                <div class="skills-container">
+                    <div id="skillsList" class="items-list"></div>
+                    <button class="btn btn-add" onclick="openModal('skill')">
+                        <i class="icon-plus" aria-hidden="true"></i>
+                        Agregar Habilidad
+                    </button>
+                </div>
+            </section>
+
+            <!-- Hechizos -->
+            <section class="form-group" aria-labelledby="spellsTitle">
+                <h2 id="spellsTitle" class="section-title">Hechizos</h2>
+                <div class="spells-container">
+                    <div id="spellsList" class="items-list"></div>
+                    <button class="btn btn-add" onclick="openModal('spell')">
+                        <i class="icon-plus" aria-hidden="true"></i>
+                        Agregar Hechizo
+                    </button>
+                </div>
+            </section>
+
+            <!-- Inventario -->
+            <section class="form-group" aria-labelledby="inventoryTitle">
+                <h2 id="inventoryTitle" class="section-title">Inventario</h2>
+                <div class="inventory-container">
+                    <div id="inventoryList" class="items-list"></div>
+                    <button class="btn btn-add" onclick="openModal('item')">
+                        <i class="icon-plus" aria-hidden="true"></i>
+                        Agregar Objeto
+                    </button>
+                </div>
+            </section>
+
+            <!-- Mascotas -->
+            <section class="form-group" aria-labelledby="petsTitle">
+                <h2 id="petsTitle" class="section-title">Mascotas y Compañeros</h2>
+                <div class="pets-container">
+                    <div id="petsList" class="items-list pets-grid"></div>
+                    <button class="btn btn-add" onclick="openModal('pet')">
+                        <i class="icon-paw" aria-hidden="true"></i>
+                        Agregar Mascota
+                    </button>
+                </div>
+            </section>
+
+            <!-- Acciones -->
+            <section class="actions-container">
+                <button class="btn btn-save" 
+                        onclick="saveSystem.saveCharacter(character)"
+                        aria-label="Guardar personaje actual">
+                    <i class="icon-save" aria-hidden="true"></i>
+                    Guardar Personaje
+                </button>
+                <button class="btn btn-load" 
+                        onclick="loadCharacter()"
+                        aria-label="Cargar personaje guardado">
+                    <i class="icon-load" aria-hidden="true"></i>
+                    Cargar Personaje
+                </button>
+            </section>
+
+            <!-- Mensajes de estado -->
+            <div id="statusMessages" 
+                 class="status-container" 
+                 role="alert" 
+                 aria-live="polite"></div>
+        </div>
+    </main>
+
+    <!-- Sección de Habilidades -->
+    <div class="card">
+        <h2>Habilidades</h2>
+        <div id="skillsList" class="items-container"></div>
+        <button class="btn btn-add" onclick="openModal('skillModal')">Nueva Habilidad</button>
+    </div>
+
+    <!-- Sección de Hechizos -->
+    <div class="card">
+        <h2>Hechizos</h2>
+        <div id="spellsList" class="items-container"></div>
+        <button class="btn btn-add" onclick="openModal('spellModal')">Nuevo Hechizo</button>
+    </div>
+
+    <!-- Sección de Mascotas -->
+    <div class="card">
+        <h2>Mascotas</h2>
+        <div id="petsList" class="items-container"></div>
+        <button class="btn btn-add" onclick="openModal('petModal')">Nueva Mascota</button>
+    </div>
+
+    <!-- Sección de Objetos -->
+    <div class="card">
+        <h2>Objetos</h2>
+        <div id="itemsList" class="items-container"></div>
+        <button class="btn btn-add" onclick="openModal('itemModal')">Nuevo Objeto</button>
+    </div>
+
+    <!-- Modales -->
+    <div class="modals-container">
+        <!-- Modal de Items -->
+        <div id="itemModal" class="modal" aria-hidden="true">
+            <div class="modal-content">
+                <header class="modal-header">
+                    <h3 id="modalTitle">Agregar Item</h3>
+                    <button class="modal-close" onclick="closeModal()" aria-label="Cerrar">×</button>
+                </header>
+                <div class="modal-body">
+                    <form id="itemForm" onsubmit="return false">
+                        <div class="form-field">
+                            <label for="itemName">Nombre:</label>
+                            <input type="text" id="itemName" class="form-control" required>
+                        </div>
+                        <div class="form-field">
+                            <label for="itemDescription">Descripción:</label>
+                            <textarea id="itemDescription" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div class="form-field">
+                            <label for="itemType">Tipo:</label>
+                            <select id="itemType" class="form-control">
+                                <option value="skill">Habilidad</option>
+                                <option value="spell">Hechizo</option>
+                                <option value="item">Objeto</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <footer class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="saveItem()">Guardar</button>
+                </footer>
+            </div>
+        </div>
+
+        <!-- Modal de Habilidades -->
+        <div id="skillModal" class="modal" aria-hidden="true">
+            <div class="modal-content">
+                <!-- Similar estructura para habilidades -->
+            </div>
+        </div>
+
+        <!-- Modal de Hechizos -->
+        <div id="spellModal" class="modal" aria-hidden="true">
+            <div class="modal-content">
+                <!-- Similar estructura para hechizos -->
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Sistema de Entrega Isekai. Todos los derechos reservados.</p>
+    </footer>
+</body>
+</html>
