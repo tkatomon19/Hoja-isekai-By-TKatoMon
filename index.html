@@ -607,55 +607,61 @@
 
     /* Estilos para rarezas */
     .item[data-rarity="intrinseca"] {
-        background: linear-gradient(145deg, #f0f0f0, #d9d9d9);
-        border: 1px solid #808080;
+        background: linear-gradient(145deg, #808080, #696969);
+        border: 1px solid #404040;
+        color: #000000;
     }
 
     .item[data-rarity="comun"] {
-        background: linear-gradient(145deg, #e8f5e9, #c8e6c9);
-        border: 1px solid #4CAF50;
+        background: linear-gradient(145deg, #4CAF50, #45a049);
+        border: 1px solid #2e7d32;
+        color: #000000;
     }
 
     .item[data-rarity="epica"] {
-        background: linear-gradient(145deg, #f3e5f5, #e1bee7);
-        border: 1px solid #9C27B0;
-        color: #FFD700;
+        background: linear-gradient(145deg, #673AB7, #5E35B1);
+        border: 1px solid #4A148C;
+        color: #000000;
     }
 
     .item[data-rarity="legendario"] {
-        background: linear-gradient(145deg, #fff8e1, #ffecb3);
-        border: 2px solid #FFD700;
+        background: linear-gradient(145deg, #FFD700, #FFC400);
+        border: 2px solid #B8860B;
         box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        color: #000000;
     }
 
     .item[data-rarity="mitico"] {
-        background: linear-gradient(145deg, #ffebee, #ffcdd2);
-        border: 2px solid black;
+        background: linear-gradient(145deg, #FF0000, #CC0000);
+        border: 2px solid #000000;
         box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
         color: #FFD700;
+        text-shadow: 1px 1px 1px #000000;
     }
 
     .item[data-rarity="genesis"] {
-        background: linear-gradient(45deg, #4CAF50, #2196F3);
-        border: 2px solid black;
-        box-shadow: 0 0 20px rgba(33, 150, 243, 0.4);
+        background: linear-gradient(45deg, #00BCD4, #4CAF50);
+        border: 2px solid #000000;
+        box-shadow: 0 0 20px rgba(0, 188, 212, 0.4);
         color: #FFD700;
+        text-shadow: 1px 1px 1px #000000;
     }
 
-    /* Estilos para el encabezado del item según rareza */
-    .item[data-rarity="epica"] .item-header,
+    /* Asegurarse que los encabezados mantengan el color correcto */
+    .item[data-rarity="intrinseca"] .item-header,
+    .item[data-rarity="comun"] .item-header,
+    .item[data-rarity="epica"] .item-header {
+        color: #000000;
+    }
+
     .item[data-rarity="mitico"] .item-header,
     .item[data-rarity="genesis"] .item-header {
         color: #FFD700;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        text-shadow: 1px 1px 1px #000000;
     }
 
-    /* Efectos hover para items según rareza */
-    .item[data-rarity="legendario"]:hover,
-    .item[data-rarity="mitico"]:hover,
-    .item[data-rarity="genesis"]:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    .item[data-rarity="legendario"] .item-header {
+        color: #000000;
     }
 
     .formula-input {
@@ -1632,8 +1638,16 @@
                 character.items = character.items.filter(i => i.id !== id);
                 renderList(listId, character.items);
                 actualizarTodo();
-            } else {
-                // ... resto del código para otros tipos de items ...
+            } else if (listId === "skillsList") {
+                character.skills = character.skills.filter(s => s.id !== id);
+                renderList(listId, character.skills);
+            } else if (listId === "spellsList") {
+                character.spells = character.spells.filter(s => s.id !== id);
+                renderList(listId, character.spells);
+                actualizarSlots();
+            } else if (listId === "petsList") {
+                character.pets = character.pets.filter(p => p.id !== id);
+                renderList(listId, character.pets);
             }
 
             await PopupManager.alert("Elemento eliminado correctamente");
@@ -1654,6 +1668,11 @@
                 ? character.skills.find(s => s.id === id)
                 : character.spells.find(s => s.id === id);
 
+            if (!item) {
+                await PopupManager.alert("Item no encontrado.");
+                return;
+            }
+
             if (character.currentMistyculas < item.mistyCost) {
                 await PopupManager.alert("No tienes suficientes místyculas.");
                 return;
@@ -1671,15 +1690,19 @@
             if (confirmed) {
                 // Restar costos
                 character.currentMistyculas -= item.mistyCost;
-                character.actions.action -= item.actionCost;
+                character.actions.action = Math.max(0, character.actions.action - item.actionCost);
                 
                 // Actualizar displays
                 actualizarMistyculas();
-                actualizarAcciones();
+                document.getElementById('currentActions').textContent = character.actions.action;
+                document.getElementById('maxActions').textContent = character.actions.maxAction;
                 
                 const resultado = resolverFormula(item.formula);
                 await PopupManager.alert(
-                    `${listId === "skillsList" ? "Habilidad" : "Técnica/Hechizo"}: ${item.name}\nFórmula: ${item.formula}\nResultado: ${resultado}`,
+                    `${listId === "skillsList" ? "Habilidad" : "Técnica/Hechizo"}: ${item.name}\n` +
+                    `Fórmula: ${item.formula}\n` +
+                    `Resultado: ${resultado}\n` +
+                    `Acciones restantes: ${character.actions.action}`,
                     "Resultado"
                 );
             }
