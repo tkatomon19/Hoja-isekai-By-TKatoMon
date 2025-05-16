@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hoja de Personaje RPG - Avanzada y Responsive</title>
+  <title>Hoja de Personaje Isekai delivery system By Tkatomon v2.1 </title>
   <style>
-    /* Global Styles */
+    /* . . . . . ESTILOS GLOBALES . . . . . */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -184,22 +184,46 @@
       padding: 0 10px;
     }
     .item-formula {
+      position: relative;
       text-align: center;
       font-family: monospace;
-      padding: 5px;
-      background: rgba(0,0,0,0.1);
-      border-radius: 4px;
-      cursor: pointer;
+      padding: 10px;
+      background: rgba(0,0,0,0.05);
+      border-radius: 8px;
+      margin: 10px 0;
+      cursor: help;
+      transition: all 0.3s ease;
     }
+
     .item-formula:hover {
-      background: rgba(0,0,0,0.15);
+      background: rgba(0,0,0,0.1);
     }
-    .item-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
+
+    .item-formula[data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.9);
+      color: white;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      white-space: pre-line;
+      z-index: 1000;
+      min-width: 200px;
+      max-width: 400px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    }
+
+    .formula-result {
+      display: block;
       margin-top: 5px;
+      font-size: 1.1em;
+      color: #2196F3;
     }
+
     /* Modal Styles */
     .modal {
       display: none;
@@ -342,6 +366,30 @@
     }
     .modal-form {
       padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .input-group label {
+      font-weight: bold;
+      color: #34495e;
+    }
+    .input-group input, 
+    .input-group textarea,
+    .input-group select {
+      padding: 8px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .input-group textarea {
+      min-height: 100px;
+      resize: vertical;
     }
     .stat-edit-group {
       margin-bottom: 20px;
@@ -433,24 +481,48 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 20px;
-      margin: 20px 0;
+      padding: 20px;
     }
 
     .equipment-slot {
       background: #f5f5f5;
-      padding: 15px;
+      border: 2px solid #ddd;
       border-radius: 8px;
+      padding: 15px;
       text-align: center;
-      min-height: 100px;
+      min-height: 150px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      gap: 10px;
     }
 
-    .equipment-slot.empty {
-      background: #eee;
-      border: 2px dashed #ccc;
+    .equipment-slot h3 {
+      margin: 0;
+      font-size: 1em;
+      color: #666;
+    }
+
+    .slot-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border-radius: 4px;
+      padding: 10px;
+    }
+
+    .slot-content.empty {
+      color: #999;
+      font-style: italic;
+    }
+
+    .equipment-item {
+      width: 100%;
+      padding: 10px;
+      background: #fff;
+      border-radius: 4px;
+      cursor: pointer;
     }
 
     .stat-edit-group {
@@ -494,21 +566,31 @@
       padding: 10px;
     }
     .action-btn {
-      background: #34495e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 15px;
+      background: #2c3e50;
       color: white;
       border: none;
-      padding: 10px;
-      border-radius: 4px;
+      border-radius: 8px;
       cursor: pointer;
       transition: all 0.3s ease;
+      text-align: center;
+      min-height: 80px;
     }
-    .action-btn:hover:not(:disabled) {
-      background: #2c3e50;
+    .action-btn:not(:disabled):hover {
       transform: translateY(-2px);
+      background: #34495e;
     }
     .action-btn:disabled {
       background: #95a5a6;
       cursor: not-allowed;
+    }
+    .action-cost {
+      font-size: 0.8em;
+      color: #ecf0f1;
     }
     /* Responsive Styles */
     @media (max-width: 768px) {
@@ -640,7 +722,7 @@
     }
 
     .item[data-rarity="genesis"] {
-        background: linear-gradient(45deg, #00BCD4, #4CAF50);
+        background: linear-gradient(145deg, #00BCD4, #4CAF50);
         border: 2px solid #000000;
         box-shadow: 0 0 20px rgba(0, 188, 212, 0.4);
         color: #FFD700;
@@ -700,6 +782,92 @@
         width: 90%;
         max-height: 80vh;
         overflow-y: auto;
+    }
+
+    .pet-info {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin: 10px 0;
+    }
+
+    .pet-attributes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 10px;
+        margin: 10px 0;
+        padding: 10px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 8px;
+    }
+
+    .pet-attribute {
+        text-align: center;
+    }
+
+    .pet-attribute label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .pet-stats {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin: 10px 0;
+        padding: 10px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 8px;
+    }
+
+    .pet-stat {
+        text-align: center;
+    }
+
+    .pet-abilities, .pet-stats, .pet-abilities {
+        margin: 10px 0;
+        padding: 8px;
+        background: white;
+        border-radius: 4px;
+    }
+
+    .pet-abilities p {
+        font-style: italic;
+        color: #666;
+    }
+
+    .slot-item {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+        align-items: center;
+    }
+
+    .slot-item input {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background: #f5f5f5;
+    }
+
+    .slot-item button {
+        padding: 8px 12px;
+    }
+
+    .item-bonuses {
+        margin: 10px 0;
+        padding: 10px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 8px;
+    }
+
+    .bonus-entry {
+        padding: 5px;
+        margin: 5px 0;
+        border-radius: 4px;
+        background: rgba(255,255,255,0.1);
     }
   </style>
 </head>
@@ -819,6 +987,48 @@
       </div>
     </div>
 
+    <!-- Equipamiento -->
+    <div class="card">
+        <h2>Equipamiento</h2>
+        <div style="text-align: right; margin-bottom: 10px;">
+            <button class="btn" onclick="openEquipSlotModal()">Gestionar Slots</button>
+        </div>
+        <div class="equipment-grid" id="equipmentGrid">
+            <div class="equipment-slot" data-slot="mainHand">
+                <h3>Mano Principal</h3>
+                <div class="slot-content empty">Vacío</div>
+            </div>
+            <div class="equipment-slot" data-slot="offHand">
+                <h3>Mano Secundaria</h3>
+                <div class="slot-content empty">Vacío</div>
+            </div>
+            <div class="equipment-slot" data-slot="head">
+                <h3>Cabeza</h3>
+                <div class="slot-content empty">Vacío</div>
+            </div>
+            <div class="equipment-slot" data-slot="chest">
+                <h3>Pecho</h3>
+                <div class="slot-content empty">Vacío</div>
+            </div>
+            <div class="equipment-slot" data-slot="legs">
+                <h3>Piernas</h3>
+                <div class="slot-content empty">Vacío</div>
+            </div>
+            <div class="equipment-slot" data-slot="feet">
+                <h3>Pies</h3>
+                <div class="slot-content empty">Vacío</div>
+            </div>
+            <div class="equipment-slot" data-slot="accessory1">
+                <h3>Accesorio 1</h3>
+                <div class="slot-content empty">Vacío</div>
+            </div>
+            <div class="equipment-slot" data-slot="accessory2">
+                <h3>Accesorio 2</h3>
+                <div class="slot-content empty">Vacío</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Fórmulas Avanzadas -->
     <div class="card" style="text-align:center;">
       <button class="btn" onclick="openModal('formulasModal')">Mostrar Fórmulas Avanzadas</button>
@@ -855,26 +1065,26 @@
         </div>
 
         <div class="actions-grid">
-            <button class="action-btn" onclick="useAction('hablar', 0)">
+            <button class="action-btn" onclick="useAction('hablar', 0)" data-action-type="hablar">
                 Hablar (Sin coste)
             </button>
-            <button class="action-btn" onclick="useAction('menor', 1)">
+            <button class="action-btn" onclick="useAction('minor', 1)" data-action-type="minor">
                 Acción Menor (1 acción)
             </button>
-            <button class="action-btn" onclick="useAction('objeto', 1)">
+            <button class="action-btn" onclick="useAction('object', 1)" data-action-type="object">
                 Acción de Objeto (1 acción)
             </button>
-            <button class="action-btn" onclick="useAction('compleja', 2)">
+            <button class="action-btn" onclick="useAction('complex', 2)" data-action-type="complex">
                 Acción Compleja (2 acciones)
             </button>
-            <button class="action-btn" onclick="useAction('reaccion', 3)">
+            <button class="action-btn" onclick="useAction('reaction', 3)" data-action-type="reaction">
                 Reacción (3 acciones)
             </button>
-            <button class="action-btn" onclick="useAction('bonus', 1)" id="bonusActionBtn">
+            <button class="action-btn" onclick="useAction('bonus')" data-action-type="bonus">
                 Acción Bonus (+1 acción)
             </button>
-            <button class="action-btn" onclick="useAction('legendaria')" id="legendaryActionBtn">
-                Acción Legendaria (10-20 acciones)
+            <button class="action-btn" onclick="useAction('legendary')" data-action-type="legendary">
+                Acción Legendaria (20 acciones)
             </button>
         </div>
     </div>
@@ -893,7 +1103,7 @@
       <div class="spell-info">
         <div class="slots-counter">
           <span class="slots-text">Slots Disponibles:</span>
-          <span class="slots-numbers" id="spellSlots">${character.spells.length}/${character.spellSystem.slots}</span>
+          <span class="slots-numbers" id="spellSlots">0/0</span>
         </div>
       </div>
       <div class="item-list" id="spellsList"></div>
@@ -965,13 +1175,14 @@
       baseMistyculas: 100, currentMistyculas: 100, maxMistyculas: 100,
       experience: 0, level: 1,
       actions: { 
-        action: 0, 
-        minor: 1, 
-        bonus: 1, 
-        interaction: 1, 
-        talk: Infinity, 
-        special: 0,
-        hasLegendary: true  // Habilitar acciones legendarias por defecto
+        maxActions: 0,
+        currentActions: 0,
+        minor: true, 
+        object: true, 
+        complex: true, 
+        reaction: true, 
+        bonus: true, 
+        legendary: true
       },
       skills: [], spells: [], pets: [], items: [],
       spellSystem: {
@@ -988,6 +1199,12 @@
         feet: null,
         accessory1: null,
         accessory2: null
+      },
+      petSystem: {
+        stats: {
+          baseHealth: 25,
+          baseArmor: 10
+        }
       }
     };
 
@@ -1102,26 +1319,28 @@
       document.getElementById("calcMistyculas").textContent = character.currentMistyculas + " / " + character.maxMistyculas;
     }
     function actualizarAcciones() {
-      const modAgil = calcularMod(character.attributes.agilidad);
-      character.actions.action = character.level + modAgil + 1;
-      character.actions.maxAction = character.actions.action;
-      
-      document.getElementById('currentActions').textContent = character.actions.action;
-      document.getElementById('maxActions').textContent = character.actions.maxAction;
-      
-      // La acción bonus está habilitada por defecto
-      document.getElementById('bonusActionBtn').disabled = false;
-      // La acción legendaria sigue requiriendo permiso del DM
-      document.getElementById('legendaryActionBtn').disabled = !character.actions.hasLegendary;
+        document.getElementById('currentActions').textContent = character.actions.currentActions;
+        document.getElementById('maxActions').textContent = character.actions.maxActions;
+        
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            const actionType = btn.dataset.actionType;
+            btn.disabled = !character.actions[actionType];
+        });
     }
     function actualizarTodo() {
-      actualizarAtributos();
-      actualizarNivelXP();
-      actualizarVida();
-      actualizarArmor();
-      actualizarMistyculas();
-      actualizarAcciones();
-      actualizarSlots(); // Añadir esta línea
+        actualizarAtributos();
+        actualizarNivelXP();
+        actualizarVida();
+        actualizarArmor();
+        actualizarMistyculas();
+        
+        // Recalcular acciones máximas y restablecer acciones actuales
+        const modAgil = calcularMod(character.attributes.agilidad);
+        character.actions.maxActions = 1 + character.level + modAgil;
+        character.actions.currentActions = character.actions.maxActions; // Restablecer al máximo
+        
+        actualizarAcciones();
+        actualizarSlots();
     }
     function actualizarSlots() {
         // Calcular slots basados en el nivel
@@ -1183,7 +1402,10 @@
       actualizarTodo();
     });
     document.getElementById("attrAgil").addEventListener("change", () => {
-      character.attributes.agilidad = parseInt(document.getElementById("attrAgil").value);
+      character.attributes.agilidad = parseInt(document.getElementById("attrAgil").value) || 10;
+      const modAgil = calcularMod(character.attributes.agilidad);
+      character.actions.maxActions = 1 + character.level + modAgil;
+      character.actions.currentActions = character.actions.maxActions;
       actualizarTodo();
     });
     document.getElementById("attrMetab").addEventListener("change", () => {
@@ -1219,7 +1441,7 @@
     const modalBody = document.getElementById("modalBody");
     const modalSaveBtn = document.getElementById("modalSaveBtn");
     let modalCallback = null;
-    function openModal(modalId, itemId = null) {
+    async function openModal(modalId, itemId = null) {
       modalOverlay.style.display = "flex";
       
       if(modalId === 'formulasModal') {
@@ -1302,153 +1524,16 @@
           `;
       }
       
-      if(modalId === 'skillModal') {
-          const formulaButtonsSkill = createFormulaButtons('skillFormula');
-
-          const skill = itemId ? character.skills.find(s => s.id === itemId) : null;
-          modalBody.innerHTML = `
-              <h3>${itemId ? "Editar" : "Agregar"} Habilidad</h3>
-              <div class="modal-form">
-                  <div class="input-group">
-                      <label>Nombre:</label>
-                      <input type="text" id="skillName" value="${skill?.name || ''}" required>
-                  </div>
-                  <div class="input-group">
-                      <label>Descripción:</label>
-                      <textarea id="skillDesc">${skill?.desc || ''}</textarea>
-                  </div>
-                  <div class="input-group">
-                      <label>Costo de Místyculas:</label>
-                      <input type="number" id="skillMistyCost" value="${skill?.mistyCost || 0}" min="0">
-                  </div>
-                  <div class="input-group">
-                      <label>Costo de Acciones:</label>
-                      <input type="number" id="skillActionCost" value="${skill?.actionCost || 1}" min="1">
-                  </div>
-                  ${getRaritySelect(skill?.rarity)}
-                  ${formulaButtonsSkill}
-              </div>
-          `;
-
-          modalCallback = function() {
-              const newSkill = {
-                  id: skill ? skill.id : Date.now().toString(),
-                  name: document.getElementById('skillName').value,
-                  desc: document.getElementById('skillDesc').value,
-                  mistyCost: parseInt(document.getElementById('skillMistyCost').value) || 0,
-                  actionCost: parseInt(document.getElementById('skillActionCost').value) || 1,
-                  rarity: document.getElementById('itemRarity').value,
-                  formula: document.getElementById('skillFormula').value
-              };
-
-              if (itemId) {
-                  const index = character.skills.findIndex(s => s.id === itemId);
-                  character.skills[index] = newSkill;
-              } else {
-                  character.skills.push(newSkill);
-              }
-              renderList('skillsList', character.skills);
-          };
+      if (modalId === 'skillModal') {
+          await handleSkillModal(itemId);
       }
 
-      if(modalId === 'spellModal') {
-          const formulaButtonsSpell = createFormulaButtons('spellFormula');
-
-          if (!itemId && character.spells.length >= character.spellSystem.slots) {
-              PopupManager.alert("No hay slots disponibles para más técnicas o hechizos.");
-              return;
-          }
-
-          const spell = itemId ? character.spells.find(s => s.id === itemId) : null;
-          modalBody.innerHTML = `
-              <h3>${itemId ? "Editar" : "Agregar"} Técnica/Hechizo</h3>
-              <div class="modal-form">
-                  <div class="input-group">
-                      <label>Nombre:</label>
-                      <input type="text" id="spellName" value="${spell?.name || ''}" required>
-                  </div>
-                  <div class="input-group">
-                      <label>Tipo:</label>
-                      <select id="spellType">
-                          <option value="tecnica" ${spell?.type === 'tecnica' ? 'selected' : ''}>Técnica</option>
-                          <option value="hechizo" ${spell?.type === 'hechizo' ? 'selected' : ''}>Hechizo</option>
-                      </select>
-                  </div>
-                  <div class="input-group">
-                      <label>Descripción:</label>
-                      <textarea id="spellDesc">${spell?.desc || ''}</textarea>
-                  </div>
-                  <div class="input-group">
-                      <label>Costo de Místyculas:</label>
-                      <input type="number" id="spellMistyCost" value="${spell?.mistyCost || 0}" min="0">
-                  </div>
-                  <div class="input-group">
-                      <label>Costo de Acciones:</label>
-                      <input type="number" id="spellActionCost" value="${spell?.actionCost || 1}" min="1">
-                  </div>
-                  ${getRaritySelect(spell?.rarity)}
-                  ${formulaButtonsSpell}
-              </div>
-          `;
-
-          modalCallback = function() {
-              const newSpell = {
-                  id: spell ? spell.id : Date.now().toString(),
-                  name: document.getElementById('spellName').value,
-                  type: document.getElementById('spellType').value,
-                  desc: document.getElementById('spellDesc').value,
-                  mistyCost: parseInt(document.getElementById('spellMistyCost').value) || 0,
-                  actionCost: parseInt(document.getElementById('spellActionCost').value) || 1,
-                  rarity: document.getElementById('itemRarity').value,
-                  formula: document.getElementById('spellFormula').value
-              };
-
-              if (itemId) {
-                  const index = character.spells.findIndex(s => s.id === itemId);
-                  character.spells[index] = newSpell;
-              } else {
-                  character.spells.push(newSpell);
-              }
-              renderList('spellsList', character.spells);
-              actualizarSlots();
-          };
+      if (modalId === 'spellModal') {
+          await handleSpellModal(itemId);
       }
 
       if(modalId === 'petModal') {
-        const pet = itemId ? character.pets.find(p => p.id === itemId) : null;
-        modalBody.innerHTML = `
-          <h3>${itemId ? "Editar" : "Agregar"} Mascota</h3>
-          <label>Nombre:</label>
-          <input type="text" id="petName" value="${pet?.name || ''}" placeholder="Nombre de la mascota">
-          <label>Raza:</label>
-          <input type="text" id="petRace" value="${pet?.race || ''}" placeholder="Raza de la mascota">
-          <label>Tipo:</label>
-          <input type="text" id="petType" value="${pet?.type || ''}" placeholder="Tipo de la mascota">
-          <label>Imagen:</label>
-          <input type="file" id="petImage">
-        `;
-
-        modalCallback = function() {
-          const newPet = {
-            id: pet ? pet.id : Date.now().toString(),
-            name: document.getElementById('petName').value,
-            race: document.getElementById('petRace').value,
-            type: document.getElementById('petType').value
-          };
-
-          const imageFile = document.getElementById('petImage').files[0];
-          if (imageFile) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-              newPet.image = e.target.result;
-              savePet(newPet, itemId);
-            };
-            reader.readAsDataURL(imageFile);
-          } else {
-            if (pet?.image) newPet.image = pet.image;
-            savePet(newPet, itemId);
-          }
-        };
+        openPetModal(itemId);
       }
       
       if(modalId === 'itemModal') {
@@ -1460,23 +1545,24 @@
                     <label>Nombre:</label>
                     <input type="text" id="itemName" value="${item?.name || ''}" required>
                 </div>
-                
                 <div class="input-group">
                     <label>Tipo:</label>
-                    <input type="text" id="itemType" value="${item?.type || ''}" placeholder="Tipo del objeto">
+                    <select id="itemType">
+                        <option value="weapon" ${item?.type === 'weapon' ? 'selected' : ''}>Arma</option>
+                        <option value="armor" ${item?.type === 'armor' ? 'selected' : ''}>Armadura</option>
+                        <option value="accessory" ${item?.type === 'accessory' ? 'selected' : ''}>Accesorio</option>
+                        <option value="tool" ${item?.type === 'tool' ? 'selected' : ''}>Herramienta</option>
+                    </select>
                 </div>
-
                 ${getRaritySelect(item?.rarity || 'intrinseca')}
-
                 <div class="input-group">
                     <label>Descripción:</label>
                     <textarea id="itemDesc">${item?.desc || ''}</textarea>
                 </div>
-
                 <div class="input-group">
-                    <label>Bonos:</label>
+                    <label>Bonuses:</label>
                     <div id="bonusList"></div>
-                    <button class="btn" type="button" onclick="addBonus()">Añadir Bono</button>
+                    <button class="btn" type="button" onclick="addBonus()">Añadir Bonus</button>
                 </div>
             </div>
         `;
@@ -1486,17 +1572,18 @@
         }
 
         modalCallback = function() {
-            const newItem = {
+            const newItem = createItem({
                 id: item ? item.id : Date.now().toString(),
                 name: document.getElementById('itemName').value,
                 type: document.getElementById('itemType').value,
                 rarity: document.getElementById('itemRarity').value,
                 desc: document.getElementById('itemDesc').value,
                 bonuses: getBonusList()
-            };
+            });
+
+            if (!validateItem(newItem)) return;
 
             if (itemId) {
-                // Si estamos editando, primero removemos los bonus antiguos
                 const oldItem = character.items.find(i => i.id === itemId);
                 if (oldItem) {
                     removeBonuses(oldItem);
@@ -1507,7 +1594,6 @@
                 character.items.push(newItem);
             }
             
-            // Aplicar los nuevos bonus
             applyBonuses(newItem);
             renderList('itemsList', character.items);
             actualizarTodo();
@@ -1540,9 +1626,14 @@
     }
     function renderList(elementId, list) {
         const container = document.getElementById(elementId);
+        if (!container) {
+            console.error(`Contenedor ${elementId} no encontrado`);
+            return;
+        }
+        
         container.innerHTML = "";
         
-        if (list.length === 0) {
+        if (!list || list.length === 0) {
             container.innerHTML = "<p>No hay elementos.</p>";
             return;
         }
@@ -1552,68 +1643,135 @@
             div.className = "item";
             div.setAttribute('data-rarity', item.rarity || 'intrinseca');
             
-            div.innerHTML = `
-                <div class="item-header">${item.name}</div>
+            if (elementId === 'skillsList' || elementId === 'spellsList') {
+                const formulaResult = item.formula ? resolverFormula(item.formula) : null;
                 
-                <div class="item-stats">
-                    ${item.actionCost ? `
-                        <div class="item-stat">
-                            <span>Acciones:</span>
-                            <strong>${item.actionCost}</strong>
-                        </div>
-                    ` : ''}
-                    
-                    ${item.mistyCost ? `
-                        <div class="item-stat">
-                            <span>Místyculas:</span>
-                            <strong>${item.mistyCost}</strong>
-                        </div>
-                    ` : ''}
-                </div>
-                
-                ${item.formula ? `
-                    <div class="item-formula" onclick="editarFormula('${elementId}', '${item.id}')">
-                        Fórmula: ${item.formula}
-                        <small>(Click para editar)</small>
-                    </div>
-                ` : ''}
-                
-                ${item.desc ? `
-                    <div class="item-description">
-                        <strong>Descripción:</strong> ${item.desc}
-                    </div>
-                ` : ''}
-                
-                ${item.type && !item.formula ? `
-                    <div class="item-description">
-                        <strong>Tipo:</strong> ${item.type}
-                    </div>
-                ` : ''}
-                
-                ${item.image ? `
-                    <img src="${item.image}" alt="Imagen" style="max-width:100px; margin:5px auto;">
-                ` : ''}
-                
-                <div class="item-buttons">
-                    <button class="btn" onclick="editarItem('${elementId}', '${item.id}')">Editar</button>
-                    <button class="btn" onclick="eliminarItem('${elementId}', '${item.id}')">Eliminar</button>
-                    ${(elementId === 'skillsList' || elementId === 'spellsList') ?
-                        `<button class="btn" onclick="usarItem('${elementId}', '${item.id}')">Usar</button>` : ''}
-                </div>
-            `;
-
-            // Agregar sección de bonus si existen
-            if (item.bonuses && item.bonuses.length > 0) {
-                div.innerHTML += `
-                    <div class="item-bonuses">
-                        <strong>Bonus:</strong>
-                        ${item.bonuses.map(bonus => `
-                            <div class="bonus-entry">
-                                ${bonus.type === 'attribute' ? 'Atributo' : 
-                                  bonus.type === 'current' ? 'Valor Actual' : 'Estadística'}: 
-                                ${bonus.target} (${bonus.value > 0 ? '+' : ''}${bonus.value})
+                div.innerHTML = `
+                    <div class="item-header">${item.name}</div>
+                    <div class="item-content">
+                        ${elementId === 'spellsList' ? `
+                            <div class="item-type">
+                                <strong>Tipo:</strong> ${item.type}
                             </div>
-                        `).join('')}
+                        ` : ''}
+                        
+                        <div class="item-stats">
+                            <div class="item-stat">
+                                <span>Acciones:</span>
+                                <strong>${item.actionCost}</strong>
+                            </div>
+                            <div class="item-stat">
+                                <span>Místyculas:</span>
+                                <strong>${item.mistyCost}</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="item-description">
+                            <strong>Descripción:</strong> ${item.desc || 'Sin descripción'}
+                        </div>
+                        
+                        ${item.formula ? `
+                            <div class="item-formula">
+                                <strong>Fórmula:</strong> ${item.formula}
+                            </div>
+                        ` : ''}
+                        
+                        <div class="item-buttons">
+                            <button class="btn" onclick="editarItem('${elementId}', '${item.id}')">Editar</button>
+                            <button class="btn" onclick="eliminarItem('${elementId}', '${item.id}')">Eliminar</button>
+                            <button class="btn" onclick="usarItem('${elementId}', '${item.id}')">Usar</button>
+                        </div>
+                    </div>
+                `;
+                
+                div.setAttribute('data-rarity', item.rarity || 'intrinseca');
+            }
+            else if (elementId === 'petsList') {
+                div.innerHTML = `
+                    <div class="item-header">${item.name}</div>
+                    <div class="item-content">
+                        <div class="item-type">
+                            <strong>Tipo:</strong> ${item.type}
+                        </div>
+                        <div class="pet-attributes">
+                            <div class="pet-attribute">
+                                <label>Fuerza:</label>
+                                <span>${item.attributes.fuerza}</span>
+                            </div>
+                            <div class="pet-attribute">
+                                <label>Int:</label>
+                                <span>${item.attributes.inteligencia}</span>
+                            </div>
+                            <div class="pet-attribute">
+                                <label>Agi:</label>
+                                <span>${item.attributes.agilidad}</span>
+                            </div>
+                            <div class="pet-attribute">
+                                <label>Met:</label>
+                                <span>${item.attributes.metabolismo}</span>
+                            </div>
+                            <div class="pet-attribute">
+                                <label>A.M:</label>
+                                <span>${item.attributes.am}</span>
+                            </div>
+                        </div>
+                        <div class="pet-stats">
+                            <div class="pet-stat">
+                                <span>Nivel:</span>
+                                <strong>${item.level}</strong>
+                            </div>
+                            <div class="pet-stat">
+                                <span>Vida:</span>
+                                <strong>${item.stats.currentHealth}/${item.stats.maxHealth}</strong>
+                            </div>
+                            <div class="pet-stat">
+                                <span>Armadura:</span>
+                                <strong>${item.stats.armor}</strong>
+                            </div>
+                        </div>
+                        ${item.abilities ? `
+                            <div class="pet-abilities">
+                                <strong>Habilidades:</strong>
+                                <p>${item.abilities}</p>
+                            </div>
+                        ` : ''}
+                        <div class="item-buttons">
+                            <button class="btn" onclick="editarItem('${elementId}', '${item.id}')">Editar</button>
+                            <button class="btn" onclick="eliminarItem('${elementId}', '${item.id}')">Eliminar</button>
+                        </div>
+                    </div>
+                `;
+            }
+            else if (elementId === 'itemsList') {
+                div.innerHTML = `
+                    <div class="item-header">${item.name}</div>
+                    <div class="item-content">
+                        <div class="item-type">
+                            <strong>Tipo:</strong> ${item.type}
+                        </div>
+                        ${item.desc ? `
+                            <div class="item-description">
+                                <strong>Descripción:</strong> ${item.desc}
+                            </div>
+                        ` : ''}
+                        ${item.bonuses && item.bonuses.length > 0 ? `
+                            <div class="item-bonuses">
+                                <strong>Bonus:</strong>
+                                ${item.bonuses.map(bonus => `
+                                    <div class="bonus-entry">
+                                        ${bonus.target === 'baseHealth' ? 'Vida Base' : 
+                                          bonus.target === 'baseArmor' ? 'Armadura Base' : 
+                                          bonus.target === 'baseMistyculas' ? 'Místyculas Base' : 
+                                          bonus.target}: ${bonus.value > 0 ? '+' : ''}${bonus.value}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        <div class="item-buttons">
+                            <button class="btn" onclick="editarItem('${elementId}', '${item.id}')">Editar</button>
+                            <button class="btn" onclick="eliminarItem('${elementId}', '${item.id}')">Eliminar</button>
+                            <button class="btn" onclick="mostrarSlotEquipamiento('${item.id}')">Equipar</button>
+                        </div>
                     </div>
                 `;
             }
@@ -1621,38 +1779,25 @@
             container.appendChild(div);
         });
     }
-    async function eliminarItem(listId, id) {
-        try {
-            const confirmed = await PopupManager.confirm(
-                "¿Estás seguro de que deseas eliminar este elemento?",
-                "Confirmar eliminación"
-            );
-
-            if (!confirmed) return;
-
-            if (listId === "itemsList") {
-                const item = character.items.find(i => i.id === id);
-                if (item) {
-                    removeBonuses(item);
-                }
-                character.items = character.items.filter(i => i.id !== id);
-                renderList(listId, character.items);
-                actualizarTodo();
-            } else if (listId === "skillsList") {
-                character.skills = character.skills.filter(s => s.id !== id);
-                renderList(listId, character.skills);
-            } else if (listId === "spellsList") {
-                character.spells = character.spells.filter(s => s.id !== id);
-                renderList(listId, character.spells);
-                actualizarSlots();
-            } else if (listId === "petsList") {
-                character.pets = character.pets.filter(p => p.id !== id);
-                renderList(listId, character.pets);
+    function eliminarItem(listId, id) {
+        if (listId === "skillsList") {
+            character.skills = character.skills.filter(s => s.id !== id);
+            renderList(listId, character.skills);
+        } else if (listId === "spellsList") {
+            character.spells = character.spells.filter(s => s.id !== id);
+            renderList(listId, character.spells);
+            actualizarSlots();
+        } else if (listId === "petsList") {
+            character.pets = character.pets.filter(p => p.id !== id);
+            renderList(listId, character.pets);
+        } else if (listId === "itemsList") {
+            const item = character.items.find(i => i.id === id);
+            if (item) {
+                removeBonuses(item);
             }
-
-            await PopupManager.alert("Elemento eliminado correctamente");
-        } catch (error) {
-            await PopupManager.alert("Error al eliminar: " + error.message);
+            character.items = character.items.filter(i => i.id !== id);
+            renderList(listId, character.items);
+            actualizarTodo();
         }
     }
     function editarItem(listId, id) {
@@ -1669,104 +1814,187 @@
                 : character.spells.find(s => s.id === id);
 
             if (!item) {
-                await PopupManager.alert("Item no encontrado.");
-                return;
+                throw new Error("Item no encontrado.");
             }
 
+            // Verificar costos
             if (character.currentMistyculas < item.mistyCost) {
-                await PopupManager.alert("No tienes suficientes místyculas.");
-                return;
+                throw new Error("No tienes suficientes místyculas.");
             }
-            if (character.actions.action < item.actionCost) {
-                await PopupManager.alert("No tienes suficientes acciones.");
-                return;
+            if (character.actions.currentActions < item.actionCost) {
+                throw new Error(`No tienes suficientes acciones. Necesitas ${item.actionCost} acciones.`);
             }
 
-            const confirmed = await PopupManager.confirm(
-                `¿Deseas usar ${item.name}?\nCosto: ${item.actionCost} acciones, ${item.mistyCost} místyculas`,
-                "Confirmar uso"
-            );
+            // Calcular resultado
+            const resultado = resolverFormula(item.formula);
+
+            const confirmed = await PopupManager.show({
+                title: `¿Usar ${item.name}?`,
+                content: `
+                    <div class="popup-formula">
+                        <strong>Fórmula:</strong> ${item.formula}
+                        ${resultado ? `
+                            <div class="popup-result">
+                            Resultado: ${resultado.result.toLocaleString()}
+                            </div>
+                            <div style="font-size: 0.9em; color: #666;">
+                            ${resultado.details.join('<br>')}
+                            </div>
+                        ` : ''}
+
+                    </div>
+                    <div class="popup-stats">
+                    <div class="popup-stat">
+                        <strong>Costo de Acciones:</strong><br>
+                        ${item.actionCost}
+                    </div>
+                    <div class="popup-stat">
+                        <strong>Costo de Místyculas:</strong><br>
+                        ${item.mistyCost}
+                    </div>
+                    </div>
+                `,
+                showCancel: true,
+                confirmText: 'Usar',
+                cancelText: 'Cancelar'
+            });
 
             if (confirmed) {
-                // Restar costos
+                // Aplicar costos
                 character.currentMistyculas -= item.mistyCost;
-                character.actions.action = Math.max(0, character.actions.action - item.actionCost);
+                character.actions.currentActions -= item.actionCost;
                 
-                // Actualizar displays
                 actualizarMistyculas();
-                document.getElementById('currentActions').textContent = character.actions.action;
-                document.getElementById('maxActions').textContent = character.actions.maxAction;
-                
-                const resultado = resolverFormula(item.formula);
-                await PopupManager.alert(
-                    `${listId === "skillsList" ? "Habilidad" : "Técnica/Hechizo"}: ${item.name}\n` +
-                    `Fórmula: ${item.formula}\n` +
-                    `Resultado: ${resultado}\n` +
-                    `Acciones restantes: ${character.actions.action}`,
-                    "Resultado"
-                );
+                actualizarAcciones();
             }
+
+            return confirmed;
         } catch (error) {
-            await PopupManager.alert("Error al usar el item: " + error.message);
+            await PopupManager.show({
+                title: 'Error',
+                content: error.message
+            });
+            return false;
         }
     }
     function resolverFormula(formula) {
-        try {
-            if (!formula.trim()) return 0;
+    try {
+        if (!formula || !formula.trim()) return null;
+        
+        let processedFormula = formula;
+        let operationDetails = [];
+        
+        // Valores disponibles
+        const values = {
+            //Atributos
+            'Fuerza': character.attributes.fuerza,
+            'FUE': character.attributes.fuerza,
+            'Inteligencia': character.attributes.inteligencia,
+            'INT': character.attributes.inteligencia,
+            'Agilidad': character.attributes.agilidad,
+            'AGI': character.attributes.agilidad,
+            'Metabolismo': character.attributes.metabolismo,
+            'MET': character.attributes.metabolismo,
+            'A.M': character.attributes.am,
+            'AM': character.attributes.am,
             
-            // Obtener valores de atributos y stats
-            const values = {
-                Fuerza: character.attributes.fuerza,
-                Inteligencia: character.attributes.inteligencia,
-                Agilidad: character.attributes.agilidad,
-                Metabolismo: character.attributes.metabolismo,
-                'A.M': character.attributes.am,
-                FuerzaMod: calcularMod(character.attributes.fuerza),
-                InteligenciaMod: calcularMod(character.attributes.inteligencia),
-                AgilidadMod: calcularMod(character.attributes.agilidad),
-                MetabolismoMod: calcularMod(character.attributes.metabolismo),
-                AMMod: calcularMod(character.attributes.am),
-                Mistyculas: character.currentMistyculas,
-                Armadura: character.armor,
-                VidaBase: character.baseHealth,
-                VidaActual: character.currentHealth
-            };
+            // Modificadores
+            'FuerzaMod': calcularMod(character.attributes.fuerza),
+            'FUEMod': calcularMod(character.attributes.fuerza),
+            'InteligenciaMod': calcularMod(character.attributes.inteligencia),
+            'INTMod': calcularMod(character.attributes.inteligencia),
+            'AgilidadMod': calcularMod(character.attributes.agilidad),
+            'AGIMod': calcularMod(character.attributes.agilidad),
+            'MetabolismoMod': calcularMod(character.attributes.metabolismo),
+            'METMod': calcularMod(character.attributes.metabolismo),
+            'AMMod': calcularMod(character.attributes.am),
+            
+            // Estadísticas
+            'Nivel': character.level,
+            'LVL': character.level,
+            'Armadura': character.armor,
+            'ARM': character.armor,
+            'VidaActual': character.currentHealth,
+            'HP': character.currentHealth,
+            'VidaMaxima': character.maxHealth,
+            'HPMax': character.maxHealth,
+            'VidaBase': character.baseHealth,
+            'HPBase': character.baseHealth,
+            'ArmaduraBase': character.baseArmor,
+            'ARMBase': character.baseArmor,
+            'Misty': character.currentMistyculas,
+            'MP': character.currentMistyculas,
+            'MistyMaxima': character.maxMistyculas,
+                                             'MPMax': character.maxMistyculas
+        };
 
-            // Procesar dados con atributos
-            let processedFormula = formula.replace(/(\d+)?\s*d\s*(\w+)/g, (match, num, attr) => {
-                const numDice = num ? parseInt(num) : 1;
-                const sides = values[attr] || parseInt(attr);
-                
-                if (isNaN(sides)) {
-                    throw new Error(`Valor inválido para dados: ${attr}`);
-                }
-
-                let total = 0;
-                const rolls = [];
-                for (let i = 0; i < numDice; i++) {
-                    const roll = Math.floor(Math.random() * sides) + 1;
-                    rolls.push(roll);
-                    total += roll;
-                }
-                
-                return total.toString();
-            });
-
-            // Reemplazar valores de atributos y stats
-            for (const [key, value] of Object.entries(values)) {
-                const regex = new RegExp(key, 'g');
-                processedFormula = processedFormula.replace(regex, value.toString());
+        // Dados
+        processedFormula = processedFormula.replace(/(\w+|\d+)d(\w+|\d+)/gi, (match, num, sides) => {
+            const numDice = values[num] || parseInt(num);
+            const diceSize = values[sides] || parseInt(sides);
+            
+            if (isNaN(numDice) || isNaN(diceSize)) {
+                throw new Error(`Valores inválidos para dados: ${num}d${sides}`);
             }
 
-            const resultado = eval(processedFormula);
-            return Math.floor(resultado);
-        } catch (error) {
-            console.error('Error en la fórmula:', error);
-            return 0;
+            const rolls = [];
+            let total = 0;
+            const safeDice = Math.min(Math.abs(numDice), 100);
+            const safeSides = Math.min(Math.abs(diceSize), 1000);
+
+            for (let i = 0; i < safeDice; i++) {
+                const roll = Math.floor(Math.random() * safeSides) + 1;
+                rolls.push(roll);
+                total += roll;
+            }
+
+            operationDetails.push(`${num}d${sides}: [${rolls.join(', ')}] = ${total}`);
+            return total;
+        });
+
+        // Variables
+        Object.entries(values)
+            .sort((a, b) => b[0].length - a[0].length)
+            .forEach(([key, value]) => {
+                const regex = new RegExp(`\\b${key}\\b`, 'g');
+                if (processedFormula.match(regex)) {
+                    operationDetails.push(`${key} = ${value}`);
+                    processedFormula = processedFormula.replace(regex, value);
+                }
+            });
+
+        // Limpiar operadores
+        processedFormula = processedFormula
+            .replace(/[×x]/g, '*')
+            .replace(/÷/g, '/')
+            .replace(/\s+/g, '');
+
+        console.log('Fórmula procesada:', processedFormula);
+        
+        const result = Math.floor(eval(processedFormula));
+        
+        if (isNaN(result)) {
+            throw new Error('El resultado no es un número válido');
         }
+
+        return {
+            result: result,
+            details: operationDetails,
+            formula: formula
+        };
+        
+    } catch (error) {
+        console.error('Error en la fórmula:', error);
+        return {
+            result: 'Error',
+            details: [`Error: ${error.message}`],
+            formula: formula
+        };
     }
+}
+
     actualizarTodo();
-    applyAllBonuses(); // Añade esta línea
+    applyAllBonuses();
 
     const PopupManager = {
       show(options = {}) {
@@ -1780,6 +2008,7 @@
                   <div class="popup-buttons">
                       <button class="btn confirm-btn">${options.confirmText || 'Aceptar'}</button>
                       ${options.showCancel ? `<button class="btn cancel-btn">${options.cancelText || 'Cancelar'}</button>` : ''}
+
                   </div>
               </div>
           `;
@@ -1798,6 +2027,14 @@
                   resolve(false);
               };
           }
+        });
+      },
+
+      // Alias para mantener compatibilidad
+      alert(message, title = 'Aviso') {
+        return this.show({
+          title,
+          content: message
         });
       },
 
@@ -1879,42 +2116,70 @@
         const modalOverlay = document.getElementById("modalOverlay");
         const modalBody = document.getElementById("modalBody");
         
-        // Mostrar el modal
         modalOverlay.style.display = "flex";
         
-        // Actualizar el contenido del modal
         modalBody.innerHTML = `
-            <h3 style="margin-bottom: 20px; text-align: center;">Editar Estadísticas Base</h3>
+            <h3 style="margin-bottom: 20px; text-align: center;">Editar Estadísticas</h3>
             <div class="modal-form">
                 <div class="stat-edit-group">
-                    <label>Vida:</label>
-                    <div class="stat-input-pair">
+                    <h4>Vida</h4>
+                    <div style="margin-bottom: 10px;">
+                        <label>Base (sin modificadores):</label>
                         <input type="number" id="editBaseHealth" value="${character.baseHealth}" min="1" placeholder="Base">
+                        <small style="display: block; color: #666;">Valor base por defecto: 25</small>
+                    </div>
+                    <div>
+                        <label>Actual:</label>
                         <input type="number" id="editCurrentHealth" value="${character.currentHealth}" min="0" placeholder="Actual">
+                        <small style="display: block; color: #666;">Máximo actual con modificadores: ${character.maxHealth}</small>
                     </div>
                 </div>
+
                 <div class="stat-edit-group">
-                    <label>Armadura:</label>
-                    <div class="stat-input-pair">
+                    <h4>Armadura</h4>
+                    <div style="margin-bottom: 10px;">
+                        <label>Base (sin modificadores):</label>
                         <input type="number" id="editBaseArmor" value="${character.baseArmor}" min="0" placeholder="Base">
+                        <small style="display: block; color: #666;">Valor base por defecto: 10</small>
+                    </div>
+                    <div>
+                        <label>Actual (con modificadores):</label>
                         <input type="number" id="editCurrentArmor" value="${character.armor}" min="0" placeholder="Actual">
+                        <small style="display: block; color: #666;">
+                            Incluye modificadores de Agilidad (${calcularMod(character.attributes.agilidad)}) y 
+                            Metabolismo (${calcularMod(character.attributes.metabolismo)})
+                        </small>
                     </div>
                 </div>
+
                 <div class="stat-edit-group">
-                    <label>Místyculas:</label>
-                    <div class="stat-input-pair">
+                    <h4>Místyculas</h4>
+                    <div style="margin-bottom: 10px;">
+                        <label>Base (sin modificadores):</label>
                         <input type="number" id="editBaseMistyculas" value="${character.baseMistyculas}" min="1" placeholder="Base">
+                        <small style="display: block; color: #666;">Valor base por defecto: 100</small>
+                    </div>
+                    <div>
+                        <label>Actual:</label>
                         <input type="number" id="editCurrentMistyculas" value="${character.currentMistyculas}" min="0" placeholder="Actual">
+                        <small style="display: block; color: #666;">Máximo actual con modificadores: ${character.maxMistyculas}</small>
                     </div>
                 </div>
+
                 <div class="stat-edit-group">
-                    <label>Experiencia Total:</label>
-                    <input type="number" id="editXP" value="${character.experience}" min="0">
+                    <h4>Experiencia</h4>
+                    <div>
+                        <label>Total acumulado:</label>
+                        <input type="number" id="editXP" value="${character.experience}" min="0">
+                        <small style="display: block; color: #666;">
+                            Nivel actual: ${character.level} | 
+                            Siguiente nivel: ${expTable.find(e => e.level === character.level + 1)?.exp || 'Máximo'}
+                        </small>
+                    </div>
                 </div>
             </div>
         `;
 
-        // Configurar el callback para guardar
         modalCallback = function() {
             // Actualizar valores base
             character.baseHealth = parseInt(document.getElementById('editBaseHealth').value) || 25;
@@ -1938,52 +2203,91 @@
       return bonuses.map((bonus, index) => `
           <div class="bonus-item">
               <select onchange="updateBonus(${index}, 'type')">
-                  <option value="attribute" ${bonus.type === 'attribute' ? 'selected' : ''}>Atributo</option>
-                  <option value="stat" ${bonus.type === 'stat' ? 'selected' : ''}>Estadística</option>
+                  <option value="stat" ${bonus.type === 'stat' ? 'selected' : ''}>Estadística Base</option>
               </select>
               
-              ${bonus.type === 'attribute' ? `
-                  <select onchange="updateBonus(${index}, 'attribute')">
-                      <option value="fuerza">Fuerza</option>
-                      <option value="inteligencia">Inteligencia</option>
-                      <option value="agilidad">Agilidad</option>
-                      <option value="metabolismo">Metabolismo</option>
-                      <option value="am">A.M</option>
-                  </select>
-              ` : `
-                  <select onchange="updateBonus(${index}, 'stat')">
-                      <option value="health">Vida Base</option>
-                      <option value="armor">Armadura Base</option>
-                      <option value="mistyculas">Místyculas Base</option>
-                  </select>
-              `}
+              <select onchange="updateBonus(${index}, 'stat')">
+                  <option value="baseHealth">Vida Base</option>
+                  <option value="baseArmor">Armadura Base</option>
+                  <option value="baseMistyculas">Místyculas Base</option>
+              </select>
               
               <input type="number" 
                      value="${bonus.value}"
                      onchange="updateBonus(${index}, 'value')"
-                     min="-20" 
-                     max="20">
+                     min="-50" 
+                     max="50">
                      
               <button class="btn" onclick="removeBonus(${index})">X</button>
           </div>
       `).join('');
     }
 
-    function equipItem(item, slot) {
-      // Desequipar item actual si existe
-      if(character.equipment[slot]) {
-          removeBonuses(character.equipment[slot]);
-          character.items.push(character.equipment[slot]);
-      }
-      
-      // Equipar nuevo item
-      character.equipment[slot] = item;
-      applyBonuses(item);
-      
-      // Remover de inventario
-      character.items = character.items.filter(i => i.id !== item.id);
-      
-      actualizarTodo();
+    async function equipItem(item, slot) {
+        try {
+            // Verificar si el slot es válido
+            if (!character.equipment.hasOwnProperty(slot)) {
+                throw new Error('Slot de equipamiento inválido');
+            }
+
+            // Verificar si el item puede equiparse en ese slot
+            if (!isValidItemForSlot(item, slot)) {
+                throw new Error('Este item no puede equiparse en este slot');
+            }
+
+            // Si hay un item equipado, desequiparlo primero
+            if (character.equipment[slot]) {
+                await desequiparItem(slot);
+            }
+
+            // Equipar el nuevo item
+            character.equipment[slot] = item;
+            
+            // Remover el item del inventario
+            character.items = character.items.filter(i => i.id !== item.id);
+            
+            // Aplicar los bonus del nuevo item
+            if (item.bonuses) {
+                applyBonuses(item);
+            }
+            
+            // Actualizar UI
+            renderEquipmentSlots();
+            renderList('itemsList', character.items);
+            
+            await PopupManager.show({
+                title: 'Éxito',
+                content: `${item.name} equipado en ${slot}`
+            });
+            
+            return true;
+        } catch (error) {
+            await PopupManager.show({
+                title: 'Error',
+                content: error.message
+            });
+            return false;
+        }
+    }
+
+    // Agregar función auxiliar
+    function isValidItemForSlot(item, slot) {
+        const slotTypes = {
+            mainHand: ['weapon', 'tool'],
+            offHand: ['weapon', 'shield', 'tool'],
+            head: ['helmet', 'accessory'],
+            chest: ['armor'],
+            legs: ['armor'],
+            feet: ['boots', 'armor'],
+            accessory1: ['accessory', 'ring', 'amulet'],
+            accessory2: ['accessory', 'ring', 'amulet']
+        };
+
+        // Si el slot no existe en la configuración, no es válido
+        if (!slotTypes[slot]) return false;
+
+        // Verificar si el tipo de item está permitido en ese slot
+        return slotTypes[slot].includes(item.type);
     }
 
     function addBonus(existingBonus = null) {
@@ -1991,25 +2295,16 @@
         const bonusDiv = document.createElement('div');
         bonusDiv.className = 'bonus-item';
         
-        // Modificar las opciones para incluir stats actuales
-        const typeSelect = document.createElement('select');
-        typeSelect.innerHTML = `
-            <option value="attribute">Atributo Base</option>
-            <option value="current">Valor Actual</option>
-            <option value="stat">Estadística Base</option>
-        `;
-        typeSelect.value = existingBonus?.type || 'attribute';
-        
         const targetSelect = document.createElement('select');
-        updateTargetOptions(targetSelect, typeSelect.value);
+        updateTargetOptions(targetSelect);
         if (existingBonus?.target) {
             targetSelect.value = existingBonus.target;
         }
         
         const valueInput = document.createElement('input');
         valueInput.type = 'number';
-        valueInput.min = '-50'; // Aumentar rango
-        valueInput.max = '50';  // Aumentar rango
+        valueInput.min = '-50';
+        valueInput.max = '50';
         valueInput.value = existingBonus?.value || '0';
         
         const removeBtn = document.createElement('button');
@@ -2017,9 +2312,6 @@
         removeBtn.textContent = 'X';
         removeBtn.onclick = () => bonusDiv.remove();
         
-        typeSelect.onchange = () => updateTargetOptions(targetSelect, typeSelect.value);
-        
-        bonusDiv.appendChild(typeSelect);
         bonusDiv.appendChild(targetSelect);
         bonusDiv.appendChild(valueInput);
         bonusDiv.appendChild(removeBtn);
@@ -2027,40 +2319,20 @@
         bonusList.appendChild(bonusDiv);
     }
 
-    function updateTargetOptions(select, type) {
-        switch(type) {
-            case 'attribute':
-                select.innerHTML = `
-                    <option value="fuerza">Fuerza Base</option>
-                    <option value="inteligencia">Inteligencia Base</option>
-                    <option value="agilidad">Agilidad Base</option>
-                    <option value="metabolismo">Metabolismo Base</option>
-                    <option value="am">A.M Base</option>
-                `;
-                break;
-            case 'current':
-                select.innerHTML = `
-                    <option value="currentHealth">Vida Actual</option>
-                    <option value="currentArmor">Armadura Actual</option>
-                    <option value="currentMistyculas">Místyculas Actuales</option>
-                `;
-                break;
-            case 'stat':
-                select.innerHTML = `
-                    <option value="baseHealth">Vida Base</option>
-                    <option value="baseArmor">Armadura Base</option>
-                    <option value="baseMistyculas">Místyculas Base</option>
-                `;
-                break;
-        }
+    function updateTargetOptions(select) {
+        select.innerHTML = `
+            <option value="baseHealth">Vida Base</option>
+            <option value="baseArmor">Armadura Base</option>
+            <option value="baseMistyculas">Místyculas Base</option>
+        `;
     }
 
     function getBonusList() {
         const bonuses = [];
         document.querySelectorAll('#bonusList .bonus-item').forEach(item => {
             bonuses.push({
-                type: item.querySelector('select').value,
-                target: item.querySelectorAll('select')[1].value,
+                type: 'stat',
+                target: item.querySelector('select').value,
                 value: parseInt(item.querySelector('input').value) || 0
             });
         });
@@ -2074,65 +2346,35 @@
 
     function renderBonusItem(bonus) {
         return `
-            <select class="bonus-type">
-                <option value="attribute" ${bonus.type === 'attribute' ? 'selected' : ''}>Atributo</option>
-                <option value="stat" ${bonus.type === 'stat' ? 'selected' : ''}>Estadística</option>
-            </select>
-            
             <select class="bonus-target">
-                ${bonus.type === 'attribute' ? `
-                    <option value="fuerza" ${bonus.target === 'fuerza' ? 'selected' : ''}>Fuerza</option>
-                    <option value="inteligencia" ${bonus.target === 'inteligencia' ? 'selected' : ''}>Inteligencia</option>
-                    <option value="agilidad" ${bonus.target === 'agilidad' ? 'selected' : ''}>Agilidad</option>
-                    <option value="metabolismo" ${bonus.target === 'metabolismo' ? 'selected' : ''}>Metabolismo</option>
-                    <option value="am" ${bonus.target === 'am' ? 'selected' : ''}>A.M</option>
-                ` : `
-                    <option value="health" ${bonus.target === 'health' ? 'selected' : ''}>Vida Base</option>
-                    <option value="armor" ${bonus.target === 'armor' ? 'selected' : ''}>Armadura Base</option>
-                    <option value="mistyculas" ${bonus.target === 'mistyculas' ? 'selected' : ''}>Místyculas Base</option>
-                `}
+                <option value="baseHealth" ${bonus.target === 'baseHealth' ? 'selected' : ''}>Vida Base</option>
+                <option value="baseArmor" ${bonus.target === 'baseArmor' ? 'selected' : ''}>Armadura Base</option>
+                <option value="baseMistyculas" ${bonus.target === 'baseMistyculas' ? 'selected' : ''}>Místyculas Base</option>
             </select>
             
-            <input type="number" class="bonus-value" value="${bonus.value || 0}" min="-20" max="20">
+            <input type="number" class="bonus-value" value="${bonus.value || 0}" min="-50" max="50">
             <button class="btn" onclick="removeBonus()">X</button>
         `;
     }
 
     function applyBonuses(item) {
-        if (!item.bonuses) return;
+        if (!item || !item.bonuses) return;
+        
+        console.log('Aplicando bonus para:', item.name);
         
         item.bonuses.forEach(bonus => {
-            switch(bonus.type) {
-                case 'attribute':
-                    // Los atributos base no pueden exceder 30
-                    const currentAttr = character.attributes[bonus.target];
-                    character.attributes[bonus.target] = Math.min(30, currentAttr + bonus.value);
+            switch(bonus.target) {
+                case 'baseHealth':
+                    character.baseHealth += bonus.value;
+                    console.log(`Aplicando bonus de vida base: +${bonus.value}`);
                     break;
-                case 'current':
-                    switch(bonus.target) {
-                        case 'currentHealth':
-                            character.currentHealth += bonus.value;
-                            break;
-                        case 'currentArmor':
-                            character.armor += bonus.value;
-                            break;
-                        case 'currentMistyculas':
-                            character.currentMistyculas += bonus.value;
-                            break;
-                    }
+                case 'baseArmor':
+                    character.baseArmor += bonus.value;
+                    console.log(`Aplicando bonus de armadura base: +${bonus.value}`);
                     break;
-                case 'stat':
-                    switch(bonus.target) {
-                        case 'baseHealth':
-                            character.baseHealth += bonus.value;
-                            break;
-                        case 'baseArmor':
-                            character.baseArmor += bonus.value;
-                            break;
-                        case 'baseMistyculas':
-                            character.baseMistyculas += bonus.value;
-                            break;
-                    }
+                case 'baseMistyculas':
+                    character.baseMistyculas += bonus.value;
+                    console.log(`Aplicando bonus de místyculas base: +${bonus.value}`);
                     break;
             }
         });
@@ -2141,38 +2383,23 @@
     }
 
     function removeBonuses(item) {
-        if (!item.bonuses) return;
+        if (!item || !item.bonuses) return;
+        
+        console.log('Removiendo bonus de:', item.name);
         
         item.bonuses.forEach(bonus => {
-            switch(bonus.type) {
-                case 'attribute':
-                    character.attributes[bonus.target] = Math.max(10, character.attributes[bonus.target] - bonus.value);
+            switch(bonus.target) {
+                case 'baseHealth':
+                    character.baseHealth = Math.max(25, character.baseHealth - bonus.value);
+                    console.log(`Removiendo bonus de vida base: -${bonus.value}`);
                     break;
-                case 'current':
-                    switch(bonus.target) {
-                        case 'currentHealth':
-                            character.currentHealth = Math.max(0, character.currentHealth - bonus.value);
-                            break;
-                        case 'currentArmor':
-                            character.armor -= bonus.value; // Simplemente restar el valor sin límites
-                            break;
-                        case 'currentMistyculas':
-                            character.currentMistyculas = Math.max(0, character.currentMistyculas - bonus.value);
-                            break;
-                    }
+                case 'baseArmor':
+                    character.baseArmor = Math.max(10, character.baseArmor - bonus.value);
+                    console.log(`Removiendo bonus de armadura base: -${bonus.value}`);
                     break;
-                case 'stat':
-                    switch(bonus.target) {
-                        case 'baseHealth':
-                            character.baseHealth = Math.max(25, character.baseHealth - bonus.value);
-                            break;
-                        case 'baseArmor':
-                            character.baseArmor = Math.max(10, character.baseArmor - bonus.value);
-                            break;
-                        case 'baseMistyculas':
-                            character.baseMistyculas = Math.max(100, character.baseMistyculas - bonus.value);
-                            break;
-                    }
+                case 'baseMistyculas':
+                    character.baseMistyculas = Math.max(100, character.baseMistyculas - bonus.value);
+                    console.log(`Removiendo bonus de místyculas base: -${bonus.value}`);
                     break;
             }
         });
@@ -2196,19 +2423,44 @@
         input.type = 'file';
         input.accept = '.json';
         
-        input.onchange = function(e) {
+        input.onchange = async function(e) {
             const file = e.target.files[0];
             const reader = new FileReader();
             
-            reader.onload = function(event) {
+            reader.onload = async function(event) {
                 try {
                     const loadedCharacter = JSON.parse(event.target.result);
+                    
+                    // Asegurar que los atributos tengan valores válidos
+                    const defaultAttributes = {
+                        fuerza: 10,
+                        inteligencia: 10,
+                        agilidad: 10,
+                        metabolismo: 10,
+                        am: 10
+                    };
+                    
+                    // Combinar atributos cargados con valores por defecto
+                    loadedCharacter.attributes = {
+                        ...defaultAttributes,
+                        ...loadedCharacter.attributes
+                    };
+                    
+                    // Actualizar character con los datos cargados
                     character = loadedCharacter;
                     
-                    // Aplicar todos los bonus después de cargar
-                    applyAllBonuses();
+                    // Actualizar inputs de atributos
+                    document.getElementById('attrFuerza').value = character.attributes.fuerza;
+                    document.getElementById('attrInt').value = character.attributes.inteligencia;
+                    document.getElementById('attrAgil').value = character.attributes.agilidad;
+                    document.getElementById('attrMetab').value = character.attributes.metabolismo;
+                    document.getElementById('attrAM').value = character.attributes.am;
                     
-                    // Actualizar listas y UI
+                    // Aplicar bonus y actualizar UI
+                    applyAllBonuses();
+                    actualizarTodo();
+                    
+                    // Actualizar listas
                     renderList('skillsList', character.skills);
                     renderList('spellsList', character.spells);
                     renderList('petsList', character.pets);
@@ -2220,15 +2472,17 @@
                     document.getElementById('charLang').value = character.languages || '';
                     document.getElementById('charPerso').value = character.personality || '';
                     
-                    // Actualizar imagen si existe
+                    // Actualizar imagen
                     if(character.image) {
                         document.getElementById('imgContainer').innerHTML = 
                             `<img src="${character.image}" style="width:100%; height:100%; object-fit:cover;">`;
                     }
                     
-                    PopupManager.alert('Personaje cargado correctamente');
+                    await PopupManager.alert('Personaje cargado correctamente');
+                    
                 } catch (error) {
-                    PopupManager.alert('Error al cargar el archivo: ' + error.message);
+                    console.error('Error al cargar:', error);
+                    await PopupManager.alert('Error al cargar el archivo: ' + error.message);
                 }
             };
             
@@ -2238,108 +2492,77 @@
         input.click();
     }
 
-    // Añadir esta función para manejar las acciones
+    function initializeActions() {
+        const modAgil = calcularMod(character.attributes.agilidad);
+        character.actions = {
+            maxActions: 1 + character.level + modAgil, 
+            currentActions: 1 + character.level + modAgil,
+            minor: true,
+            object: true,
+            complex: true,
+            reaction: true,
+            bonus: true,
+            legendary: true,
+        };
+        actualizarAcciones();
+    }
+
     async function useAction(type, cost) {
-        if (type === 'hablar') {
-            await PopupManager.alert("Acción de hablar realizada");
-            return;
-        }
-        
-        if (type === 'legendaria') {
-            // Generar costo aleatorio entre 10 y 20
-            cost = Math.floor(Math.random() * 11) + 10; // Número aleatorio entre 10 y 20
-        }
-
-        if (character.actions.action < cost) {
-            await PopupManager.alert(`No tienes suficientes acciones disponibles. Necesitas ${cost} acciones.`);
-            return;
+        // Validar acciones legendarias
+        if (type === 'legendary' && !character.actions.legendary) {
+            await PopupManager.show({
+                title: 'Aviso',
+                content: "No puedes usar acciones legendarias sin permiso del DM."
+            });
+            return false;
         }
 
-        const confirmed = await PopupManager.confirm(
-            `¿Deseas usar esta acción? (Costo: ${cost} acciones)`,
-            "Confirmar acción"
-        );
+        // Calcular costo para acciones legendarias
+        if (type === 'legendary') {
+            cost = Math.floor(Math.random() * 11) + 10;
+        }
 
-        if (confirmed) {
-            character.actions.action -= cost;
-            actualizarAcciones();
-            
-            let mensaje = `Acción realizada. Acciones restantes: ${character.actions.action}`;
-            if (type === 'legendaria') {
-                mensaje = `¡Acción legendaria realizada! (Costó ${cost} acciones)\nAcciones restantes: ${character.actions.action}`;
+        // Si es acción bonus, no verificar costo
+        if (type !== 'bonus') {
+            // Verificar acciones disponibles
+            if (character.actions.currentActions < cost) {
+                await PopupManager.show({
+                    title: 'Aviso', 
+                    content: `No tienes suficientes acciones. Necesitas ${cost} acciones.`
+                });
+                return false;
             }
-            
-            await PopupManager.alert(mensaje);
+
+            // Aplicar costo
+            character.actions.currentActions -= cost;
         }
-    }
-
-    function getRaritySelect(currentRarity = 'intrinseca') {
-        return `
-            <div class="input-group">
-                <label>Rareza:</label>
-                <select id="itemRarity">
-                    ${Object.entries(RARITIES).map(([key, value]) => 
-                        `<option value="${key}" ${currentRarity === key ? 'selected' : ''}>${value.name}</option>`
-                    ).join('')}
-                </select>
-            </div>
-        `;
-    }
-
-    async function editarFormula(listId, id) {
-        const item = listId === "skillsList" 
-            ? character.skills.find(s => s.id === id)
-            : character.spells.find(s => s.id === id);
         
-        if (!item) return;
+        // Caso especial: acción bonus otorga +1 acción
+        if (type === 'bonus') {
+            character.actions.currentActions = Math.min(
+                character.actions.maxActions,
+                character.actions.currentActions + 1  // Añade 1 acción
+            );
+        }
+        
+        // Actualizar UI
+        actualizarAcciones();
+        
+        const messages = {
+            minor: "Acción menor realizada",
+            object: "Acción de objeto realizada", 
+            complex: "Acción compleja realizada",
+            reaction: "Reacción realizada",
+            bonus: "Acción bonus realizada (+1 acción)",
+            legendary: `¡Acción legendaria realizada! (Costó ${cost} acciones)`
+        };
 
-        // Crear un popup personalizado con los botones de fórmula
-        const popup = document.createElement('div');
-        popup.className = 'custom-popup';
-        popup.innerHTML = `
-            <div class="popup-content">
-                <h3>Editar Fórmula</h3>
-                ${createFormulaButtons('editFormulaInput')}
-                <div class="popup-buttons">
-                    <button class="btn confirm-btn">Aceptar</button>
-                    <button class="btn cancel-btn">Cancelar</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(popup);
-
-        const input = popup.querySelector('#editFormulaInput');
-        input.value = item.formula || "";
-
-        return new Promise((resolve) => {
-            const confirmBtn = popup.querySelector('.confirm-btn');
-            const cancelBtn = popup.querySelector('.cancel-btn');
-
-            confirmBtn.onclick = () => {
-                const value = input.value;
-                popup.remove();
-                
-                if (value !== null) {
-                    item.formula = value;
-                    
-                    if (listId === "skillsList") {
-                        const index = character.skills.findIndex(s => s.id === id);
-                        character.skills[index] = item;
-                        renderList('skillsList', character.skills);
-                    } else {
-                        const index = character.spells.findIndex(s => s.id === id);
-                        character.spells[index] = item;
-                        renderList('spellsList', character.spells);
-                    }
-                }
-                resolve(value);
-            };
-            
-            cancelBtn.onclick = () => {
-                popup.remove();
-                resolve(null);
-            };
+        await PopupManager.show({
+            title: 'Resultado',
+            content: `${messages[type]}\nAcciones restantes: ${character.actions.currentActions}`
         });
+        
+        return true;
     }
 
     function applyAllBonuses() {
@@ -2355,15 +2578,546 @@
         character.baseArmor = 10;
         character.baseMistyculas = 100;
 
-        // Aplicar bonus de todos los items
-        character.items.forEach(item => {
-            if (item.bonuses) {
+        // Aplicar bonus solo de items equipados
+        Object.values(character.equipment).forEach(item => {
+            if (item && item.bonuses) {
                 applyBonuses(item);
             }
         });
 
         // Actualizar todo
         actualizarTodo();
+    }
+
+    function openPetModal(itemId = null) {
+        const pet = itemId ? character.pets.find(p => p.id === itemId) : null;
+        
+        modalBody.innerHTML = `
+            <h3>${itemId ? "Editar" : "Agregar"} Mascota</h3>
+            <div class="modal-form">
+                <div class="input-group">
+                    <label>Nombre:</label>
+                    <input type="text" id="petName" value="${pet?.name || ''}" required>
+                </div>
+                
+                <div class="input-group">
+                    <label>Tipo:</label>
+                    <input type="text" id="petType" value="${pet?.type || ''}" required>
+                </div>
+
+                <div class="stat-edit-group">
+                    <h4>Atributos</h4>
+                    <div class="stat-input-pair">
+                        <label>Fuerza:</label>
+                        <input type="number" id="petStr" value="${pet?.attributes?.fuerza || 10}" min="1" max="30">
+                    </div>
+                    <div class="stat-input-pair">
+                        <label>Inteligencia:</label>
+                        <input type="number" id="petInt" value="${pet?.attributes?.inteligencia || 10}" min="1" max="30">
+                    </div>
+                    <div class="stat-input-pair">
+                        <label>Agilidad:</label>
+                        <input type="number" id="petAgi" value="${pet?.attributes?.agilidad || 10}" min="1" max="30">
+                    </div>
+                    <div class="stat-input-pair">
+                        <label>Metabolismo:</label>
+                        <input type="number" id="petMet" value="${pet?.attributes?.metabolismo || 10}" min="1" max="30">
+                    </div>
+                    <div class="stat-input-pair">
+                        <label>A.M:</label>
+                        <input type="number" id="petAM" value="${pet?.attributes?.am || 10}" min="1" max="30">
+                    </div>
+                </div>
+
+                <div class="stat-edit-group">
+                    <h4>Estadísticas</h4>
+                    <div class="stat-input-pair">
+                        <label>Nivel:</label>
+                        <input type="number" id="petLevel" value="${pet?.level || 1}" min="1" max="20">
+                    </div>
+                    <div class="stat-input-pair">
+                        <label>Vida Base:</label>
+                        <input type="number" id="petBaseHealth" value="${pet?.stats?.baseHealth || 25}" min="1">
+                    </div>
+                    <div class="stat-input-pair">
+                        <label>Vida Actual:</label>
+                        <input type="number" id="petCurrentHealth" value="${pet?.stats?.currentHealth || pet?.stats?.maxHealth || 25}" min="0">
+                    </div>
+                    <div class="stat-input-pair">
+                        <label>Armadura Base:</label>
+                        <input type="number" id="petBaseArmor" value="${pet?.stats?.baseArmor || 10}" min="0">
+                    </div>
+                    <div class="stat-input-pair">
+                        <label>Armadura Actual:</label>
+                        <input type="number" id="petCurrentArmor" value="${pet?.stats?.armor || 10}" min="0">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Habilidades:</label>
+                    <textarea id="petAbilities" placeholder="Lista de habilidades (una por línea)">${pet?.abilities || ''}</textarea>
+                </div>
+            </div>
+        `;
+
+        modalCallback = function() {
+            const baseHealth = parseInt(document.getElementById('petBaseHealth').value) || 25;
+            const currentHealth = parseInt(document.getElementById('petCurrentHealth').value);
+            const level = parseInt(document.getElementById('petLevel').value) || 1;
+            const maxHealth = baseHealth * level;
+
+            const newPet = {
+                id: pet?.id || Date.now().toString(),
+                name: document.getElementById('petName').value,
+                type: document.getElementById('petType').value,
+                level: level,
+                attributes: {
+                    fuerza: parseInt(document.getElementById('petStr').value) || 10,
+                    inteligencia: parseInt(document.getElementById('petInt').value) || 10,
+                    agilidad: parseInt(document.getElementById('petAgi').value) || 10,
+                    metabolismo: parseInt(document.getElementById('petMet').value) || 10,
+                    am: parseInt(document.getElementById('petAM').value) || 10
+                },
+                abilities: document.getElementById('petAbilities').value,
+                stats: {
+                    baseHealth: baseHealth,
+                    maxHealth: maxHealth,
+                    currentHealth: Math.min(currentHealth || maxHealth, maxHealth),
+                    baseArmor: parseInt(document.getElementById('petBaseArmor').value) || 10,
+                    armor: parseInt(document.getElementById('petCurrentArmor').value) || 10
+                }
+            };
+
+            if (itemId) {
+                const index = character.pets.findIndex(p => p.id === itemId);
+                character.pets[index] = newPet;
+            } else {
+                character.pets.push(newPet);
+            }
+            
+            renderList('petsList', character.pets);
+        };
+    }
+
+    // Añadir función para actualizar la vida de la mascota
+    function updatePetHealth(petId, newHealth) {
+        const pet = character.pets.find(p => p.id === petId);
+        if (pet) {
+            pet.stats.currentHealth = Math.max(0, Math.min(pet.stats.maxHealth, parseInt(newHealth)));
+            renderList('petsList', character.pets);
+        }
+    }
+
+    function openEquipSlotModal() {
+        modalBody.innerHTML = `
+            <h3>Gestionar Slots de Equipamiento</h3>
+            <div class="modal-form">
+                <div id="slotsList">
+                    ${Object.keys(character.equipment).map(slot => `
+                        <div class="slot-item">
+                            <input type="text" value="${slot}" readonly>
+                            <button class="btn" onclick="removeEquipSlot('${slot}')">X</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="input-group" style="margin-top: 15px;">
+                    <label>Añadir nuevo slot:</label>
+                    <input type="text" id="newSlotName" placeholder="Nombre del slot">
+                    <button class="btn" onclick="addEquipSlot()">Añadir Slot</button>
+                </div>
+            </div>
+        `;
+
+        modalCallback = null;
+        modalOverlay.style.display = "flex";
+    }
+
+    function addEquipSlot() {
+        const slotName = document.getElementById('newSlotName').value.trim();
+        
+        if (!slotName) {
+            PopupManager.alert("Ingresa un nombre válido para el slot");
+            return;
+        }
+        
+        if (character.equipment.hasOwnProperty(slotName)) {
+            PopupManager.alert("Ya existe un slot con ese nombre");
+            return;
+        }
+        
+        // Añadir nuevo slot
+        character.equipment[slotName] = null;
+        
+        // Actualizar UI
+        renderEquipmentSlots();
+        openEquipSlotModal(); // Refrescar modal
+    }
+
+    function removeEquipSlot(slotName) {
+        if (character.equipment[slotName]) {
+            // Si hay un item equipado, devolverlo al inventario
+            character.items.push(character.equipment[slotName]);
+        }
+        
+        delete character.equipment[slotName];
+        renderEquipmentSlots();
+        openEquipSlotModal(); // Refrescar modal
+    }
+
+    function renderEquipmentSlots() {
+        const grid = document.getElementById('equipmentGrid');
+        grid.innerHTML = '';
+        
+        Object.entries(character.equipment).forEach(([slot, item]) => {
+            grid.innerHTML += `
+                <div class="equipment-slot" data-slot="${slot}">
+                    <h3>${slot}</h3>
+                    <div class="slot-content ${!item ? 'empty' : ''}">
+                        ${item ? `
+                            <div class="equipment-item">
+                                ${item.name}
+                                <button class="btn" onclick="desequiparItem('${slot}')">Desequipar</button>
+                            </div>
+                        ` : 'Vacío'}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    async function desequiparItem(slot) {
+        // Verificar que hay un item equipado
+        const item = character.equipment[slot];
+        if (!item) return;
+
+        // Remover los bonus del item antes de desequiparlo
+        if (item.bonuses) {
+            removeBonuses(item);
+        }
+
+        // Devolver el item al inventario
+        character.items.push(item);
+        
+        // Limpiar el slot
+        character.equipment[slot] = null;
+        
+        // Recalcular todos los bonus y actualizar UI
+        applyAllBonuses();
+        renderEquipmentSlots();
+        renderList('itemsList', character.items);
+    }
+
+    function initialize() {
+      // Inicializar acciones
+      const modAgil = calcularMod(character.attributes.agilidad);
+      character.actions = {
+        maxActions: character.level + modAgil + 1,
+        currentActions: character.level + modAgil + 1,
+        minor: true,
+        object: true,
+        complex: true,
+        reaction: true,
+        bonus: true,
+        legendary: true,
+      };
+
+      // Actualizar UI
+      actualizarTodo();
+      actualizarAcciones();
+      
+      // Renderizar listas
+      renderList('skillsList', character.skills);
+      renderList('spellsList', character.spells);
+      renderList('petsList', character.pets);
+      renderList('itemsList', character.items);
+      
+      // Actualizar slots de hechizos
+      document.getElementById('spellSlots').textContent = 
+        `${character.spells.length}/${character.spellSystem.slots}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Inicializar
+      initialize();
+
+      // Event listeners para elementos
+      document.querySelectorAll('td[data-element] input').forEach(input => {
+        input.addEventListener('change', (e) => {
+          const element = e.target.closest('td').dataset.element;
+          character.elements[element] = parseInt(e.target.value) || 10;
+        });
+      });
+
+      // Event listeners para atributos
+      ['Fuerza', 'Int', 'Agil', 'Metab', 'AM'].forEach(id => {
+        document.getElementById(`attr${id}`).addEventListener('change', (e) => {
+          const attr = id.toLowerCase();
+          character.attributes[attr] = parseInt(e.target.value) || 10;
+          actualizarTodo();
+        });
+      });
+
+      // Event listeners para stats
+      ['inputDamage', 'inputHeal', 'inputMistyRegen'].forEach(id => {
+        document.getElementById(id).addEventListener('input', (e) => {
+          e.target.value = Math.max(0, parseInt(e.target.value) || 0);
+        });
+      });
+
+      // Event listeners para datos personaje
+      document.getElementById('charName').addEventListener('change', (e) => character.name = e.target.value);
+      document.getElementById('charRace').addEventListener('change', (e) => character.race = e.target.value);
+      document.getElementById('charLang').addEventListener('change', (e) => character.languages = e.target.value);
+      document.getElementById('charPerso').addEventListener('change', (e) => character.personality = e.target.value);
+    });
+
+    function validateSkill(skill) {
+        if (!skill.name.trim()) {
+            PopupManager.show({
+                title: 'Error',
+                content: 'El nombre es obligatorio'
+            });
+            return false;
+        }
+        return true;
+    }
+
+    function validateSpell(spell) {
+        if (!spell.name.trim()) {
+            PopupManager.show({
+                title: 'Error', 
+                content: 'El nombre es obligatorio'
+            });
+            return false;
+        }
+        return true;
+    }
+
+    function validateItem(item) {
+        if (!item.name.trim()) {
+            PopupManager.show({
+                title: 'Error',
+                content: 'El nombre es obligatorio'
+            });
+            return false;
+        }
+        return true;
+    }
+
+    function getRaritySelect(currentRarity = 'intrinseca') {
+        return `
+            <div class="input-group">
+                <label>Rareza:</label>
+                <select id="itemRarity">
+                    ${Object.entries(RARITIES).map(([value, data]) => `
+                        <option value="${value}" ${currentRarity === value ? 'selected' : ''}>
+                            ${data.name}
+                        </option>
+                    `).join('')}
+                </select>
+            </div>
+        `;
+    }
+
+    function createSkill(data) {
+        return {
+            id: data.id || Date.now().toString(),
+            name: data.name,
+            desc: data.desc || '',
+            mistyCost: parseInt(data.mistyCost) || 0,
+            actionCost: parseInt(data.actionCost) || 1,
+            rarity: data.rarity || 'intrinseca',
+            formula: data.formula || ''
+        };
+    }
+
+    function createSpell(data) {
+        return {
+            id: data.id || Date.now().toString(),
+            name: data.name,
+            type: data.type || 'tecnica',
+            desc: data.desc || '',
+            mistyCost: parseInt(data.mistyCost) || 0,
+            actionCost: parseInt(data.actionCost) || 1,
+            rarity: data.rarity || 'intrinseca',
+            formula: data.formula || ''
+        };
+    }
+
+    function createItem(data) {
+        return {
+            id: data.id || Date.now().toString(),
+            name: data.name,
+            type: data.type || 'tool',
+            desc: data.desc || '',
+            rarity: data.rarity || 'intrinseca',
+            bonuses: data.bonuses || [],
+            equipSlot: data.equipSlot || null
+        };
+    }
+
+    async function handleSkillModal(itemId = null) {
+        const skill = itemId ? character.skills.find(s => s.id === itemId) : null;
+        const formulaButtons = createFormulaButtons('skillFormula');
+        
+        modalBody.innerHTML = `
+            <h3>${itemId ? "Editar" : "Crear"} Habilidad</h3>
+            <div class="modal-form">
+                <div class="input-group">
+                    <label>Nombre:</label>
+                    <input type="text" id="skillName" value="${skill?.name || ''}" required>
+                </div>
+                <div class="input-group">
+                    <label>Descripción:</label>
+                    <textarea id="skillDesc">${skill?.desc || ''}</textarea>
+                </div>
+                <div class="input-group">
+                    <label>Costo de Místyculas:</label>
+                    <input type="number" id="skillMistyCost" value="${skill?.mistyCost || 0}" min="0">
+                </div>
+                <div class="input-group">
+                    <label>Costo de Acciones:</label>
+                    <input type="number" id="skillActionCost" value="${skill?.actionCost || 1}" min="1">
+                </div>
+                ${getRaritySelect(skill?.rarity)}
+                ${formulaButtons}
+            </div>
+        `;
+
+        return new Promise((resolve) => {
+            modalCallback = () => {
+                const newSkill = createSkill({
+                    id: skill?.id,
+                    name: document.getElementById('skillName').value,
+                    desc: document.getElementById('skillDesc').value,
+                    mistyCost: document.getElementById('skillMistyCost').value,
+                    actionCost: document.getElementById('skillActionCost').value,
+                    rarity: document.getElementById('itemRarity').value,
+                    formula: document.getElementById('skillFormula').value
+                });
+
+                if (!validateSkill(newSkill)) return;
+
+                if (itemId) {
+                    const index = character.skills.findIndex(s => s.id === itemId);
+                    character.skills[index] = newSkill;
+                } else {
+                    character.skills.push(newSkill);
+                }
+                
+                renderList('skillsList', character.skills);
+                resolve(newSkill);
+            };
+        });
+    }
+
+    async function handleSpellModal(itemId = null) {
+        if (!itemId && character.spells.length >= character.spellSystem.slots) {
+            await PopupManager.show({
+                title: 'Error',
+                content: "No hay slots disponibles para más técnicas o hechizos."
+            });
+            return null;
+        }
+
+        const spell = itemId ? character.spells.find(s => s.id === itemId) : null;
+        const formulaButtons = createFormulaButtons('spellFormula');
+        
+        modalBody.innerHTML = `
+            <h3>${itemId ? "Editar" : "Crear"} Técnica/Hechizo</h3>
+            <div class="modal-form">
+                <div class="input-group">
+                    <label>Nombre:</label>
+                    <input type="text" id="spellName" value="${spell?.name || ''}" required>
+                </div>
+                <div class="input-group">
+                    <label>Tipo:</label>
+                    <select id="spellType">
+                        <option value="tecnica" ${spell?.type === 'tecnica' ? 'selected' : ''}>Técnica</option>
+                        <option value="hechizo" ${spell?.type === 'hechizo' ? 'selected' : ''}>Hechizo</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Descripción:</label>
+                    <textarea id="spellDesc">${spell?.desc || ''}</textarea>
+                </div>
+                <div class="input-group">
+                    <label>Costo de Místyculas:</label>
+                    <input type="number" id="spellMistyCost" value="${spell?.mistyCost || 0}" min="0">
+                </div>
+                <div class="input-group">
+                    <label>Costo de Acciones:</label>
+                    <input type="number" id="spellActionCost" value="${spell?.actionCost || 1}" min="1">
+                </div>
+                ${getRaritySelect(spell?.rarity)}
+                ${formulaButtons}
+            </div>
+        `;
+
+        modalOverlay.style.display = "flex";
+
+        return new Promise((resolve) => {
+            modalCallback = () => {
+                const newSpell = {
+                    id: spell?.id || Date.now().toString(),
+                    name: document.getElementById('spellName').value,
+                    type: document.getElementById('spellType').value,
+                    desc: document.getElementById('spellDesc').value,
+                    mistyCost: parseInt(document.getElementById('spellMistyCost').value) || 0,
+                    actionCost: parseInt(document.getElementById('spellActionCost').value) || 1,
+                    rarity: document.getElementById('itemRarity').value,
+                    formula: document.getElementById('spellFormula').value
+                };
+
+                if (!validateSpell(newSpell)) return;
+
+                if (itemId) {
+                    const index = character.spells.findIndex(s => s.id === itemId);
+                    if (index !== -1) {
+                        character.spells[index] = newSpell;
+                    }
+                } else {
+                    character.spells.push(newSpell);
+                }
+                
+                renderList('spellsList', character.spells);
+                actualizarSlots();
+                resolve(newSpell);
+            };
+        });
+    }
+
+    async function mostrarSlotEquipamiento(itemId) {
+        const item = character.items.find(i => i.id === itemId);
+        if (!item) return;
+
+        modalBody.innerHTML = `
+            <h3>Equipar ${item.name}</h3>
+            <div class="modal-form">
+                <div class="input-group">
+                    <label>Seleccionar Slot:</label>
+                    <select id="equipSlot">
+                        ${Object.entries(character.equipment).map(([slot, equipped]) => `
+                            <option value="${slot}" ${!isValidItemForSlot(item, slot) ? 'disabled' : ''}>
+                                ${slot} ${equipped ? '(Ocupado)' : '(Vacío)'}
+                            </option>
+                        `).join('')}
+                    </select>
+                </div>
+            </div>
+        `;
+
+        modalOverlay.style.display = "flex";
+        modalCallback = async () => {
+            const slot = document.getElementById('equipSlot').value;
+            try {
+                await equipItem(item, slot);
+                renderList('itemsList', character.items);
+                renderEquipmentSlots();
+            } catch (error) {
+                await PopupManager.alert(error.message);
+            }
+        };
     }
   </script>
 </body>
