@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Personaje - Isekai Delivery Service v3.2</title>
+    <title>Hoja de Personaje - Isekai Delivery Service v3.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Estilos base y paleta de colores v3.2 */
+        /* Estilos base y paleta de colores v3.3 */
         :root {
             --bg-color: #f0f2f5;
             --card-bg: #ffffff;
@@ -19,18 +19,44 @@
             --accent-color: #3b82f6;
             --accent-hover: #2563eb;
             --border-color: #e5e7eb;
+            --input-bg: #ffffff;
+            --stat-bg: #f9fafb;
+            --rarity-intrinsic-bg: #f3f4f6;
+            --rarity-common-bg: #f9fafb;
+            --rarity-rare-bg: #eff6ff;
+            --rarity-epic-bg: #f5f3ff;
+            --rarity-legendary-bg: #fffbeb;
         }
+        
+        body.dark {
+            --bg-color: #111827;
+            --card-bg: #1f2937;
+            --text-color: #d1d5db;
+            --text-secondary: #9ca3af;
+            --title-color: #f9fafb;
+            --border-color: #374151;
+            --input-bg: #374151;
+            --stat-bg: #374151;
+            --rarity-intrinsic-bg: #374151;
+            --rarity-common-bg: #374151;
+            --rarity-rare-bg: #1e3a8a;
+            --rarity-epic-bg: #4c1d95;
+            --rarity-legendary-bg: #78350f;
+        }
+
         html { scroll-behavior: smooth; }
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
         }
         .card {
             background-color: var(--card-bg);
             border-radius: 0.75rem;
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             border: 1px solid var(--border-color);
+            transition: background-color 0.3s, border-color 0.3s;
         }
         .card-title {
             color: var(--title-color);
@@ -45,7 +71,9 @@
             padding: 0.5rem 0.75rem;
             border-radius: 0.5rem;
             border: 1px solid var(--border-color);
-            transition: border-color 0.2s, box-shadow 0.2s;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s;
         }
         .input-field:focus {
             outline: none;
@@ -78,9 +106,11 @@
         }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal-content {
-            background: white; padding: 1.5rem; border-radius: 0.75rem;
+            background: var(--card-bg);
+            color: var(--text-color);
+            padding: 1.5rem; border-radius: 0.75rem;
             width: 90%; max-width: 600px; transform: scale(0.95);
-            transition: transform 0.3s; display: flex; flex-direction: column;
+            transition: transform 0.3s, background-color 0.3s; display: flex; flex-direction: column;
         }
         .modal-overlay.active .modal-content { transform: scale(1); }
         .modal-scrollable-content { max-height: 70vh; overflow-y: auto; padding-right: 1rem; margin-right: -1rem; }
@@ -94,11 +124,11 @@
 
         /* Estilos de Rareza */
         .item-card { border-left-width: 5px; transition: all 0.3s ease; }
-        .item-card[data-rarity="Intrínseco"] { border-color: #6b7280; background-color: #f3f4f6; }
-        .item-card[data-rarity="Común"] { border-color: #9ca3af; background-color: #f9fafb; }
-        .item-card[data-rarity="Raro"] { border-color: #3b82f6; background-color: #eff6ff; }
-        .item-card[data-rarity="Épico"] { border-color: #8b5cf6; background-color: #f5f3ff; }
-        .item-card[data-rarity="Legendario"] { border-color: #f59e0b; background-color: #fffbeb; }
+        .item-card[data-rarity="Intrínseco"] { border-color: #6b7280; background-color: var(--rarity-intrinsic-bg); }
+        .item-card[data-rarity="Común"] { border-color: #9ca3af; background-color: var(--rarity-common-bg); }
+        .item-card[data-rarity="Raro"] { border-color: #3b82f6; background-color: var(--rarity-rare-bg); }
+        .item-card[data-rarity="Épico"] { border-color: #8b5cf6; background-color: var(--rarity-epic-bg); }
+        .item-card[data-rarity="Legendario"] { border-color: #f59e0b; background-color: var(--rarity-legendary-bg); }
         
         @keyframes mitico-anim {
             0% { background-position: 0% 50%; }
@@ -154,13 +184,23 @@
         .item-card[data-rarity="Legendario"] .rarity-text { color: #d97706; }
         .item-card[data-rarity="Mítico / Único"] .rarity-text { color: #facc15; }
         .item-card[data-rarity="Genesis"] .rarity-text { color: #a78bfa; }
+
+        body.dark .item-card[data-rarity="Raro"] .rarity-text,
+        body.dark .item-card[data-rarity="Épico"] .rarity-text,
+        body.dark .item-card[data-rarity="Legendario"] .rarity-text {
+             color: #f9fafb;
+        }
+        .stat-block {
+            background-color: var(--stat-bg);
+            transition: background-color 0.3s;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto">
-        <h1 class="text-3xl md:text-4xl font-bold text-center mb-2 text-gray-800">Hoja de Personaje v3.2</h1>
-        <p class="text-center text-gray-500 mb-6">Los cambios se guardan automáticamente en tu navegador.</p>
+        <h1 class="text-3xl md:text-4xl font-bold text-center mb-2 text-gray-800 dark:text-gray-200">Hoja de Personaje v3.3</h1>
+        <p class="text-center text-gray-500 dark:text-gray-400 mb-6">Los cambios se guardan automáticamente en tu navegador.</p>
 
         <!-- Contenedor Principal con Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -172,26 +212,26 @@
                     <h2 class="card-title">Identidad</h2>
                     <div class="space-y-4">
                         <div class="flex items-center space-x-4">
-                            <img id="character-image-preview" src="https://placehold.co/100x100/e0e0e0/2c3e50?text=Avatar" alt="Avatar del Personaje" class="w-24 h-24 rounded-full object-cover border-4 border-gray-200">
+                            <img id="character-image-preview" src="https://placehold.co/100x100/e0e0e0/2c3e50?text=Avatar" alt="Avatar del Personaje" class="w-24 h-24 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700">
                             <div class="space-y-2">
                                 <label for="character-image-upload" class="btn btn-primary text-sm w-full">Cargar Imagen</label>
                                 <input type="file" id="character-image-upload" class="hidden" accept="image/*">
                             </div>
                         </div>
                         <div>
-                            <label for="char-name" class="block text-sm font-medium text-gray-700">Nombre</label>
+                            <label for="char-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
                             <input type="text" id="char-name" class="input-field" placeholder="Nombre del Personaje">
                         </div>
                         <div>
-                            <label for="char-race" class="block text-sm font-medium text-gray-700">Raza</label>
+                            <label for="char-race" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Raza</label>
                             <input type="text" id="char-race" class="input-field" placeholder="Ej: Humano, Elfo">
                         </div>
                         <div>
-                            <label for="char-notes" class="block text-sm font-medium text-gray-700">Notas</label>
+                            <label for="char-notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notas</label>
                             <textarea id="char-notes" class="input-field" rows="2" placeholder="Anotaciones sobre el personaje..."></textarea>
                         </div>
                         <div>
-                            <label for="char-personality" class="block text-sm font-medium text-gray-700">Personalidad</label>
+                            <label for="char-personality" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Personalidad</label>
                             <textarea id="char-personality" class="input-field" rows="3" placeholder="Describe la personalidad..."></textarea>
                         </div>
                     </div>
@@ -218,7 +258,7 @@
                         </div>
                         <div>
                             <p class="text-center font-medium">Experiencia (XP)</p>
-                            <div class="w-full bg-gray-200 rounded-full h-4 mt-1">
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mt-1">
                                 <div id="xp-bar" class="bg-sky-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
                             </div>
                             <p class="text-center text-sm mt-1"><span id="current-xp-display">0</span> / <span id="needed-xp-display">300</span> XP</p>
@@ -232,9 +272,12 @@
 
                 <!-- Estadísticas Derivadas -->
                 <div class="card p-6">
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="flex justify-between items-center mb-4 gap-2">
                         <h2 class="card-title m-0 p-0 border-none">Estadísticas</h2>
-                        <button id="edit-base-stats-btn" class="btn btn-secondary text-sm">Editar Base</button>
+                        <div class="flex gap-2">
+                           <button id="restore-stats-btn" class="btn btn-primary text-sm">Restaurar</button>
+                           <button id="edit-base-stats-btn" class="btn btn-secondary text-sm">Editar Base</button>
+                        </div>
                     </div>
                     <div id="stats-container" class="grid grid-cols-2 gap-x-6 gap-y-3">
                         <!-- Las estadísticas se generan dinámicamente aquí -->
@@ -278,12 +321,12 @@
                 <div class="card p-6">
                     <h2 class="card-title">Inventario y Habilidades</h2>
                     <!-- Pestañas -->
-                    <div class="border-b border-gray-200 mb-4">
+                    <div class="border-b border-gray-200 dark:border-gray-700 mb-4">
                         <nav class="-mb-px flex space-x-4" id="inventory-tabs">
-                            <button data-tab="skills" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 active">Habilidades</button>
-                            <button data-tab="techniques" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Técnicas/Hechizos</button>
-                            <button data-tab="items" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Objetos</button>
-                            <button data-tab="pets" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Mascotas</button>
+                            <button data-tab="skills" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 active">Habilidades</button>
+                            <button data-tab="techniques" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Técnicas/Hechizos</button>
+                            <button data-tab="items" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Objetos</button>
+                            <button data-tab="pets" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Mascotas</button>
                         </nav>
                     </div>
                     <!-- Contenido de las pestañas -->
@@ -316,8 +359,9 @@
                  <div class="card p-6">
                     <h2 class="card-title">Gestión de Datos</h2>
                     <div class="grid grid-cols-2 gap-3">
-                        <button id="export-json-btn" class="btn btn-primary">Exportar a Archivo</button>
-                        <button id="import-json-btn" class="btn btn-primary">Importar de Archivo</button>
+                        <button id="theme-toggle-btn" class="btn btn-secondary">Cambiar Tema</button>
+                        <button id="export-json-btn" class="btn btn-primary">Exportar</button>
+                        <button id="import-json-btn" class="btn btn-primary">Importar</button>
                         <input type="file" id="json-import-input" class="hidden" accept=".json, .txt">
                         <button id="clear-local-data-btn" class="btn btn-danger col-span-2">Limpiar Datos y Reiniciar</button>
                     </div>
@@ -367,6 +411,7 @@ const XP_TABLE = {
 const EVOLUTION_LEVELS = [5, 10, 15, 20];
 const RARITIES = ['Intrínseco', 'Común', 'Raro', 'Épico', 'Legendario', 'Mítico / Único', 'Genesis'];
 const LOCAL_STORAGE_KEY = 'characterSheetData_v3';
+const THEME_STORAGE_KEY = 'characterSheetTheme_v3';
 
 let character; // Se inicializará en window.onload
 
@@ -454,6 +499,7 @@ function clearLocalData() {
     `);
     document.getElementById('confirm-delete-btn').onclick = () => {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
+        localStorage.removeItem(THEME_STORAGE_KEY);
         location.reload();
     };
 }
@@ -574,7 +620,8 @@ function calculateDerivedStats() {
     
     character.stats.health.current = Math.min(tempHealth, maxHealth);
     character.stats.mana.current = Math.min(tempMana, maxMana);
-    character.combat.currentActions = character.stats.actions.current;
+    
+    character.combat.currentActions = Math.min(character.combat.currentActions, character.stats.actions.current);
 }
 
 
@@ -622,7 +669,7 @@ function updateUI() {
             <label for="attr-${key}" class="font-semibold col-span-2">${attr.name}</label>
             <input type="number" id="attr-${key}" class="input-field text-center" value="${attr.value}">
             <span class="text-green-600 font-medium text-center">(+${equipmentBonus})</span>
-            <div class="bg-gray-200 text-center font-bold rounded-md py-2">${mod >= 0 ? '+' : ''}${mod}</div>
+            <div class="bg-gray-200 dark:bg-gray-600 text-center font-bold rounded-md py-2">${mod >= 0 ? '+' : ''}${mod}</div>
         `;
         attributesContainer.appendChild(div);
     }
@@ -653,7 +700,7 @@ function updateUI() {
     for (const key in statsToDisplay) {
         const stat = statsToDisplay[key];
         const div = document.createElement('div');
-        div.className = 'flex justify-between items-center bg-gray-50 p-2 rounded-md';
+        div.className = 'flex justify-between items-center stat-block p-2 rounded-md';
         if (key === 'health' || key === 'mana') {
              div.innerHTML = `
                 <span class="font-medium">${stat.name}</span>
@@ -791,7 +838,7 @@ function showNotification(title, message) {
 function createRaritySelector(selectedRarity = 'Común') {
     return `
         <div>
-            <label class="block text-sm font-medium text-gray-700">Rareza</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Rareza</label>
             <select class="input-field item-rarity">
                 ${RARITIES.map(r => `<option value="${r}" ${r === selectedRarity ? 'selected' : ''}>${r}</option>`).join('')}
             </select>
@@ -818,7 +865,7 @@ function openSkillForm(skill = null, index = -1) {
                 <input id="skill-cost-pa" type="number" class="input-field" placeholder="Coste PA" value="${skill?.costPA || 0}">
                 <input id="skill-cost-mp" type="number" class="input-field" placeholder="Coste Místyculas" value="${skill?.costMP || 0}">
                 
-                <div class="border p-4 rounded-md mt-4">
+                <div class="border p-4 rounded-md mt-4 border-gray-200 dark:border-gray-600">
                     <label for="skill-formula" class="font-semibold">Fórmula</label>
                     <textarea id="skill-formula" class="input-field mt-1" placeholder="Ej: (FUE)d(6)" rows="2">${skill?.formula || ''}</textarea>
                     <div id="formula-builder-container" class="mt-2"></div>
@@ -826,7 +873,7 @@ function openSkillForm(skill = null, index = -1) {
 
             </div>
         </div>
-        <div class="flex justify-end space-x-2 mt-6 pt-4 border-t">
+        <div class="flex justify-end space-x-2 mt-6 pt-4 border-t dark:border-gray-600">
             <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
             <button id="save-skill-btn" class="btn btn-primary">${btnText}</button>
         </div>
@@ -885,7 +932,7 @@ function renderSkillCard(skill, index) {
                     ${rarityOptions}
                 </select>
                 <p class="text-sm mt-2">Coste: ${skill.costPA} PA / ${skill.costMP} MP</p>
-                <p class="text-sm font-mono bg-gray-200 px-2 py-1 rounded mt-1 inline-block">${skill.formula || 'Sin fórmula'}</p>
+                <p class="text-sm font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded mt-1 inline-block">${skill.formula || 'Sin fórmula'}</p>
                 ${damageSwitch}
             </div>
             <div class="flex flex-col space-y-1">
@@ -925,14 +972,14 @@ function openTechniqueForm(tech = null, index = -1) {
                 </select>
                 <input id="tech-cost-pa" type="number" class="input-field" placeholder="Coste PA" value="${tech?.costPA || 0}">
                 <input id="tech-cost-mp" type="number" class="input-field" placeholder="Coste Místyculas" value="${tech?.costMP || 0}">
-                <div class="border p-4 rounded-md mt-4">
+                <div class="border p-4 rounded-md mt-4 border-gray-200 dark:border-gray-600">
                     <label for="tech-formula" class="font-semibold">Fórmula</label>
                     <textarea id="tech-formula" class="input-field mt-1" placeholder="Fórmula. Ej: (INT)d(8)" rows="2">${tech?.formula || ''}</textarea>
                     <div id="formula-builder-container" class="mt-2"></div>
                 </div>
             </div>
         </div>
-        <div class="flex justify-end space-x-2 mt-6 pt-4 border-t">
+        <div class="flex justify-end space-x-2 mt-6 pt-4 border-t dark:border-gray-600">
             <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
             <button id="save-tech-btn" class="btn btn-primary">${isEditing ? 'Guardar' : 'Crear'}</button>
         </div>
@@ -990,7 +1037,7 @@ function renderTechniqueCard(tech, index) {
                     ${rarityOptions}
                 </select>
                 <p class="text-sm mt-2">Coste: ${tech.costPA} PA / ${tech.costMP} MP</p>
-                <p class="text-sm font-mono bg-gray-200 px-2 py-1 rounded mt-1 inline-block">${tech.formula || 'Sin fórmula'}</p>
+                <p class="text-sm font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded mt-1 inline-block">${tech.formula || 'Sin fórmula'}</p>
                 ${damageSwitch}
             </div>
             <div class="flex flex-col space-y-1">
@@ -1045,14 +1092,14 @@ function openItemForm(item = null, index = -1) {
                     <h4 class="font-semibold mb-2">Otros Efectos (Personalizados)</h4>
                     <textarea id="item-other-effects" class="input-field" rows="3" placeholder="Ej: Inmune al fuego\nEj: Brilla en la oscuridad">${otherEffectsText}</textarea>
                 </div>
-                <div class="border p-4 rounded-md mt-4">
+                <div class="border p-4 rounded-md mt-4 border-gray-200 dark:border-gray-600">
                     <label for="item-damage-formula" class="font-semibold">Fórmula de Daño</label>
                     <textarea id="item-damage-formula" class="input-field mt-1" placeholder="Ej: 1d8 + (Mod.FUE)" rows="2">${item?.damageFormula || ''}</textarea>
                     <div id="damage-formula-builder-container" class="mt-2"></div>
                 </div>
             </div>
         </div>
-        <div class="flex justify-end space-x-2 mt-6 pt-4 border-t">
+        <div class="flex justify-end space-x-2 mt-6 pt-4 border-t dark:border-gray-600">
             <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
             <button id="save-item-btn" class="btn btn-primary">${isEditing ? 'Guardar' : 'Crear'}</button>
         </div>
@@ -1135,12 +1182,12 @@ function renderItemCard(item, index) {
     card.dataset.rarity = item.rarity || 'Común';
     const rarityOptions = RARITIES.map(r => `<option value="${r}" ${item.rarity === r ? 'selected' : ''}>${r}</option>`).join('');
     const effectsList = item.effects.map(e => `<li class="text-xs font-mono">${e}</li>`).join('');
-    const damageHtml = item.damageFormula ? `<p class="text-sm font-mono bg-red-100 text-red-800 px-2 py-1 rounded mt-1 inline-block">Daño: ${item.damageFormula}</p>` : '';
+    const damageHtml = item.damageFormula ? `<p class="text-sm font-mono bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300 px-2 py-1 rounded mt-1 inline-block">Daño: ${item.damageFormula}</p>` : '';
     
     card.innerHTML = `
         <div class="flex justify-between items-start">
             <div>
-                <p class="font-bold">${item.name} <span class="text-sm font-normal text-gray-500">(${item.type})</span></p>
+                <p class="font-bold">${item.name} <span class="text-sm font-normal text-gray-500 dark:text-gray-400">(${item.type})</span></p>
                 <select class="input-field item-rarity-select mt-2 text-sm" onchange="changeRarity('items', ${index}, this.value)">
                     ${rarityOptions}
                 </select>
@@ -1212,7 +1259,7 @@ function openPetForm(pet = null, index = -1) {
         <div class="modal-scrollable-content">
             <div class="space-y-4">
                 <div class="flex items-center space-x-4">
-                    <img id="pet-image-preview" src="${pet?.image || 'https://placehold.co/80x80/e0e0e0/2c3e50?text=Pet'}" alt="Avatar de la Mascota" class="w-20 h-20 rounded-full object-cover border-4 border-gray-200">
+                    <img id="pet-image-preview" src="${pet?.image || 'https://placehold.co/80x80/e0e0e0/2c3e50?text=Pet'}" alt="Avatar de la Mascota" class="w-20 h-20 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700">
                     <div>
                         <label for="pet-image-upload" class="btn btn-primary text-sm">Cargar Imagen</label>
                         <input type="file" id="pet-image-upload" class="hidden" accept="image/*">
@@ -1224,10 +1271,10 @@ function openPetForm(pet = null, index = -1) {
                 ${createRaritySelector(pet?.rarity || 'Común')}
                 <textarea id="pet-notes" class="input-field" rows="3" placeholder="Notas, personalidad, historia...">${pet?.notes || ''}</textarea>
                 
-                <h4 class="font-semibold pt-2 border-t mt-4">Atributos Base</h4>
+                <h4 class="font-semibold pt-2 border-t mt-4 dark:border-gray-600">Atributos Base</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">${attrInputs}</div>
 
-                <h4 class="font-semibold pt-2 border-t mt-4">Estadísticas Base</h4>
+                <h4 class="font-semibold pt-2 border-t mt-4 dark:border-gray-600">Estadísticas Base</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
                      <div class="flex justify-between items-center">
                         <label for="pet-base-health" class="font-medium">Vida Base</label>
@@ -1248,7 +1295,7 @@ function openPetForm(pet = null, index = -1) {
                 </div>
             </div>
         </div>
-        <div class="flex justify-end space-x-2 mt-6 pt-4 border-t">
+        <div class="flex justify-end space-x-2 mt-6 pt-4 border-t dark:border-gray-600">
             <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
             <button id="save-pet-btn" class="btn btn-primary">${isEditing ? 'Guardar' : 'Crear'}</button>
         </div>
@@ -1323,7 +1370,7 @@ function renderPetCard(pet, index) {
     const attributesHtml = Object.entries(hydratedPet.attributes).map(([key, value]) => `
         <div class="flex justify-between text-xs">
             <span class="font-semibold">${key}</span>
-            <span>${value} <span class="text-gray-500">(${getModifier(value) >= 0 ? '+' : ''}${getModifier(value)})</span></span>
+            <span>${value} <span class="text-gray-500 dark:text-gray-400">(${getModifier(value) >= 0 ? '+' : ''}${getModifier(value)})</span></span>
         </div>
     `).join('');
 
@@ -1349,11 +1396,11 @@ function renderPetCard(pet, index) {
     `;
 
     const skillsHtml = hydratedPet.skills.map((skill, skillIndex) => `
-        <div class="p-2 border-t flex justify-between items-center">
+        <div class="p-2 border-t dark:border-gray-600 flex justify-between items-center">
             <div>
-                <p class="font-semibold text-sm">${skill.name} <span class="text-xs font-normal text-gray-500">(${skill.type})</span></p>
+                <p class="font-semibold text-sm">${skill.name} <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(${skill.type})</span></p>
                 <p class="text-xs">Coste: ${skill.costPA || 0} PA / ${skill.costMP || 0} MP</p>
-                <p class="text-xs font-mono bg-gray-200 px-1 py-0.5 rounded mt-1 inline-block">${skill.formula || 'N/A'}</p>
+                <p class="text-xs font-mono bg-gray-200 dark:bg-gray-600 px-1 py-0.5 rounded mt-1 inline-block">${skill.formula || 'N/A'}</p>
             </div>
             <div class="flex flex-col gap-1">
                 <button class="btn btn-secondary !p-1 text-xs" onclick="openPetSkillForm(${index}, character.inventory.pets[${index}].skills[${skillIndex}], ${skillIndex})">E</button>
@@ -1369,7 +1416,7 @@ function renderPetCard(pet, index) {
                 <div>
                     <p class="font-bold text-lg">${hydratedPet.name}</p>
                     <p class="text-sm rarity-text -mt-1">${hydratedPet.rarity}</p>
-                    <p class="text-xs text-gray-500">${hydratedPet.type} - Nivel ${hydratedPet.level}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">${hydratedPet.type} - Nivel ${hydratedPet.level}</p>
                 </div>
             </div>
             <div class="flex flex-col space-y-1">
@@ -1377,7 +1424,7 @@ function renderPetCard(pet, index) {
                  <button class="btn btn-danger btn-sm" onclick="deleteItem('pets', ${index})">Eliminar</button>
             </div>
         </div>
-        <div class="grid grid-cols-2 gap-4 border-t pt-3">
+        <div class="grid grid-cols-2 gap-4 border-t dark:border-gray-600 pt-3">
             <div>
                 <h4 class="font-semibold mb-1 text-sm">Atributos</h4>
                 <div class="space-y-1">${attributesHtml}</div>
@@ -1388,19 +1435,19 @@ function renderPetCard(pet, index) {
             </div>
         </div>
         <div>
-            <div class="border-b border-gray-200">
+            <div class="border-b border-gray-200 dark:border-gray-700">
                 <nav class="-mb-px flex space-x-2">
-                    <button data-pet-tab="skills" class="tab-button pet-tab-${index} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-xs border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 active">Habilidades</button>
-                    <button data-pet-tab="notes" class="tab-button pet-tab-${index} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-xs border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">Notas</button>
+                    <button data-pet-tab="skills" class="tab-button pet-tab-${index} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-xs border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 active">Habilidades</button>
+                    <button data-pet-tab="notes" class="tab-button pet-tab-${index} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-xs border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Notas</button>
                 </nav>
             </div>
             <div class="mt-2">
                 <div id="pet-tab-content-${index}-skills" class="pet-pane-${index} active">
-                    <div class="space-y-1 max-h-40 overflow-y-auto">${skillsHtml || '<p class="text-xs text-gray-500 p-2">Sin habilidades.</p>'}</div>
+                    <div class="space-y-1 max-h-40 overflow-y-auto">${skillsHtml || '<p class="text-xs text-gray-500 dark:text-gray-400 p-2">Sin habilidades.</p>'}</div>
                     <button class="btn btn-primary text-xs w-full mt-2" onclick="openPetSkillForm(${index})">Añadir Habilidad</button>
                 </div>
                 <div id="pet-tab-content-${index}-notes" class="pet-pane-${index} hidden">
-                    <p class="text-xs p-2 bg-gray-100 rounded min-h-[4rem]">${hydratedPet.notes || 'Sin notas.'}</p>
+                    <p class="text-xs p-2 bg-gray-100 dark:bg-gray-800 rounded min-h-[4rem]">${hydratedPet.notes || 'Sin notas.'}</p>
                 </div>
             </div>
         </div>
@@ -1447,7 +1494,7 @@ function openPetSkillForm(petIndex, skill = null, skillIndex = -1) {
                 <textarea id="pet-skill-formula" class="input-field" placeholder="Fórmula" rows="2">${skill?.formula || ''}</textarea>
             </div>
         </div>
-        <div class="flex justify-end space-x-2 mt-6 pt-4 border-t">
+        <div class="flex justify-end space-x-2 mt-6 pt-4 border-t dark:border-gray-600">
             <button class="btn btn-secondary" onclick="closeModal(2)">Cancelar</button>
             <button id="save-pet-skill-btn" class="btn btn-primary">${isEditing ? 'Guardar' : 'Crear'}</button>
         </div>
@@ -1508,7 +1555,7 @@ function openManageSlotsModal() {
             .map((slot, index) => {
                 if (!slot.isCustom) return '';
                 return `
-                    <div class="flex justify-between items-center p-2 bg-gray-100 rounded-md">
+                    <div class="flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-800 rounded-md">
                         <span>${slot.slotName}</span>
                         <button class="btn btn-danger btn-sm !p-1.5" onclick="handleDeleteSlot(${index})">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/></svg>
@@ -1530,12 +1577,12 @@ function openManageSlotsModal() {
                     <div>
                         <h4 class="font-semibold mb-2">Slots Personalizados</h4>
                         <div id="custom-slots-list" class="space-y-2">
-                            ${customSlotsHtml || '<p class="text-gray-500 text-sm">No hay slots personalizados.</p>'}
+                            ${customSlotsHtml || '<p class="text-gray-500 dark:text-gray-400 text-sm">No hay slots personalizados.</p>'}
                         </div>
                     </div>
                 </div>
             </div>
-             <div class="flex justify-end mt-6 pt-4 border-t">
+             <div class="flex justify-end mt-6 pt-4 border-t dark:border-gray-600">
                 <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
             </div>`;
     };
@@ -1573,7 +1620,7 @@ function renderEquipment() {
     container.innerHTML = '';
     character.equipment.forEach((slot, index) => {
         const div = document.createElement('div');
-        div.className = 'p-3 border rounded-lg flex justify-between items-center';
+        div.className = 'p-3 border dark:border-gray-700 rounded-lg flex justify-between items-center';
         
         let damageSwitch = '';
         if (slot.item && slot.item.damageFormula) {
@@ -1590,8 +1637,8 @@ function renderEquipment() {
         div.innerHTML = `
             <div class="flex-grow">
                 <p class="font-semibold capitalize">${slot.slotName}</p>
-                <p class="text-sm text-gray-600">${slot.item ? slot.item.name : 'Vacío'}</p>
-                 ${slot.item?.damageFormula ? `<p class="text-xs font-mono bg-red-100 text-red-800 px-2 py-1 rounded mt-1 inline-block">${slot.item.damageFormula}</p>` : ''}
+                <p class="text-sm text-gray-600 dark:text-gray-400">${slot.item ? slot.item.name : 'Vacío'}</p>
+                 ${slot.item?.damageFormula ? `<p class="text-xs font-mono bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300 px-2 py-1 rounded mt-1 inline-block">${slot.item.damageFormula}</p>` : ''}
             </div>
             <div class="flex items-center">
                  ${damageSwitch}
@@ -1697,15 +1744,15 @@ function renderFormulaBuilder(containerId, targetTextareaId) {
 function openDiceBuilderModal(targetTextareaId) {
     const builderButtons = (targetInputId) => {
         let html = '<div class="flex flex-wrap gap-1 mt-2">';
-        html += '<p class="w-full text-xs font-semibold text-gray-500">Atributos:</p>';
+        html += '<p class="w-full text-xs font-semibold text-gray-500 dark:text-gray-400">Atributos:</p>';
         Object.keys(character.attributes).forEach(k => {
             html += `<button class="btn btn-secondary text-xs !p-1" onclick="document.getElementById('${targetInputId}').value = '(${k})'">${k}</button>`;
         });
-        html += '<p class="w-full text-xs font-semibold text-gray-500 mt-1">Modificadores:</p>';
+        html += '<p class="w-full text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1">Modificadores:</p>';
         Object.keys(character.attributes).forEach(k => {
             html += `<button class="btn btn-secondary text-xs !p-1" onclick="document.getElementById('${targetInputId}').value = '(Mod.${k})'">Mod.${k}</button>`;
         });
-        html += '<p class="w-full text-xs font-semibold text-gray-500 mt-1">Estadísticas:</p>';
+        html += '<p class="w-full text-xs font-semibold text-gray-500 dark:text-gray-400 mt-1">Estadísticas:</p>';
         Object.keys(character.stats).forEach(k => {
             html += `<button class="btn btn-secondary text-xs !p-1" onclick="document.getElementById('${targetInputId}').value = '(${character.stats[k].name})'">${character.stats[k].name}</button>`;
         });
@@ -1715,7 +1762,7 @@ function openDiceBuilderModal(targetTextareaId) {
     
     const diceButtons = (targetInputId) => {
         let html = '<div class="flex flex-wrap gap-1 mt-2">';
-         html += '<p class="w-full text-xs font-semibold text-gray-500">Dados:</p>';
+         html += '<p class="w-full text-xs font-semibold text-gray-500 dark:text-gray-400">Dados:</p>';
         ['4','6','8','10','12','20','100'].forEach(d => {
             html += `<button class="btn btn-secondary text-xs !p-1" onclick="document.getElementById('${targetInputId}').value = '${d}'">d${d}</button>`;
         });
@@ -1740,7 +1787,7 @@ function openDiceBuilderModal(targetTextareaId) {
                 </div>
             </div>
         </div>
-        <div class="flex justify-end mt-6 pt-4 border-t space-x-2">
+        <div class="flex justify-end mt-6 pt-4 border-t dark:border-gray-600 space-x-2">
             <button class="btn btn-secondary" onclick="closeModal(2)">Cancelar</button>
             <button class="btn btn-primary" id="confirm-dice-btn">Añadir Dado</button>
         </div>
@@ -1902,6 +1949,14 @@ document.getElementById('end-turn-btn').addEventListener('click', () => {
     saveAndRefresh();
 });
 
+// --- Restaurar Vida y Maná ---
+function restoreHealthAndMana() {
+    character.stats.health.current = character.stats.health.max;
+    character.stats.mana.current = character.stats.mana.max;
+    showNotification('Recursos Restaurados', 'La vida y las místyculas se han restaurado al máximo.');
+    saveAndRefresh();
+}
+
 // --- Gestión ---
 document.getElementById('export-json-btn').addEventListener('click', () => {
     saveCharacterToLocalStorage(); // Ensure latest data is captured
@@ -1965,7 +2020,7 @@ document.getElementById('edit-base-stats-btn').addEventListener('click', () => {
     const content = `
         <h3 class="text-2xl font-bold mb-4">Editar Valores Base</h3>
         <div class="modal-scrollable-content">
-            <p class="text-sm text-gray-600 mb-4">Ajusta los valores base de tu personaje. El nivel y la experiencia se gestionan por separado.</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Ajusta los valores base de tu personaje. El nivel y la experiencia se gestionan por separado.</p>
             <div class="space-y-2">
             ${Object.keys(character.stats).filter(key => !['level', 'xp', 'health', 'mana'].includes(key)).map(key => `
                 <div class="flex justify-between items-center">
@@ -1973,7 +2028,7 @@ document.getElementById('edit-base-stats-btn').addEventListener('click', () => {
                     <input type="number" id="base-stat-${key}" class="input-field w-24 text-center" value="${character.stats[key].base}">
                 </div>
             `).join('')}
-            <div class="flex justify-between items-center pt-2 border-t">
+            <div class="flex justify-between items-center pt-2 border-t dark:border-gray-600">
                 <label for="base-stat-health">Vida Base</label>
                 <input type="number" id="base-stat-health" class="input-field w-24 text-center" value="${character.stats.health.base}">
             </div>
@@ -1981,13 +2036,13 @@ document.getElementById('edit-base-stats-btn').addEventListener('click', () => {
                 <label for="base-stat-mana">Místyculas Base</label>
                 <input type="number" id="base-stat-mana" class="input-field w-24 text-center" value="${character.stats.mana.base}">
             </div>
-            <div class="flex justify-between items-center pt-2 border-t">
+            <div class="flex justify-between items-center pt-2 border-t dark:border-gray-600">
                 <label for="base-stat-level">Nivel</label>
                 <input type="number" id="base-stat-level" class="input-field w-24 text-center" value="${character.stats.level.base}">
             </div>
             </div>
         </div>
-        <div class="flex justify-end mt-6 pt-4 border-t">
+        <div class="flex justify-end mt-6 pt-4 border-t dark:border-gray-600">
             <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
             <button class="btn btn-primary" id="save-base-stats">Guardar y Recalcular</button>
         </div>
@@ -2049,11 +2104,22 @@ document.getElementById('add-xp-btn').addEventListener('click', () => {
     }
 });
 
+// --- Tema ---
+function toggleTheme() {
+    document.body.classList.toggle('dark');
+    const currentTheme = document.body.classList.contains('dark') ? 'dark' : 'light';
+    localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
+}
 
 // ===================================================================================
 // INICIALIZACIÓN
 // ===================================================================================
 window.onload = () => {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark');
+    }
+
     const loadedCharacter = loadCharacterFromLocalStorage();
     character = loadedCharacter ? loadedCharacter : getDefaultCharacter();
     
@@ -2066,6 +2132,9 @@ window.onload = () => {
     character.inventory = {...defaultChar.inventory, ...character.inventory};
     character.equipment = character.equipment && character.equipment.length > 0 ? character.equipment : defaultChar.equipment;
 
+    // Add event listeners for new buttons
+    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+    document.getElementById('restore-stats-btn').addEventListener('click', restoreHealthAndMana);
 
     calculateDerivedStats();
     updateUI();
