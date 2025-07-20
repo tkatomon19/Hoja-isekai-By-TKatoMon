@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Personaje - Isekai Delivery Service v3.3</title>
+    <title>Hoja de Personaje - Isekai Delivery Service v3.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Estilos base y paleta de colores v3.3 */
+        /* Estilos base y variables CSS */
         :root {
             --bg-color: #f0f2f5;
             --card-bg: #ffffff;
@@ -28,20 +28,45 @@
             --rarity-legendary-bg: #fffbeb;
         }
         
-        body.dark {
-            --bg-color: #111827;
-            --card-bg: #1f2937;
-            --text-color: #d1d5db;
-            --text-secondary: #9ca3af;
-            --title-color: #f9fafb;
-            --border-color: #374151;
-            --input-bg: #374151;
-            --stat-bg: #374151;
-            --rarity-intrinsic-bg: #374151;
-            --rarity-common-bg: #374151;
-            --rarity-rare-bg: #1e3a8a;
-            --rarity-epic-bg: #4c1d95;
-            --rarity-legendary-bg: #78350f;
+        /* Tema Oscuro (Dark) */
+        .theme-dark {
+            --bg-color: #111827; --card-bg: #1f2937; --text-color: #d1d5db;
+            --text-secondary: #9ca3af; --title-color: #f9fafb; --border-color: #374151;
+            --input-bg: #374151; --stat-bg: #374151; --rarity-intrinsic-bg: #374151;
+            --rarity-common-bg: #374151; --rarity-rare-bg: #1e3a8a;
+            --rarity-epic-bg: #4c1d95; --rarity-legendary-bg: #78350f;
+        }
+        /* Tema Bosque (Forest) */
+        .theme-forest {
+            --bg-color: #f0fff4; --card-bg: #ffffff; --text-color: #2f3e46;
+            --text-secondary: #52796f; --title-color: #2f3e46; --accent-color: #4c956c;
+            --accent-hover: #3a7d56; --border-color: #cad2c5; --input-bg: #ffffff;
+            --stat-bg: #e9f5e9; --rarity-rare-bg: #d8f3dc; --rarity-epic-bg: #b7e4c7;
+            --rarity-legendary-bg: #95d5b2;
+        }
+        /* Tema Océano (Ocean) */
+        .theme-ocean {
+            --bg-color: #f0f9ff; --card-bg: #ffffff; --text-color: #0c4a6e;
+            --text-secondary: #38bdf8; --title-color: #075985; --accent-color: #0ea5e9;
+            --accent-hover: #0284c7; --border-color: #bae6fd; --input-bg: #ffffff;
+            --stat-bg: #e0f2fe; --rarity-rare-bg: #cffafe; --rarity-epic-bg: #a5f3fc;
+            --rarity-legendary-bg: #67e8f9;
+        }
+        /* Tema Fuego (Fire) */
+        .theme-fire {
+            --bg-color: #fffbeb; --card-bg: #ffffff; --text-color: #451a03;
+            --text-secondary: #9a3412; --title-color: #78350f; --accent-color: #f97316;
+            --accent-hover: #ea580c; --border-color: #fed7aa; --input-bg: #ffffff;
+            --stat-bg: #fef3c7; --rarity-rare-bg: #fee2e2; --rarity-epic-bg: #ffedd5;
+            --rarity-legendary-bg: #fde68a;
+        }
+        /* Tema Crepúsculo (Dusk) */
+        .theme-dusk {
+            --bg-color: #1e293b; --card-bg: #334155; --text-color: #cbd5e1;
+            --text-secondary: #94a3b8; --title-color: #f1f5f9; --accent-color: #f97316;
+            --accent-hover: #fb923c; --border-color: #475569; --input-bg: #475569;
+            --stat-bg: #475569; --rarity-rare-bg: #1e3a8a;
+            --rarity-epic-bg: #4c1d95; --rarity-legendary-bg: #7c2d12;
         }
 
         html { scroll-behavior: smooth; }
@@ -131,50 +156,36 @@
         .item-card[data-rarity="Legendario"] { border-color: #f59e0b; background-color: var(--rarity-legendary-bg); }
         
         @keyframes mitico-anim {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
         }
         .item-card[data-rarity="Mítico / Único"] {
             background: linear-gradient(60deg, #b91c1c, #f59e0b, #ca8a04, #b91c1c);
-            background-size: 300% 300%;
-            animation: mitico-anim 5s ease infinite;
-            border-left-color: transparent;
+            background-size: 300% 300%; animation: mitico-anim 5s ease infinite; border-left-color: transparent;
         }
-        .item-card[data-rarity="Mítico / Único"] .rarity-text,
-        .item-card[data-rarity="Mítico / Único"] p, 
-        .item-card[data-rarity="Mítico / Único"] span, 
-        .item-card[data-rarity="Mítico / Único"] .font-bold,
-        .item-card[data-rarity="Mítico / Único"] .font-semibold,
-        .item-card[data-rarity="Mítico / Único"] .text-gray-500 { 
-            color: white; 
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4); 
+        .item-card[data-rarity="Mítico / Único"] .rarity-text, .item-card[data-rarity="Mítico / Único"] p, 
+        .item-card[data-rarity="Mítico / Único"] span, .item-card[data-rarity="Mítico / Único"] .font-bold,
+        .item-card[data-rarity="Mítico / Único"] .font-semibold, .item-card[data-rarity="Mítico / Único"] .text-gray-500 { 
+            color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.4); 
         }
-        .item-card[data-rarity="Mítico / Único"] .bg-gray-200,
-        .item-card[data-rarity="Mítico / Único"] .bg-gray-100 { 
-            background-color: rgba(0,0,0,0.2); 
-            border: 1px solid rgba(255,255,255,0.2); 
+        .item-card[data-rarity="Mítico / Único"] .bg-gray-200, .item-card[data-rarity="Mítico / Único"] .bg-gray-100 { 
+            background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.2); 
         }
         
         @keyframes genesis-anim {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
         }
         .item-card[data-rarity="Genesis"] {
             background: linear-gradient(60deg, #1e3a8a, #059669, #f59e0b, #9333ea, #1e3a8a);
-            background-size: 300% 300%;
-            animation: genesis-anim 6s ease infinite;
-            border-left-color: transparent;
+            background-size: 300% 300%; animation: genesis-anim 6s ease infinite; border-left-color: transparent;
         }
-        .item-card[data-rarity="Genesis"] .rarity-text,
-        .item-card[data-rarity="Genesis"] p, 
-        .item-card[data-rarity="Genesis"] span, 
-        .item-card[data-rarity="Genesis"] .font-bold,
-        .item-card[data-rarity="Genesis"] .font-semibold,
-        .item-card[data-rarity="Genesis"] .text-gray-500 { color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
-        .item-card[data-rarity="Genesis"] .bg-gray-200,
-        .item-card[data-rarity="Genesis"] .bg-gray-100 { background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.2); }
+        .item-card[data-rarity="Genesis"] .rarity-text, .item-card[data-rarity="Genesis"] p, 
+        .item-card[data-rarity="Genesis"] span, .item-card[data-rarity="Genesis"] .font-bold,
+        .item-card[data-rarity="Genesis"] .font-semibold, .item-card[data-rarity="Genesis"] .text-gray-500 { 
+            color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.4); 
+        }
+        .item-card[data-rarity="Genesis"] .bg-gray-200, .item-card[data-rarity="Genesis"] .bg-gray-100 { 
+            background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.2); 
+        }
         
         .rarity-text { font-weight: 600; }
         .item-card[data-rarity="Intrínseco"] .rarity-text { color: #4b5563; }
@@ -185,9 +196,9 @@
         .item-card[data-rarity="Mítico / Único"] .rarity-text { color: #facc15; }
         .item-card[data-rarity="Genesis"] .rarity-text { color: #a78bfa; }
 
-        body.dark .item-card[data-rarity="Raro"] .rarity-text,
-        body.dark .item-card[data-rarity="Épico"] .rarity-text,
-        body.dark .item-card[data-rarity="Legendario"] .rarity-text {
+        .theme-dark .item-card[data-rarity="Raro"] .rarity-text,
+        .theme-dark .item-card[data-rarity="Épico"] .rarity-text,
+        .theme-dark .item-card[data-rarity="Legendario"] .rarity-text {
              color: #f9fafb;
         }
         .stat-block {
@@ -199,7 +210,7 @@
 <body class="p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto">
-        <h1 class="text-3xl md:text-4xl font-bold text-center mb-2 text-gray-800 dark:text-gray-200">Hoja de Personaje v3.3</h1>
+        <h1 class="text-3xl md:text-4xl font-bold text-center mb-2 text-gray-800 dark:text-gray-200">Hoja de Personaje v3.6</h1>
         <p class="text-center text-gray-500 dark:text-gray-400 mb-6">Los cambios se guardan automáticamente en tu navegador.</p>
 
         <!-- Contenedor Principal con Grid -->
@@ -244,6 +255,14 @@
                         <!-- Los atributos se generan dinámicamente aquí -->
                     </div>
                 </div>
+
+                <!-- Elementos -->
+                <div class="card p-6">
+                    <h2 class="card-title">Afinidad Elemental</h2>
+                    <div id="elements-container" class="grid grid-cols-1 gap-4">
+                        <!-- Las afinidades elementales se generan aquí -->
+                    </div>
+                </div>
             </div>
 
             <!-- Columna Central -->
@@ -279,7 +298,7 @@
                            <button id="edit-base-stats-btn" class="btn btn-secondary text-sm">Editar Base</button>
                         </div>
                     </div>
-                    <div id="stats-container" class="grid grid-cols-2 gap-x-6 gap-y-3">
+                    <div id="stats-container" class="grid grid-cols-1 gap-y-3">
                         <!-- Las estadísticas se generan dinámicamente aquí -->
                     </div>
                 </div>
@@ -410,8 +429,18 @@ const XP_TABLE = {
 };
 const EVOLUTION_LEVELS = [5, 10, 15, 20];
 const RARITIES = ['Intrínseco', 'Común', 'Raro', 'Épico', 'Legendario', 'Mítico / Único', 'Genesis'];
-const LOCAL_STORAGE_KEY = 'characterSheetData_v3';
-const THEME_STORAGE_KEY = 'characterSheetTheme_v3';
+const LOCAL_STORAGE_KEY = 'characterSheetData_v3.6';
+const THEME_STORAGE_KEY = 'characterSheetTheme_v3.6';
+
+const ELEMENTS_CONFIG = {
+    fuego: { name: 'Fuego', emoji: '🔥', color: 'bg-red-100 dark:bg-red-900/50' },
+    aire: { name: 'Aire', emoji: '💨', color: 'bg-sky-100 dark:bg-sky-900/50' },
+    agua: { name: 'Agua', emoji: '💧', color: 'bg-blue-100 dark:bg-blue-900/50' },
+    electricidad: { name: 'Electricidad', emoji: '⚡', color: 'bg-yellow-100 dark:bg-yellow-900/50' },
+    tierra: { name: 'Tierra', emoji: '🌍', color: 'bg-amber-100 dark:bg-amber-900/50' },
+    luz: { name: 'Luz', emoji: '☀️', color: 'bg-yellow-50 dark:bg-yellow-800/50' },
+    oscuridad: { name: 'Oscuridad', emoji: '🌙', color: 'bg-slate-200 dark:bg-slate-800' }
+};
 
 let character; // Se inicializará en window.onload
 
@@ -427,6 +456,10 @@ function getDefaultCharacter() {
             MET: { name: 'Metabolismo', value: 10 }, INT: { name: 'Inteligencia', value: 10 },
             APM: { name: 'Aptitud Mágica', value: 10 },
         },
+        elements: {
+            fuego: 0, aire: 0, agua: 0, electricidad: 0,
+            tierra: 0, luz: 0, oscuridad: 0
+        },
         stats: {
             level: { name: 'Nivel', base: 1, current: 1 }, xp: { name: 'Experiencia', base: 0, current: 0 },
             health: { name: 'Vida', base: 25, current: 25, max: 25 }, armor: { name: 'Armadura', base: 10, current: 10 },
@@ -441,7 +474,12 @@ function getDefaultCharacter() {
             { slotName: 'Accesorio 1', type: 'accesorio', item: null, isCustom: false, isDamageFormulaActive: false },
             { slotName: 'Accesorio 2', type: 'accesorio', item: null, isCustom: false, isDamageFormulaActive: false },
         ],
-        inventory: { skills: [], techniques: [], items: [], pets: [], }
+        inventory: {
+            skills: [],
+            techniques: [],
+            items: [],
+            pets: [],
+        }
     };
 }
 
@@ -664,12 +702,13 @@ function updateUI() {
         const mod = getModifier(totalValue);
 
         const div = document.createElement('div');
-        div.className = 'grid grid-cols-5 items-center gap-2';
+        div.className = 'grid grid-cols-6 items-center gap-2';
         div.innerHTML = `
             <label for="attr-${key}" class="font-semibold col-span-2">${attr.name}</label>
             <input type="number" id="attr-${key}" class="input-field text-center" value="${attr.value}">
             <span class="text-green-600 font-medium text-center">(+${equipmentBonus})</span>
             <div class="bg-gray-200 dark:bg-gray-600 text-center font-bold rounded-md py-2">${mod >= 0 ? '+' : ''}${mod}</div>
+            <button class="btn btn-primary" onclick="rollAttributeCheck('${key}')" title="Lanzar 1d20 + Modificador">🎲</button>
         `;
         attributesContainer.appendChild(div);
     }
@@ -711,6 +750,15 @@ function updateUI() {
                 </div>
             `;
             statsContainer.appendChild(div);
+        } else if (key === 'resistance' || key === 'wisdom') {
+            div.innerHTML = `
+                <span class="font-medium">${stat.name}</span>
+                <div class="flex items-center gap-2">
+                    <span class="font-bold">${stat.current}</span>
+                    <button class="btn btn-primary" onclick="rollStatCheck('${key}')" title="Lanzar 1d20 + Valor">🎲</button>
+                </div>
+            `;
+            statsContainer.appendChild(div);
         } else {
             div.innerHTML = `
                 <span class="font-medium">${stat.name}</span>
@@ -732,22 +780,49 @@ function updateUI() {
     else if (level >= 10) slots = 12;
     document.getElementById('technique-slots').textContent = `${character.inventory.techniques.length} / ${slots}`;
 
+    renderElements();
     renderInventory();
     renderEquipment();
     addEventListeners();
 }
 
+function renderElements() {
+    const container = document.getElementById('elements-container');
+    if (!container) return;
+    container.innerHTML = '';
+    for (const key in character.elements) {
+        const config = ELEMENTS_CONFIG[key];
+        const value = character.elements[key];
+        const div = document.createElement('div');
+        div.className = `p-3 rounded-lg flex items-center gap-4 ${config.color}`;
+        div.innerHTML = `
+            <span class="text-2xl">${config.emoji}</span>
+            <label for="element-${key}" class="font-semibold flex-grow">${config.name}</label>
+            <input type="number" id="element-${key}" class="input-field w-20 text-center" value="${value}">
+        `;
+        container.appendChild(div);
+    }
+}
+
 function addEventListeners() {
-    // Remove old listeners to prevent duplicates if this function is called multiple times.
-    // This is a simplified approach. For a larger app, a more robust event delegation strategy would be better.
-    
     // Attributes
     for (const key in character.attributes) {
         const input = document.getElementById(`attr-${key}`);
         if(input) {
-            input.onchange = (e) => { // Use onchange to avoid multiple listeners
-                character.attributes[key].value = parseInt(e.target.value, 10);
+            input.onchange = (e) => {
+                character.attributes[key].value = parseInt(e.target.value, 10) || 0;
                 saveAndRefresh();
+            };
+        }
+    }
+    
+    // Elements
+    for (const key in character.elements) {
+        const input = document.getElementById(`element-${key}`);
+        if (input) {
+            input.onchange = (e) => {
+                character.elements[key] = parseInt(e.target.value, 10) || 0;
+                saveCharacterToLocalStorage(); // Just save, no need to refresh everything
             };
         }
     }
@@ -757,11 +832,11 @@ function addEventListeners() {
         const input = document.getElementById(`stat-${key}-current`);
         if(input) {
             input.onchange = (e) => {
-                let val = parseInt(e.target.value, 10);
+                let val = parseInt(e.target.value, 10) || 0;
                 if (val > character.stats[key].max) val = character.stats[key].max;
                 if (val < 0) val = 0;
                 character.stats[key].current = val;
-                saveCharacterToLocalStorage(); // Only save, no need to refresh everything
+                saveCharacterToLocalStorage();
             };
         }
     });
@@ -770,7 +845,7 @@ function addEventListeners() {
     ['char-name', 'char-race', 'char-notes', 'char-personality', 'char-titles', 'char-spirits', 'char-size'].forEach(id => {
         const input = document.getElementById(id);
         if(input) {
-            input.onblur = saveCharacterToLocalStorage; // Save when user leaves the field
+            input.onblur = saveCharacterToLocalStorage;
         }
     });
 }
@@ -858,6 +933,7 @@ function openSkillForm(skill = null, index = -1) {
         <div class="modal-scrollable-content">
             <div class="space-y-4">
                 <input id="skill-name" class="input-field" placeholder="Nombre" value="${skill?.name || ''}">
+                <textarea id="skill-description" class="input-field" placeholder="Descripción de la habilidad..." rows="3">${skill?.description || ''}</textarea>
                 <select id="skill-type" class="input-field">
                     <option value="Activa" ${skill?.type === 'Activa' ? 'selected' : ''}>Activa</option>
                     <option value="Pasiva" ${skill?.type === 'Pasiva' ? 'selected' : ''}>Pasiva</option>
@@ -888,6 +964,7 @@ function saveSkill(index) {
     const isEditing = index !== -1;
     const newSkill = {
         name: document.getElementById('skill-name').value,
+        description: document.getElementById('skill-description').value,
         type: document.getElementById('skill-type').value,
         costPA: parseInt(document.getElementById('skill-cost-pa').value) || 0,
         costMP: parseInt(document.getElementById('skill-cost-mp').value) || 0,
@@ -928,6 +1005,7 @@ function renderSkillCard(skill, index) {
         <div class="flex justify-between items-start">
             <div>
                 <p class="font-bold">${skill.name} <span class="text-sm font-normal">(${skill.type})</span></p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${skill.description || 'Sin descripción.'}</p>
                 <select class="input-field item-rarity-select mt-2 text-sm" onchange="changeRarity('skills', ${index}, this.value)">
                     ${rarityOptions}
                 </select>
@@ -966,6 +1044,7 @@ function openTechniqueForm(tech = null, index = -1) {
         <div class="modal-scrollable-content">
             <div class="space-y-4">
                 <input id="tech-name" class="input-field" placeholder="Nombre" value="${tech?.name || ''}">
+                <textarea id="tech-description" class="input-field" placeholder="Descripción de la técnica/hechizo..." rows="3">${tech?.description || ''}</textarea>
                 <select id="tech-type" class="input-field">
                     <option value="Técnica" ${tech?.type === 'Técnica' ? 'selected' : ''}>Técnica</option>
                     <option value="Hechizo" ${tech?.type === 'Hechizo' ? 'selected' : ''}>Hechizo</option>
@@ -994,6 +1073,7 @@ function saveTechnique(index) {
     const isEditing = index !== -1;
     const newTech = {
         name: document.getElementById('tech-name').value,
+        description: document.getElementById('tech-description').value,
         type: document.getElementById('tech-type').value,
         costPA: parseInt(document.getElementById('tech-cost-pa').value) || 0,
         costMP: parseInt(document.getElementById('tech-cost-mp').value) || 0,
@@ -1033,6 +1113,7 @@ function renderTechniqueCard(tech, index) {
         <div class="flex justify-between items-start">
             <div>
                 <p class="font-bold">${tech.name} <span class="text-sm font-normal">(${tech.type})</span></p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${tech.description || 'Sin descripción.'}</p>
                 <select class="input-field item-rarity-select mt-2 text-sm" onchange="changeRarity('techniques', ${index}, this.value)">
                     ${rarityOptions}
                 </select>
@@ -1949,6 +2030,29 @@ document.getElementById('end-turn-btn').addEventListener('click', () => {
     saveAndRefresh();
 });
 
+function rollAttributeCheck(attributeKey) {
+    const attribute = character.attributes[attributeKey];
+    const modifier = getModifier(attribute.value);
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const total = roll + modifier;
+    const modifierString = modifier >= 0 ? `+${modifier}` : modifier;
+    showNotification(
+        `Prueba de ${attribute.name}`,
+        `Resultado: ${total}\n(Tirada: ${roll}, Modificador: ${modifierString})`
+    );
+}
+
+function rollStatCheck(statKey) {
+    const stat = character.stats[statKey];
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const total = roll + stat.current;
+    const valueString = stat.current >= 0 ? `+${stat.current}` : stat.current;
+    showNotification(
+        `Prueba de ${stat.name}`,
+        `Resultado: ${total}\n(Tirada: ${roll}, Valor: ${valueString})`
+    );
+}
+
 // --- Restaurar Vida y Maná ---
 function restoreHealthAndMana() {
     character.stats.health.current = character.stats.health.max;
@@ -1992,10 +2096,6 @@ document.getElementById('json-import-input').addEventListener('change', (event) 
             try {
                 const importedData = JSON.parse(e.target.result);
                 if (importedData.identity && importedData.attributes && importedData.stats) {
-                    // Simple compatibility check for old equipment structure
-                    if (importedData.equipment && !Array.isArray(importedData.equipment)) {
-                        importedData.equipment = getDefaultCharacter().equipment;
-                    }
                     character = importedData;
                     saveAndRefresh();
                     showNotification('Éxito', 'Personaje importado correctamente.');
@@ -2104,21 +2204,160 @@ document.getElementById('add-xp-btn').addEventListener('click', () => {
     }
 });
 
-// --- Tema ---
-function toggleTheme() {
-    document.body.classList.toggle('dark');
-    const currentTheme = document.body.classList.contains('dark') ? 'dark' : 'light';
-    localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
+// ===================================================================================
+// GESTIÓN DE TEMAS
+// ===================================================================================
+const themes = {
+    'theme-light': { name: 'Claro' },
+    'theme-dark': { name: 'Oscuro' },
+    'theme-forest': { name: 'Bosque' },
+    'theme-ocean': { name: 'Océano' },
+    'theme-fire': { name: 'Fuego' },
+    'theme-dusk': { name: 'Crepúsculo' },
+};
+
+function applyTheme(themeName) {
+    document.body.className = 'p-4 md:p-8'; // Reset classes
+    if (themeName !== 'theme-light' && themeName !== 'custom') {
+        document.body.classList.add(themeName);
+    }
+    
+    document.documentElement.style.cssText = ''; // Limpiar estilos en línea
+    if (themeName === 'custom') {
+        const savedTheme = JSON.parse(localStorage.getItem(THEME_STORAGE_KEY));
+        if (savedTheme && savedTheme.customColors) {
+            applyCustomTheme(savedTheme.customColors);
+        }
+    }
+}
+
+function applyCustomTheme(colors) {
+    for (const [key, value] of Object.entries(colors)) {
+        document.documentElement.style.setProperty(key, value);
+    }
+}
+
+function saveTheme(themeName, customColors = null) {
+    const themeData = { name: themeName };
+    if (themeName === 'custom' && customColors) {
+        themeData.customColors = customColors;
+    }
+    localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(themeData));
+}
+
+function openThemeModal() {
+    const savedTheme = JSON.parse(localStorage.getItem(THEME_STORAGE_KEY)) || { name: 'theme-light' };
+    
+    const themeButtons = Object.entries(themes).map(([key, value]) => 
+        `<button class="btn btn-secondary theme-btn" data-theme-name="${key}">${value.name}</button>`
+    ).join('');
+
+    const colorVariables = [
+        { var: '--bg-color', label: 'Fondo de Página' },
+        { var: '--card-bg', label: 'Fondo de Tarjeta' },
+        { var: '--text-color', label: 'Color de Texto' },
+        { var: '--accent-color', label: 'Color de Acento' },
+        { var: '--border-color', label: 'Color de Borde' },
+    ];
+
+    const currentStyles = getComputedStyle(document.documentElement);
+    const customColorPickers = colorVariables.map(item => {
+        const currentColor = (savedTheme.name === 'custom' && savedTheme.customColors?.[item.var]) 
+            ? savedTheme.customColors[item.var] 
+            : currentStyles.getPropertyValue(item.var).trim();
+        return `
+            <div class="flex justify-between items-center">
+                <label for="color-${item.var}">${item.label}</label>
+                <input type="color" id="color-${item.var}" value="${currentColor}" data-variable="${item.var}">
+            </div>
+        `;
+    }).join('');
+
+    const content = `
+        <h3 class="text-2xl font-bold mb-4">Selector de Temas</h3>
+        <div class="modal-scrollable-content">
+            <div class="space-y-4">
+                <div>
+                    <h4 class="font-semibold mb-2">Temas Predefinidos</h4>
+                    <div id="theme-buttons-container" class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                        ${themeButtons}
+                    </div>
+                </div>
+                <div class="pt-4 border-t dark:border-gray-600">
+                    <h4 class="font-semibold mb-2">Personalizado</h4>
+                    <div id="custom-colors-container" class="space-y-2">
+                        ${customColorPickers}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-end mt-6 pt-4 border-t dark:border-gray-600 space-x-2">
+            <button class="btn btn-secondary" onclick="closeModal(); loadTheme();">Cancelar</button>
+            <button id="theme-modal-save-btn" class="btn btn-primary" data-theme-name="${savedTheme.name}">Guardar Tema</button>
+        </div>
+    `;
+    openModal(content);
+
+    const themeButtonsContainer = document.getElementById('theme-buttons-container');
+    
+    function updateActiveButton(activeTheme) {
+        themeButtonsContainer.querySelectorAll('.theme-btn').forEach(btn => {
+            if (btn.dataset.themeName === activeTheme) {
+                btn.classList.replace('btn-secondary', 'btn-primary');
+            } else {
+                btn.classList.replace('btn-primary', 'btn-secondary');
+            }
+        });
+    }
+    
+    updateActiveButton(savedTheme.name);
+
+    themeButtonsContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('theme-btn')) {
+            const themeName = e.target.dataset.themeName;
+            applyTheme(themeName);
+            document.querySelector('#theme-modal-save-btn').dataset.themeName = themeName;
+            updateActiveButton(themeName);
+        }
+    });
+
+    document.getElementById('custom-colors-container').addEventListener('input', (e) => {
+        if (e.target.type === 'color') {
+            const variable = e.target.dataset.variable;
+            const color = e.target.value;
+            document.documentElement.style.setProperty(variable, color);
+            document.querySelector('#theme-modal-save-btn').dataset.themeName = 'custom';
+            updateActiveButton('custom');
+        }
+    });
+
+    document.getElementById('theme-modal-save-btn').addEventListener('click', (e) => {
+        const themeName = e.target.dataset.themeName;
+        let customColors = null;
+        if (themeName === 'custom') {
+            customColors = {};
+            document.querySelectorAll('#custom-colors-container input[type="color"]').forEach(picker => {
+                customColors[picker.dataset.variable] = picker.value;
+            });
+        }
+        saveTheme(themeName, customColors);
+        applyTheme(themeName); // Re-apply to ensure consistency
+        closeModal();
+    });
+}
+
+function loadTheme() {
+    const savedTheme = JSON.parse(localStorage.getItem(THEME_STORAGE_KEY));
+    if (savedTheme) {
+        applyTheme(savedTheme.name);
+    }
 }
 
 // ===================================================================================
 // INICIALIZACIÓN
 // ===================================================================================
 window.onload = () => {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark');
-    }
+    loadTheme();
 
     const loadedCharacter = loadCharacterFromLocalStorage();
     character = loadedCharacter ? loadedCharacter : getDefaultCharacter();
@@ -2128,12 +2367,13 @@ window.onload = () => {
     character = {...defaultChar, ...character};
     character.identity = {...defaultChar.identity, ...character.identity};
     character.attributes = {...defaultChar.attributes, ...character.attributes};
+    character.elements = {...defaultChar.elements, ...character.elements};
     character.stats = {...defaultChar.stats, ...character.stats};
     character.inventory = {...defaultChar.inventory, ...character.inventory};
     character.equipment = character.equipment && character.equipment.length > 0 ? character.equipment : defaultChar.equipment;
 
     // Add event listeners for new buttons
-    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+    document.getElementById('theme-toggle-btn').addEventListener('click', openThemeModal);
     document.getElementById('restore-stats-btn').addEventListener('click', restoreHealthAndMana);
 
     calculateDerivedStats();
