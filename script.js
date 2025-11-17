@@ -1,9 +1,7 @@
 // ===================================================================================
-// HOJA DE PERSONAJE - ISEKAI DELIVERY SERVICE v5.0
-// Versión corregida manteniendo la funcionalidad original
+// CONFIGURACIÓN Y ESTADO GLOBAL
 // ===================================================================================
 
-// CONFIGURACIÓN Y ESTADO
 const XP_TABLE = {
     1: 300, 2: 900, 3: 2700, 4: 6500, 5: 14000, 6: 23000, 7: 34000, 8: 48000, 9: 64000, 10: 85000,
     11: 100000, 12: 120000, 13: 145000, 14: 165000, 15: 195000, 16: 225000, 17: 250000, 18: 280000, 19: 315000, 20: Infinity
@@ -13,104 +11,47 @@ const SKILL_POINTS_PER_LEVEL = {
     11: 8, 12: 8, 13: 9, 14: 9, 15: 10, 16: 10, 17: 11, 18: 12, 19: 12, 20: 13
 };
 const RARITIES = ['Intrínseco', 'Común', 'Raro', 'Épico', 'Legendario', 'Mítico / Único', 'Genesis'];
-const LOCAL_STORAGE_KEY = 'characterSheetData_v5.0';
-const THEME_STORAGE_KEY = 'characterSheetTheme_v5.0';
+const LOCAL_STORAGE_KEY = 'characterSheetData_v4.5';
+const THEME_STORAGE_KEY = 'characterSheetTheme_v4.5';
 
 const ELEMENTS_CONFIG = {
-    fuego: { name: 'Fuego', emoji: '🔥' },
-    aire: { name: 'Aire', emoji: '💨' },
-    agua: { name: 'Agua', emoji: '💧' },
-    electricidad: { name: 'Electricidad', emoji: '⚡' },
-    tierra: { name: 'Tierra', emoji: '🌍' },
-    luz: { name: 'Luz', emoji: '☀️' },
-    oscuridad: { name: 'Oscuridad', emoji: '🌙' }
+    fuego: { name: 'Fuego', emoji: '🔥', color: 'bg-red-100 dark:bg-red-900/50' },
+    aire: { name: 'Aire', emoji: '💨', color: 'bg-sky-100 dark:bg-sky-900/50' },
+    agua: { name: 'Agua', emoji: '💧', color: 'bg-blue-100 dark:bg-blue-900/50' },
+    electricidad: { name: 'Electricidad', emoji: '⚡', color: 'bg-yellow-100 dark:bg-yellow-900/50' },
+    tierra: { name: 'Tierra', emoji: '🌍', color: 'bg-amber-100 dark:bg-amber-900/50' },
+    luz: { name: 'Luz', emoji: '☀️', color: 'bg-yellow-50 dark:bg-yellow-800/50' },
+    oscuridad: { name: 'Oscuridad', emoji: '🌙', color: 'bg-slate-200 dark:bg-slate-800' }
 };
 
 let character;
-let autoSaveTimer;
-let lastSavedTime = null;
-let selectedEnhancementSlot = null;
+let tempLinkedEffects = [];
 
 // ===================================================================================
-// FUNCIONES BÁSICAS (MANTENIENDO FUNCIONALIDAD ORIGINAL)
+// FUNCIONES DE INICIALIZACIÓN Y GUARDADO
 // ===================================================================================
 
 function getDefaultCharacter() {
     return {
-        identity: {
-            name: '', race: '', notes: '', personality: '',
-            image: 'https://placehold.co/100x100/e0e0e0/2c3e50?text=Avatar',
-            titles: '', spirits: '', size: ''
-        },
-        attributes: {
-            FUE: { name: 'Fuerza', value: 10, upgrades: 0 },
-            AGI: { name: 'Agilidad', value: 10, upgrades: 0 },
-            MET: { name: 'Metabolismo', value: 10, upgrades: 0 },
-            INT: { name: 'Inteligencia', value: 10, upgrades: 0 },
-            APM: { name: 'Aptitud Mágica', value: 10, upgrades: 0 },
-        },
-        elements: {
-            fuego: { name: 'Fuego', level: 0, upgrades: 0 },
-            aire: { name: 'Aire', level: 0, upgrades: 0 },
-            agua: { name: 'Agua', level: 0, upgrades: 0 },
-            electricidad: { name: 'Electricidad', level: 0, upgrades: 0 },
-            tierra: { name: 'Tierra', level: 0, upgrades: 0 },
-            luz: { name: 'Luz', level: 0, upgrades: 0 },
-            oscuridad: { name: 'Oscuridad', level: 0, upgrades: 0 }
-        },
-        stats: {
-            level: { name: 'Nivel', base: 1, current: 1 },
-            xp: { name: 'Experiencia', base: 0, current: 0 },
-            health: { name: 'Vida', base: 25, current: 25, max: 25 },
-            armor: { name: 'Armadura', base: 10, current: 10 },
-            mana: { name: 'Místyculas', base: 100, current: 100, max: 100 },
-            actions: { name: 'Acciones', base: 2, current: 3 },
-            movement: { name: 'Movimiento (pies)', base: 30, current: 30 },
-            magicSave: { name: 'Salvación Magia', base: 10, current: 10 },
-            load: { name: 'Carga', base: 10, current: 10 },
-            resistance: { name: 'Resistencia', base: 0, current: 0 },
-            wisdom: { name: 'Sabiduría', base: 0, current: 0 },
-        },
+        identity: { name: '', race: '', notes: '', personality: '', image: 'https://placehold.co/100x100/e0e0e0/2c3e50?text=Avatar', titles: '', spirits: '', size: '' },
+        attributes: { FUE: { name: 'Fuerza', value: 10, upgrades: 0 }, AGI: { name: 'Agilidad', value: 10, upgrades: 0 }, MET: { name: 'Metabolismo', value: 10, upgrades: 0 }, INT: { name: 'Inteligencia', value: 10, upgrades: 0 }, APM: { name: 'Aptitud Mágica', value: 10, upgrades: 0 } },
+        elements: { fuego: { name: 'Fuego', level: 0, upgrades: 0 }, aire: { name: 'Aire', level: 0, upgrades: 0 }, agua: { name: 'Agua', level: 0, upgrades: 0 }, electricidad: { name: 'Electricidad', level: 0, upgrades: 0 }, tierra: { name: 'Tierra', level: 0, upgrades: 0 }, luz: { name: 'Luz', level: 0, upgrades: 0 }, oscuridad: { name: 'Oscuridad', level: 0, upgrades: 0 } },
+        spiritRelations: { fuego: { relation: 0, bonus: -10 }, aire: { relation: 0, bonus: -10 }, agua: { relation: 0, bonus: -10 }, electricidad: { relation: 0, bonus: -10 }, tierra: { relation: 0, bonus: -10 }, luz: { relation: 0, bonus: -10 }, oscuridad: { relation: 0, bonus: -10 } },
+        fusionElements: [],
+        stats: { level: { name: 'Nivel', base: 1, current: 1 }, xp: { name: 'Experiencia', base: 0, current: 0 }, health: { name: 'Vida', base: 25, current: 25, max: 25 }, armor: { name: 'Armadura', base: 10, current: 10 }, mana: { name: 'Místyculas', base: 100, current: 100, max: 100 }, actions: { name: 'Acciones', base: 2, current: 3 }, movement: { name: 'Movimiento (pies)', base: 30, current: 30 }, magicSave: { name: 'Salvación Magia', base: 10, current: 10 }, load: { name: 'Carga', base: 10, current: 10 }, resistance: { name: 'Resistencia', base: 0, current: 0 }, wisdom: { name: 'Sabiduría', base: 0, current: 0 } },
         skillPoints: 0,
         combat: { currentActions: 3 },
-        equipment: [
-            { slotName: 'Arma', type: 'arma', item: null, enhancementLevel: 0 },
-            { slotName: 'Armadura', type: 'armadura', item: null, enhancementLevel: 0 },
-            { slotName: 'Accesorio 1', type: 'accesorio', item: null, enhancementLevel: 0 },
-            { slotName: 'Accesorio 2', type: 'accesorio', item: null, enhancementLevel: 0 },
-        ],
+        equipment: [{ slotName: 'Arma', type: 'arma', item: null, isCustom: false, isDamageFormulaActive: false }, { slotName: 'Armadura', type: 'armadura', item: null, isCustom: false, isDamageFormulaActive: false }, { slotName: 'Accesorio 1', type: 'accesorio', item: null, isCustom: false, isDamageFormulaActive: false }, { slotName: 'Accesorio 2', type: 'accesorio', item: null, isCustom: false, isDamageFormulaActive: false }],
         inventory: { skills: [], techniques: [], items: [], pets: [] },
         statusEffects: [],
-        resources: [],
-        quests: { active: [], completed: [], failed: [] },
-        fusionElements: []
+        resources: []
     };
-}
-
-// ===================================================================================
-// GUARDADO Y CARGA DE DATOS
-// ===================================================================================
-
-function saveAndRefresh() {
-    calculateDerivedStats();
-    updateUI();
-    saveCharacterToLocalStorage();
 }
 
 function saveCharacterToLocalStorage() {
     try {
-        character.identity.name = document.getElementById('char-name').value;
-        character.identity.race = document.getElementById('char-race').value;
-        character.identity.notes = document.getElementById('char-notes').value;
-        character.identity.personality = document.getElementById('char-personality').value;
-        character.identity.titles = document.getElementById('char-titles').value;
-        character.identity.spirits = document.getElementById('char-spirits').value;
-        character.identity.size = document.getElementById('char-size').value;
-        
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(character));
-    } catch (error) {
-        console.error("Error saving character:", error);
-    }
+    } catch (error) { console.error("Error saving character:", error); showNotification("Error de Guardado", "No se pudo guardar el personaje."); }
 }
 
 function loadCharacterFromLocalStorage() {
@@ -119,48 +60,24 @@ function loadCharacterFromLocalStorage() {
     try {
         const parsedData = JSON.parse(data);
         const defaultChar = getDefaultCharacter();
-        
-        // Migración robusta
         let migratedData = { ...defaultChar, ...parsedData };
         migratedData.identity = { ...defaultChar.identity, ...parsedData.identity };
         migratedData.stats = { ...defaultChar.stats, ...parsedData.stats };
         migratedData.inventory = { ...defaultChar.inventory, ...parsedData.inventory };
-        
         migratedData.attributes = { ...defaultChar.attributes };
-        for(const key in defaultChar.attributes) {
-            if(parsedData.attributes && parsedData.attributes[key]) {
-                 migratedData.attributes[key] = { ...defaultChar.attributes[key], ...parsedData.attributes[key] };
-            }
-        }
-
+        for (const key in defaultChar.attributes) if (parsedData.attributes && parsedData.attributes[key]) migratedData.attributes[key] = { ...defaultChar.attributes[key], ...parsedData.attributes[key] };
         migratedData.elements = { ...defaultChar.elements };
-        for(const key in defaultChar.elements) {
-            if(parsedData.elements && parsedData.elements[key]) {
-                 if(typeof parsedData.elements[key] === 'number') {
-                     migratedData.elements[key] = { ...defaultChar.elements[key], level: parsedData.elements[key] };
-                 } else {
-                     migratedData.elements[key] = { ...defaultChar.elements[key], ...parsedData.elements[key] };
-                 }
+        for (const key in defaultChar.elements) {
+            if (parsedData.elements && parsedData.elements[key]) {
+                if (typeof parsedData.elements[key] === 'number') migratedData.elements[key] = { ...defaultChar.elements[key], level: parsedData.elements[key] };
+                else migratedData.elements[key] = { ...defaultChar.elements[key], ...parsedData.elements[key] };
             }
         }
-
-        // Asegurar que las nuevas propiedades existan
         if (!migratedData.fusionElements) migratedData.fusionElements = [];
         if (!migratedData.skillPoints) migratedData.skillPoints = 0;
+        if (!migratedData.spiritRelations) migratedData.spiritRelations = defaultChar.spiritRelations;
         if (!migratedData.statusEffects) migratedData.statusEffects = [];
         if (!migratedData.resources) migratedData.resources = [];
-        if (!migratedData.quests) migratedData.quests = defaultChar.quests;
-        
-        // Asegurar enhancement levels
-        if (migratedData.equipment) {
-            migratedData.equipment.forEach(slot => {
-                if (slot.enhancementLevel === undefined) {
-                    slot.enhancementLevel = 0;
-                }
-            });
-        }
-        
-        // CORRECCIÓN: Asegurar que las habilidades/técnicas antiguas sin nivel se inicialicen en 0.
         ['skills', 'techniques'].forEach(type => {
             if (migratedData.inventory[type]) {
                 migratedData.inventory[type].forEach(item => {
@@ -169,61 +86,72 @@ function loadCharacterFromLocalStorage() {
                 });
             }
         });
-
         return migratedData;
-    } catch (error) {
-        console.error("Error parsing character data:", error);
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-        return null;
-    }
+    } catch (error) { console.error("Error parsing character data:", error); showNotification("Error de Carga", "Datos locales corruptos. Se cargará un personaje por defecto."); localStorage.removeItem(LOCAL_STORAGE_KEY); return null; }
+}
+
+function saveAndRefresh() {
+    calculateDerivedStats();
+    updateUI();
+    saveCharacterToLocalStorage();
 }
 
 // ===================================================================================
 // LÓGICA DE CÁLCULO Y NIVELACIÓN
 // ===================================================================================
 
-function getModifier(attributeValue) {
-    return Math.floor((attributeValue - 10) / 2);
-}
+function getXpForNextLevel() { const currentLevel = character.stats.level.current; if (currentLevel >= 20) return Infinity; return XP_TABLE[currentLevel]; }
+function getModifier(attributeValue) { return Math.floor((attributeValue - 10) / 2); }
 
 function calculateDerivedStats() {
     if (!character) return;
-
-    // Guardar valores actuales para no perderlos
     const tempHealth = character.stats.health.current;
     const tempMana = character.stats.mana.current;
+    const tempAttributes = JSON.parse(JSON.stringify(character.attributes));
+    const tempStats = JSON.parse(JSON.stringify(character.stats));
 
-    // Calcular modificadores
-    const mods = {
-        FUE: getModifier(character.attributes.FUE.value),
-        AGI: getModifier(character.attributes.AGI.value),
-        MET: getModifier(character.attributes.MET.value),
-        INT: getModifier(character.attributes.INT.value),
-        APM: getModifier(character.attributes.APM.value)
-    };
+    character.equipment.forEach(slot => {
+        if (slot.item) {
+            slot.item.effects.forEach(effect => {
+                const [type, key, value] = effect.split(':');
+                if (type === 'attr' && tempAttributes[key]) tempAttributes[key].value += parseFloat(value);
+            });
+        }
+    });
+
+    character.statusEffects.forEach(status => {
+        status.linkedEffects.forEach(effect => {
+            if (effect.applyOn === 'continuo' && effect.target === 'self') {
+                const keys = effect.attribute.split('.');
+                if (keys[0] === 'attributes' && tempAttributes[keys[1]]) {
+                    if (effect.modification === 'fijo') tempAttributes[keys[1]].value += effect.value;
+                    else tempAttributes[keys[1]].value *= (1 + effect.value / 100);
+                }
+            }
+        });
+    });
+
+    const mods = { FUE: getModifier(tempAttributes.FUE.value), AGI: getModifier(tempAttributes.AGI.value), MET: getModifier(tempAttributes.MET.value), INT: getModifier(tempAttributes.INT.value), APM: getModifier(tempAttributes.APM.value) };
     const level = character.stats.level.current;
 
-    // Calcular estadísticas base derivadas
-    let maxHealth = character.stats.health.base + (mods.MET * level);
-    let armor = character.stats.armor.base + mods.AGI + mods.MET;
-    let maxMana = character.stats.mana.base * Math.max(1, mods.INT) * Math.max(1, mods.APM);
-    let actions = character.stats.actions.base + mods.AGI + level;
-    let movement = character.stats.movement.base + (mods.AGI * 5);
-    let magicSave = character.stats.magicSave.base + mods.APM + mods.MET;
-    let load = character.stats.load.base + (mods.FUE * 2);
+    let maxHealth = tempStats.health.base + (mods.MET * level);
+    let armor = tempStats.armor.base + mods.AGI + mods.MET; // CORRECCIÓN: Usar base
+    let maxMana = tempStats.mana.base * Math.max(1, mods.INT) * Math.max(1, mods.APM);
+    let actions = tempStats.actions.base + mods.AGI + level;
+    let movement = tempStats.movement.base + (mods.AGI * 5);
+    let magicSave = tempStats.magicSave.base + mods.APM + mods.MET; // CORRECCIÓN: Usar base
+    let load = tempStats.load.base + (mods.FUE * 2);
     let wisdom = level + mods.INT;
     let resistance = level + mods.MET;
-    
-    // Aplicar bonificaciones de equipo
+
     character.equipment.forEach(slot => {
-        if (slot.item && slot.item.effects) {
-            const enhancementBonus = slot.enhancementLevel || 0;
+        if (slot.item) {
             slot.item.effects.forEach(effect => {
                 const [type, key, value] = effect.split(':');
                 if (type === 'stat') {
-                    if (key === 'health') maxHealth += parseFloat(value) + (enhancementBonus * 2);
-                    if (key === 'mana') maxMana += parseFloat(value) + (enhancementBonus * 5);
-                    if (key === 'armor') armor += parseFloat(value) + (enhancementBonus * 1);
+                    if (key === 'health') maxHealth += parseFloat(value);
+                    if (key === 'mana') maxMana += parseFloat(value);
+                    if (key === 'armor') armor += parseFloat(value);
                     if (key === 'actions') actions += parseFloat(value);
                     if (key === 'movement') movement += parseFloat(value);
                     if (key === 'load') load += parseFloat(value);
@@ -235,7 +163,31 @@ function calculateDerivedStats() {
         }
     });
 
-    // Asignar los valores finales al objeto `character`
+    character.statusEffects.forEach(status => {
+        status.linkedEffects.forEach(effect => {
+            if (effect.applyOn === 'continuo' && effect.target === 'self') {
+                const keys = effect.attribute.split('.');
+                if (keys[0] === 'stats') {
+                    let statToModify = keys[1] === 'health' ? 'maxHealth' : keys[1] === 'mana' ? 'maxMana' : keys[1];
+                    const statMap = { maxHealth, armor, maxMana, actions, movement, magicSave, load, wisdom, resistance };
+                    if (statMap.hasOwnProperty(statToModify)) {
+                        if (effect.modification === 'fijo') statMap[statToModify] += effect.value;
+                        else statMap[statToModify] *= (1 + effect.value / 100);
+                        if (statToModify === 'maxHealth') maxHealth = statMap.maxHealth;
+                        if (statToModify === 'maxMana') maxMana = statMap.maxMana;
+                        if (statToModify === 'armor') armor = statMap.armor;
+                        if (statToModify === 'actions') actions = statMap.actions;
+                        if (statToModify === 'movement') movement = statMap.movement;
+                        if (statToModify === 'magicSave') magicSave = statMap.magicSave;
+                        if (statToModify === 'load') load = statMap.load;
+                        if (statToModify === 'wisdom') wisdom = statMap.wisdom;
+                        if (statToModify === 'resistance') resistance = statMap.resistance;
+                    }
+                }
+            }
+        });
+    });
+
     character.stats.health.max = Math.round(maxHealth);
     character.stats.mana.max = Math.round(maxMana);
     character.stats.armor.current = Math.round(armor);
@@ -246,64 +198,34 @@ function calculateDerivedStats() {
     character.stats.wisdom.current = Math.round(wisdom);
     character.stats.resistance.current = Math.round(resistance);
     
-    // Restaurar vida/maná actuales, ajustando al nuevo máximo
     character.stats.health.current = Math.min(tempHealth, character.stats.health.max);
     character.stats.mana.current = Math.min(tempMana, character.stats.mana.max);
-    
-    // Restaurar PA, ajustando al nuevo máximo
     character.combat.currentActions = Math.min(character.combat.currentActions, character.stats.actions.current);
 }
 
-function getXpForNextLevel() {
-    const currentLevel = character.stats.level.current;
-    if (currentLevel >= 20) return Infinity;
-    return XP_TABLE[currentLevel];
-}
-
 function addXP(amount) {
-    if (character.stats.level.current >= 20) {
-        showNotification("Nivel Máximo", "Ya has alcanzado el nivel máximo.");
-        return;
-    }
+    if (character.stats.level.current >= 20) { showNotification("Nivel Máximo", "Ya has alcanzado el nivel máximo."); return; }
     character.stats.xp.current += amount;
     showNotification("Experiencia Ganada", `¡Has ganado ${amount} XP!`);
-    
-    let levelsGained = 0;
-    let healthGained = 0;
-    let skillPointsGained = 0;
+    let levelsGained = 0, healthGained = 0, skillPointsGained = 0;
     let xpNeeded = getXpForNextLevel();
-
     while (character.stats.xp.current >= xpNeeded) {
-        if (character.stats.level.current >= 20) {
-            character.stats.xp.current = xpNeeded;
-            break;
-        }
-        
+        if (character.stats.level.current >= 20) { character.stats.xp.current = xpNeeded; break; }
         const currentLevelBeforeUp = character.stats.level.current;
         character.stats.xp.current -= xpNeeded;
-        character.stats.level.current++;
-        character.stats.level.base++;
+        character.stats.level.current++; character.stats.level.base++;
         levelsGained++;
-        
         const healthRoll = Math.floor(Math.random() * 8) + 1;
-        character.stats.health.base += healthRoll;
-        healthGained += healthRoll;
-
+        character.stats.health.base += healthRoll; healthGained += healthRoll;
         skillPointsGained += SKILL_POINTS_PER_LEVEL[currentLevelBeforeUp] || 0;
-
         xpNeeded = getXpForNextLevel();
     }
-    
-    if (levelsGained > 0) {
-        character.skillPoints += skillPointsGained;
-        showNotification('¡Subida de Nivel!', `¡Has subido ${levelsGained} nivel(es) y ganado ${skillPointsGained} puntos de habilidad!`);
-    }
-
+    if (levelsGained > 0) { character.skillPoints += skillPointsGained; openLevelUpModal(levelsGained, healthGained, skillPointsGained); }
     saveAndRefresh();
 }
 
 // ===================================================================================
-// RENDERIZADO Y ACTUALIZACIÓN DE LA UI
+// RENDERIZADO DE LA INTERFAZ (UI)
 // ===================================================================================
 
 function updateUI() {
@@ -320,78 +242,35 @@ function updateUI() {
     document.getElementById('char-size').value = character.identity.size;
 
     // Attributes
-    const attributesContainer = document.getElementById('attributes-container');
-    attributesContainer.innerHTML = '';
-    
-    for (const key in character.attributes) {
-        const attr = character.attributes[key];
-        const mod = getModifier(attr.value);
-        const div = document.createElement('div');
-        div.className = 'grid grid-cols-6 items-center gap-2';
-        div.innerHTML = `
-            <label for="attr-${key}" class="font-semibold col-span-2">${attr.name}</label>
-            <input type="number" id="attr-${key}" class="input-field text-center" value="${attr.value}">
-            <span class="text-green-600 font-medium text-center">(+${attr.upgrades})</span>
-            <div class="bg-gray-200 dark:bg-gray-600 text-center font-bold rounded-md py-2">${mod >= 0 ? '+' : ''}${mod}</div>
-            <button class="btn btn-primary" onclick="rollAttributeCheck('${key}')" title="Lanzar 1d20 + Modificador">🎲</button>
-        `;
+    const attributesContainer = document.getElementById('attributes-container'); attributesContainer.innerHTML = '';
+    let baseAttributes = JSON.parse(JSON.stringify(character.attributes));
+    let finalAttributes = JSON.parse(JSON.stringify(character.attributes));
+    character.equipment.forEach(slot => { if (slot.item) slot.item.effects.forEach(effect => { const [type, effectKey, value] = effect.split(':'); if (type === 'attr' && finalAttributes[effectKey]) finalAttributes[effectKey].value += parseFloat(value); }); });
+    character.statusEffects.forEach(status => { status.linkedEffects.forEach(effect => { if (effect.applyOn === 'continuo' && effect.target === 'self' && effect.attribute.startsWith('attributes.')) { const key = effect.attribute.split('.')[1]; if (finalAttributes[key]) { if (effect.modification === 'fijo') finalAttributes[key].value += effect.value; else finalAttributes[key].value *= (1 + effect.value / 100); } } }); });
+    for (const key in baseAttributes) {
+        const baseAttr = baseAttributes[key]; const finalAttr = finalAttributes[key]; const bonus = Math.round(finalAttr.value - baseAttr.value); const mod = getModifier(finalAttr.value);
+        const div = document.createElement('div'); div.className = 'grid grid-cols-6 items-center gap-2';
+        div.innerHTML = `<label for="attr-${key}" class="font-semibold col-span-2">${baseAttr.name}</label><input type="number" id="attr-${key}" class="input-field text-center" value="${baseAttr.value}"><span class="text-green-600 font-medium text-center">(+${bonus})</span><div class="bg-gray-200 dark:bg-gray-600 text-center font-bold rounded-md py-2">${mod >= 0 ? '+' : ''}${mod}</div><button class="btn btn-primary" onclick="rollAttributeCheck('${key}')" title="Lanzar 1d20 + Modificador">🎲</button>`;
         attributesContainer.appendChild(div);
     }
-    
+
     // XP, Level & Skill Points
     document.getElementById('skill-points-display').textContent = character.skillPoints;
+    const xpNeeded = getXpForNextLevel();
     document.getElementById('level-display').textContent = character.stats.level.current;
     document.getElementById('current-xp-display').textContent = character.stats.xp.current;
-    
-    const xpNeeded = getXpForNextLevel();
     document.getElementById('needed-xp-display').textContent = isFinite(xpNeeded) ? xpNeeded : "MAX";
     const xpPercentage = isFinite(xpNeeded) ? (character.stats.xp.current / xpNeeded) * 100 : 100;
     document.getElementById('xp-bar').style.width = `${Math.min(xpPercentage, 100)}%`;
 
     // Stats
-    const statsContainer = document.getElementById('stats-container');
-    statsContainer.innerHTML = '';
-    
-    const statsToDisplay = {
-        health: { name: 'Vida', base: character.stats.health.max, current: character.stats.health.current },
-        mana: { name: 'Místyculas', base: character.stats.mana.max, current: character.stats.mana.current },
-        armor: { name: 'Armadura', current: character.stats.armor.current },
-        actions: { name: 'Acciones', current: character.stats.actions.current },
-        movement: { name: 'Movimiento (pies)', current: character.stats.movement.current },
-        magicSave: { name: 'Salvación Magia', current: character.stats.magicSave.current },
-        load: { name: 'Carga', current: character.stats.load.current },
-        resistance: { name: 'Resistencia', current: character.stats.resistance.current },
-        wisdom: { name: 'Sabiduría', current: character.stats.wisdom.current },
-    };
-
+    const statsContainer = document.getElementById('stats-container'); statsContainer.innerHTML = '';
+    const statsToDisplay = { health: { name: 'Vida', base: character.stats.health.max, current: character.stats.health.current }, mana: { name: 'Místyculas', base: character.stats.mana.max, current: character.stats.mana.current }, armor: { name: 'Armadura', current: character.stats.armor.current }, actions: { name: 'Acciones', current: character.stats.actions.current }, movement: { name: 'Movimiento (pies)', current: character.stats.movement.current }, magicSave: { name: 'Salvación Magia', current: character.stats.magicSave.current }, load: { name: 'Carga', current: character.stats.load.current }, resistance: { name: 'Resistencia', current: character.stats.resistance.current }, wisdom: { name: 'Sabiduría', current: character.stats.wisdom.current } };
     for (const key in statsToDisplay) {
-        const stat = statsToDisplay[key];
-        const div = document.createElement('div');
-        div.className = 'flex justify-between items-center stat-block p-2 rounded-md';
-        
-        if (key === 'health' || key === 'mana') {
-            div.innerHTML = `
-                <span class="font-medium">${stat.name}</span>
-                <div class="flex items-center gap-1">
-                    <input type="number" id="stat-${key}-current" value="${stat.current}" class="input-field w-16 text-center">
-                    <span>/</span>
-                    <span class="font-bold">${stat.base}</span>
-                </div>
-            `;
-        } else if (['resistance', 'wisdom', 'magicSave'].includes(key)) {
-            div.innerHTML = `
-                <span class="font-medium">${stat.name}</span>
-                <div class="flex items-center gap-2">
-                    <span class="font-bold">${stat.current}</span>
-                    <button class="btn btn-primary" onclick="rollStatCheck('${key}')" title="Lanzar 1d20 + Valor">🎲</button>
-                </div>
-            `;
-        } else {
-            div.innerHTML = `
-                <span class="font-medium">${stat.name}</span>
-                <span class="font-bold">${stat.current}</span>
-            `;
-        }
+        const stat = statsToDisplay[key]; const div = document.createElement('div'); div.className = 'flex justify-between items-center stat-block p-2 rounded-md';
+        if (key === 'health' || key === 'mana') { div.innerHTML = `<span class="font-medium">${stat.name}</span><div class="flex items-center gap-1"><input type="number" id="stat-${key}-current" value="${stat.current}" class="input-field w-16 text-center"><span>/</span><span class="font-bold">${stat.base}</span></div>`; }
+        else if (['resistance', 'wisdom', 'magicSave'].includes(key)) { div.innerHTML = `<span class="font-medium">${stat.name}</span><div class="flex items-center gap-2"><span class="font-bold">${stat.current}</span><button class="btn btn-primary" onclick="rollStatCheck('${key}')" title="Lanzar 1d20 + Valor">🎲</button></div>`; }
+        else { div.innerHTML = `<span class="font-medium">${stat.name}</span><span class="font-bold">${stat.current}</span>`; }
         statsContainer.appendChild(div);
     }
 
@@ -403,1504 +282,519 @@ function updateUI() {
     renderElements();
     
     // Equipment
-    renderEquipment();
-    
+    renderEquipmentSlots();
+
     // Inventory
-    renderInventory();
-    
+    renderInventoryTabs();
+    renderInventoryList('skills');
+    renderInventoryList('techniques');
+    renderInventoryList('items');
+    renderInventoryList('pets');
+
     // Status Effects
     renderStatusEffects();
-    
+
     // Resources
     renderResources();
-    
-    // Quests
-    renderQuests();
 }
 
 function renderElements() {
-    const container = document.getElementById('elements-container');
-    container.innerHTML = '';
-    
+    const container = document.getElementById('elements-container'); container.innerHTML = '';
     for (const key in character.elements) {
-        const element = character.elements[key];
-        const config = ELEMENTS_CONFIG[key];
-        const div = document.createElement('div');
-        div.className = 'p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-700';
-        div.innerHTML = `
-            <div class="flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <span class="text-2xl">${config.emoji}</span>
-                    <span class="font-medium">${config.name}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <input type="number" id="element-${key}" class="input-field w-16 text-center" value="${element.level}">
-                    <button class="btn btn-primary text-sm" onclick="upgradeElement('${key}')">↑</button>
-                </div>
-            </div>
-        `;
+        const element = character.elements[key]; const config = ELEMENTS_CONFIG[key];
+        const div = document.createElement('div'); div.className = `p-3 rounded-lg border ${config.color} border-gray-300 dark:border-gray-600`;
+        div.innerHTML = `<div class="flex justify-between items-center"><span class="font-semibold">${config.emoji} ${element.name}</span><span class="text-sm font-bold">Nvl. ${element.level}</span></div><div class="mt-2"><input type="range" id="element-${key}" min="0" max="10" value="${element.level}" class="w-full"></div>`;
         container.appendChild(div);
     }
+    const fusionContainer = document.getElementById('fusion-elements-container'); fusionContainer.innerHTML = '';
+    if (character.fusionElements.length > 0) { character.fusionElements.forEach(fusion => { const div = document.createElement('div'); div.className = 'p-2 rounded bg-gray-100 dark:bg-gray-800'; div.innerHTML = `<p class="font-semibold">${fusion.name} (Nvl. ${fusion.level})</p><p class="text-sm text-gray-600 dark:text-gray-400">${fusion.description}</p>`; fusionContainer.appendChild(div); }); }
 }
 
-function renderEquipment() {
-    const container = document.getElementById('equipment-slots');
-    container.innerHTML = '';
-    
-    character.equipment.forEach((slot, index) => {
-        const div = document.createElement('div');
-        div.className = 'p-3 border border-gray-200 dark:border-gray-700 rounded-lg';
-        
-        const enhancementLevel = slot.enhancementLevel || 0;
-        const enhancementDisplay = enhancementLevel > 0 ? `<span class="text-xs bg-yellow-500 text-white px-2 py-1 rounded">+${enhancementLevel}</span>` : '';
-        
-        if (slot.item) {
-            div.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2">
-                            <h4 class="font-semibold">${slot.item.name}</h4>
-                            ${enhancementDisplay}
-                        </div>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">${slot.item.type}</p>
-                        <p class="text-sm rarity-text">${slot.item.rarity || 'Común'}</p>
-                        <p class="text-sm mt-1">${slot.item.description}</p>
-                    </div>
-                    <button class="btn btn-danger text-sm" onclick="unequipItem(${index})">Quitar</button>
-                </div>
-            `;
-        } else {
-            div.innerHTML = `
-                <div class="text-center text-gray-500 dark:text-gray-400">
-                    <p>${slot.slotName}</p>
-                    <button class="btn btn-secondary text-sm mt-2" onclick="openEquipmentModal(${index})">Equipar</button>
-                </div>
-            `;
-        }
+function renderEquipmentSlots() {
+    const container = document.getElementById('equipment-slots'); container.innerHTML = '';
+    character.equipment.forEach(slot => {
+        const div = document.createElement('div'); div.className = 'flex justify-between items-center p-2 border rounded-md';
+        const item = slot.item;
+        if (item) { div.innerHTML = `<span class="font-medium">${slot.slotName}:</span><span class="rarity-text item-name-${item.rarity.toLowerCase().replace(/[^a-z0-9]/g, '')}">${item.name}</span><button class="btn btn-danger text-sm" onclick="unequipItem('${slot.slotName}')">Quitar</button>`; }
+        else { div.innerHTML = `<span class="font-medium">${slot.slotName}:</span><span class="text-gray-500">Vacío</span><button class="btn btn-secondary text-sm" onclick="openEquipItemModal('${slot.slotName}', '${slot.type}')">Equipar</button>`; }
         container.appendChild(div);
     });
 }
 
-function renderInventory() {
-    // Skills
-    const skillsList = document.getElementById('skills-list');
-    skillsList.innerHTML = '';
-    character.inventory.skills.forEach((skill, index) => {
-        const div = createItemCard(skill, 'skill', index);
-        skillsList.appendChild(div);
-    });
-    
-    // Techniques
-    const techniquesList = document.getElementById('techniques-list');
-    techniquesList.innerHTML = '';
-    character.inventory.techniques.forEach((technique, index) => {
-        const div = createItemCard(technique, 'technique', index);
-        techniquesList.appendChild(div);
-    });
-    
-    // Items
-    const itemsList = document.getElementById('items-list');
-    itemsList.innerHTML = '';
-    character.inventory.items.forEach((item, index) => {
-        const div = createItemCard(item, 'item', index);
-        itemsList.appendChild(div);
-    });
-    
-    // Pets
-    const petsList = document.getElementById('pets-list');
-    petsList.innerHTML = '';
-    character.inventory.pets.forEach((pet, index) => {
-        const div = createItemCard(pet, 'pet', index);
-        petsList.appendChild(div);
-    });
+function renderInventoryTabs() {
+    const tabs = document.querySelectorAll('#inventory-tabs .tab-button'); const panes = document.querySelectorAll('.tab-pane');
+    tabs.forEach(tab => { tab.addEventListener('click', () => { tabs.forEach(t => t.classList.remove('active')); panes.forEach(p => p.classList.add('hidden')); tab.classList.add('active'); const targetPane = document.getElementById(`tab-content-${tab.dataset.tab}`); if (targetPane) targetPane.classList.remove('hidden'); }); });
 }
 
-function createItemCard(item, type, index) {
-    const div = document.createElement('div');
-    div.className = `item-card p-3 rounded-lg ${item.rarity ? `data-rarity="${item.rarity}"` : ''}`;
-    
-    const levelDisplay = item.level !== undefined ? `<span class="text-sm">Nivel: ${item.level}</span>` : '';
-    const upgradesDisplay = item.upgrades > 0 ? `<span class="text-sm">Mejoras: ${item.upgrades}</span>` : '';
-    
-    div.innerHTML = `
-        <div class="flex justify-between items-start">
-            <div class="flex-1">
-                <h4 class="font-semibold">${item.name}</h4>
-                ${levelDisplay}
-                ${upgradesDisplay}
-                <p class="text-sm rarity-text">${item.rarity || 'Común'}</p>
-                <p class="text-sm mt-1">${item.description}</p>
-                ${item.effects ? `<p class="text-xs mt-1 text-gray-600 dark:text-gray-400">${item.effects.join(', ')}</p>` : ''}
-            </div>
-            <div class="flex gap-1">
-                ${type === 'skill' || type === 'technique' ? `<button class="btn btn-primary text-sm" onclick="upgradeItem('${type}', ${index})">↑</button>` : ''}
-                <button class="btn btn-danger text-sm" onclick="removeItem('${type}', ${index})">✕</button>
-            </div>
-        </div>
-    `;
-    
-    return div;
+function renderInventoryList(type) {
+    const list = document.getElementById(`${type}-list`); if (!list) return; list.innerHTML = '';
+    const items = character.inventory[type];
+    if (items.length === 0) { list.innerHTML = '<p class="text-center text-gray-500">No hay elementos aquí.</p>'; return; }
+    items.forEach((item, index) => {
+        const card = document.createElement('div'); card.className = `item-card p-3 rounded-md`; card.dataset.rarity = item.rarity;
+        let content = `<div class="flex justify-between items-start"><div><p class="font-bold">${item.name}</p><p class="text-sm rarity-text">${item.rarity}</p>`;
+        if (item.level !== undefined) content += `<p class="text-sm">Nivel: ${item.level} (Mejoras: ${item.upgrades})</p>`;
+        content += `<p class="text-sm text-gray-600 dark:text-gray-400 mt-1">${item.description}</p></div>`;
+        content += `<div class="flex gap-1"><button class="btn btn-secondary text-xs" onclick="editInventoryItem('${type}', ${index})">Editar</button><button class="btn btn-danger text-xs" onclick="deleteInventoryItem('${type}', ${index})">Borrar</button></div></div>`;
+        card.innerHTML = content; list.appendChild(card);
+    });
 }
 
 function renderStatusEffects() {
-    const container = document.getElementById('status-effects-list');
-    container.innerHTML = '';
-    
-    character.statusEffects.forEach((effect, index) => {
-        const div = document.createElement('div');
-        div.className = `status-card p-3 rounded-lg ${effect.type ? `data-type="${effect.type}"` : ''}`;
-        div.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div class="flex-1">
-                    <h4 class="font-semibold">${effect.name}</h4>
-                    <p class="text-sm">${effect.description}</p>
-                    <p class="text-xs mt-1">Duración: ${effect.duration}</p>
-                </div>
-                <button class="btn btn-danger text-sm" onclick="removeStatusEffect(${index})">✕</button>
-            </div>
-        `;
-        container.appendChild(div);
+    const list = document.getElementById('status-effects-list'); list.innerHTML = '';
+    if (character.statusEffects.length === 0) { list.innerHTML = '<p class="text-center text-gray-500">Sin efectos activos.</p>'; return; }
+    character.statusEffects.forEach((status, index) => {
+        const card = document.createElement('div'); card.className = `status-card p-3 rounded-md`; card.dataset.type = status.type;
+        let durationText = status.duration === -1 ? 'Infinito' : status.duration;
+        card.innerHTML = `<div class="flex justify-between items-start"><div><p class="font-bold">${status.name}</p><p class="text-sm text-gray-600 dark:text-gray-400">${status.description}</p><p class="text-sm font-medium">Duración: ${durationText} turnos</p></div><button class="btn btn-danger text-xs" onclick="removeStatusEffect(${index})">Quitar</button></div>`;
+        list.appendChild(card);
     });
 }
 
 function renderResources() {
-    const container = document.getElementById('resources-container');
-    container.innerHTML = '';
-    
+    const container = document.getElementById('resources-container'); container.innerHTML = '';
+    if (character.resources.length === 0) { container.innerHTML = '<p class="text-center text-gray-500">No hay recursos definidos.</p>'; return; }
     character.resources.forEach((resource, index) => {
-        const div = document.createElement('div');
-        div.className = 'flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-700 rounded';
+        const div = document.createElement('div'); div.className = 'flex justify-between items-center p-2 border rounded-md';
+        div.innerHTML = `<span class="font-medium">${resource.name}:</span><div class="flex items-center gap-2"><input type="number" id="resource-${index}" value="${resource.current}" class="input-field w-16 text-center"><span>/</span><span>${resource.max}</span></div>`;
+        container.appendChild(div);
+    });
+}
+
+
+// ===================================================================================
+// MANEJADORES DE EVENTOS Y MODALES
+// ===================================================================================
+
+window.onload = () => {
+    character = loadCharacterFromLocalStorage() || getDefaultCharacter();
+    applyStoredTheme();
+    updateUI();
+    setupGlobalEventListeners();
+};
+
+function setupGlobalEventListeners() {
+    // Identity
+    document.getElementById('character-image-upload').addEventListener('change', handleImageUpload);
+    ['char-name', 'char-race', 'char-notes', 'char-personality', 'char-titles', 'char-spirits', 'char-size'].forEach(id => {
+        document.getElementById(id).addEventListener('input', saveAndRefresh);
+    });
+
+    // Attributes
+    document.getElementById('attributes-container').addEventListener('input', (e) => {
+        if (e.target.id.startsWith('attr-')) { const key = e.target.id.split('-')[1]; character.attributes[key].value = parseInt(e.target.value) || 0; saveAndRefresh(); }
+    });
+
+    // Elements
+    document.getElementById('elements-container').addEventListener('input', (e) => {
+        if (e.target.id.startsWith('element-')) { const key = e.target.id.split('-')[1]; character.elements[key].level = parseInt(e.target.value); saveAndRefresh(); }
+    });
+
+    // XP
+    document.getElementById('add-xp-btn').addEventListener('click', () => {
+        const input = document.getElementById('xp-to-add'); const amount = parseInt(input.value);
+        if (amount > 0) { addXP(amount); input.value = ''; } else { showNotification("Error", "Por favor, introduce una cantidad válida de XP."); }
+    });
+
+    // Stats
+    document.getElementById('stats-container').addEventListener('input', (e) => {
+        if (e.target.id.startsWith('stat-')) { const key = e.target.id.split('-')[1]; character.stats[key].current = parseInt(e.target.value) || 0; saveAndRefresh(); }
+    });
+    document.getElementById('restore-stats-btn').addEventListener('click', () => { character.stats.health.current = character.stats.health.max; character.stats.mana.current = character.stats.mana.max; character.combat.currentActions = character.stats.actions.current; saveAndRefresh(); showNotification("Restaurado", "Vida, Místyculas y Acciones restauradas."); });
+    document.getElementById('edit-base-stats-btn').addEventListener('click', openEditBaseStatsModal);
+
+    // Combat
+    document.getElementById('end-turn-btn').addEventListener('click', () => { character.combat.currentActions = character.stats.actions.current; processStatusEffects(); saveAndRefresh(); showNotification("Turno Finalizado", "Puntos de Acción restaurados. Se han procesado los efectos de estado."); });
+
+    // Status Effects
+    document.getElementById('add-status-effect-btn').addEventListener('click', openAddStatusEffectModal);
+
+    // Equipment
+    document.getElementById('manage-slots-btn').addEventListener('click', openManageSlotsModal);
+
+    // Inventory
+    document.getElementById('add-skill-btn').addEventListener('click', () => openAddItemModal('skills'));
+    document.getElementById('add-technique-btn').addEventListener('click', () => openAddItemModal('techniques'));
+    document.getElementById('add-item-btn').addEventListener('click', () => openAddItemModal('items'));
+    document.getElementById('add-pet-btn').addEventListener('click', () => openAddItemModal('pets'));
+
+    // Resources
+    document.getElementById('add-resource-btn').addEventListener('click', openManageResourcesModal);
+    document.getElementById('resources-container').addEventListener('input', (e) => {
+        if (e.target.id.startsWith('resource-')) { const index = parseInt(e.target.id.split('-')[1]); character.resources[index].current = parseInt(e.target.value) || 0; saveAndRefresh(); }
+    });
+
+    // Data Management
+    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+    document.getElementById('export-json-btn').addEventListener('click', exportCharacter);
+    document.getElementById('import-json-btn').addEventListener('click', () => document.getElementById('json-import-input').click());
+    document.getElementById('json-import-input').addEventListener('change', importCharacter);
+    document.getElementById('clear-local-data-btn').addEventListener('click', clearLocalData);
+    document.getElementById('spend-skill-points-btn').addEventListener('click', openSpendSkillPointsModal);
+}
+
+// --- Modal Functions ---
+function openModal(content, secondary = false) { const modal = secondary ? document.getElementById('modal-secondary') : document.getElementById('modal'); const contentEl = secondary ? document.getElementById('modal-secondary-content') : document.getElementById('modal-content'); contentEl.innerHTML = content; modal.classList.add('active'); }
+function closeModal(secondary = false) { const modal = secondary ? document.getElementById('modal-secondary') : document.getElementById('modal'); modal.classList.remove('active'); }
+function showNotification(title, message) { document.getElementById('notification-title').textContent = title; document.getElementById('notification-message').textContent = message; document.getElementById('notification-modal').classList.add('active'); }
+
+function openLevelUpModal(levels, health, points) {
+    let levelUpMessage = `¡Felicidades! Has subido ${levels} nivel(es) y ahora eres nivel ${character.stats.level.current}.\n\nHas ganado +${health} de vida base.\nHas obtenido ${points} Puntos de Habilidad (PH) para gastar.`;
+    openModal(`<h3 class="text-2xl font-bold mb-4 text-green-500">¡Subida de Nivel!</h3><p class="whitespace-pre-wrap mb-4">${levelUpMessage}</p><div class="text-center mb-4"><button class="btn btn-primary" onclick="openSpendSkillPointsModal(); closeModal();">Gastar Puntos de Habilidad</button></div><div class="flex justify-end mt-6"><button class="btn btn-secondary" onclick="closeModal()">Cerrar</button></div>`);
+}
+
+function openSpendSkillPointsModal() {
+    if (character.skillPoints <= 0) { showNotification("Sin Puntos", "No tienes Puntos de Habilidad (PH) para gastar."); return; }
+    let content = `<h3 class="text-xl font-bold mb-4">Gastar Puntos de Habilidad (PH: <span id="modal-ph-display">${character.skillPoints}</span>)</h3><div class="space-y-4 modal-scrollable-content">`;
+    // Attributes
+    content += `<h4 class="font-semibold border-b pb-2">Atributos (+1 por PH)</h4>`;
+    for (const key in character.attributes) { const attr = character.attributes[key]; content += `<div class="flex justify-between items-center"><span>${attr.name} (${attr.value})</span><button class="btn btn-primary" onclick="spendPoint('attribute', '${key}')">Mejorar</button></div>`; }
+    // Elements
+    content += `<h4 class="font-semibold border-b pb-2 mt-4">Afinidad Elemental (+1 por PH)</h4>`;
+    for (const key in character.elements) { const element = character.elements[key]; content += `<div class="flex justify-between items-center"><span>${ELEMENTS_CONFIG[key].emoji} ${element.name} (${element.level})</span><button class="btn btn-primary" onclick="spendPoint('element', '${key}')">Mejorar</button></div>`; }
+    content += `</div><div class="flex justify-end mt-6"><button class="btn btn-secondary" onclick="closeModal()">Cerrar</button></div>`;
+    openModal(content);
+}
+
+function spendPoint(type, key) {
+    if (character.skillPoints <= 0) { showNotification("Sin Puntos", "No te quedan PH."); closeModal(); return; }
+    if (type === 'attribute') { character.attributes[key].value++; character.attributes[key].upgrades++; }
+    else if (type === 'element') { character.elements[key].level++; character.elements[key].upgrades++; }
+    character.skillPoints--;
+    saveAndRefresh();
+    document.getElementById('modal-ph-display').textContent = character.skillPoints; // Update modal display
+}
+
+function openEditBaseStatsModal() {
+    let content = `<h3 class="text-xl font-bold mb-4">Editar Estadísticas Base</h3><div class="space-y-3">`;
+    for (const key in character.stats) {
+        if (character.stats[key].hasOwnProperty('base')) {
+            const stat = character.stats[key];
+            content += `<div class="flex justify-between items-center"><label for="base-stat-${key}" class="font-medium">${stat.name}:</label><input type="number" id="base-stat-${key}" value="${stat.base}" class="input-field w-20"></div>`;
+        }
+    }
+    content += `</div><div class="flex justify-end mt-6 space-x-2"><button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveBaseStats()">Guardar</button></div>`;
+    openModal(content);
+}
+
+function saveBaseStats() {
+    for (const key in character.stats) {
+        if (character.stats[key].hasOwnProperty('base')) {
+            const input = document.getElementById(`base-stat-${key}`);
+            if (input) character.stats[key].base = parseInt(input.value) || 0;
+        }
+    }
+    saveAndRefresh();
+    closeModal();
+    showNotification("Guardado", "Estadísticas base actualizadas.");
+}
+
+function openAddItemModal(type) {
+    const isTechnique = type === 'techniques';
+    const itemTitle = type === 'skills' ? 'Habilidad' : type === 'techniques' ? 'Técnica/Hechizo' : type === 'items' ? 'Objeto' : 'Mascota';
+    let content = `<h3 class="text-xl font-bold mb-4">Añadir ${itemTitle}</h3><form id="add-item-form" class="space-y-3">`;
+    content += `<div><label class="block text-sm font-medium">Nombre</label><input type="text" id="new-item-name" class="input-field" required></div>`;
+    content += `<div><label class="block text-sm font-medium">Descripción</label><textarea id="new-item-description" class="input-field" rows="3"></textarea></div>`;
+    content += `<div><label class="block text-sm font-medium">Rareza</label><select id="new-item-rarity" class="input-field">${RARITIES.map(r => `<option value="${r}">${r}</option>`).join('')}</select></div>`;
+    if (type === 'skills' || type === 'techniques') { content += `<div><label class="block text-sm font-medium">Nivel Inicial</label><input type="number" id="new-item-level" class="input-field" value="0" min="0"></div>`; }
+    if (isTechnique) { content += `<div><label class="block text-sm font-medium">Coste de Místyculas</label><input type="number" id="new-item-cost" class="input-field" value="0" min="0"></div>`; }
+    content += `</form><div class="flex justify-end mt-6 space-x-2"><button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="addInventoryItem('${type}')">Añadir</button></div>`;
+    openModal(content);
+}
+
+function addInventoryItem(type) {
+    const name = document.getElementById('new-item-name').value.trim();
+    if (!name) { showNotification("Error", "El nombre es obligatorio."); return; }
+    const newItem = {
+        name: name,
+        description: document.getElementById('new-item-description').value.trim(),
+        rarity: document.getElementById('new-item-rarity').value,
+        level: parseInt(document.getElementById('new-item-level')?.value) || 0,
+        upgrades: 0,
+    };
+    if (type === 'techniques') { newItem.cost = parseInt(document.getElementById('new-item-cost')?.value) || 0; }
+    character.inventory[type].push(newItem);
+    saveAndRefresh();
+    closeModal();
+    showNotification("Añadido", `${name} ha sido añadido a tu inventario.`);
+}
+
+function editInventoryItem(type, index) {
+    const item = character.inventory[type][index];
+    const itemTitle = type === 'skills' ? 'Habilidad' : type === 'techniques' ? 'Técnica/Hechizo' : type === 'items' ? 'Objeto' : 'Mascota';
+    let content = `<h3 class="text-xl font-bold mb-4">Editar ${itemTitle}</h3><form id="edit-item-form" class="space-y-3">`;
+    content += `<div><label class="block text-sm font-medium">Nombre</label><input type="text" id="edit-item-name" class="input-field" value="${item.name}" required></div>`;
+    content += `<div><label class="block text-sm font-medium">Descripción</label><textarea id="edit-item-description" class="input-field" rows="3">${item.description}</textarea></div>`;
+    content += `<div><label class="block text-sm font-medium">Rareza</label><select id="edit-item-rarity" class="input-field">${RARITIES.map(r => `<option value="${r}" ${r===item.rarity?'selected':''}>${r}</option>`).join('')}</select></div>`;
+    if (item.level !== undefined) { content += `<div><label class="block text-sm font-medium">Nivel</label><input type="number" id="edit-item-level" class="input-field" value="${item.level}" min="0"></div><div><label class="block text-sm font-medium">Mejoras</label><input type="number" id="edit-item-upgrades" class="input-field" value="${item.upgrades}" min="0"></div>`; }
+    if (item.cost !== undefined) { content += `<div><label class="block text-sm font-medium">Coste de Místyculas</label><input type="number" id="edit-item-cost" class="input-field" value="${item.cost}" min="0"></div>`; }
+    content += `</form><div class="flex justify-end mt-6 space-x-2"><button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveInventoryItem('${type}', ${index})">Guardar</button></div>`;
+    openModal(content);
+}
+
+function saveInventoryItem(type, index) {
+    const item = character.inventory[type][index];
+    item.name = document.getElementById('edit-item-name').value.trim();
+    item.description = document.getElementById('edit-item-description').value.trim();
+    item.rarity = document.getElementById('edit-item-rarity').value;
+    if (item.level !== undefined) { item.level = parseInt(document.getElementById('edit-item-level').value) || 0; item.upgrades = parseInt(document.getElementById('edit-item-upgrades').value) || 0; }
+    if (item.cost !== undefined) { item.cost = parseInt(document.getElementById('edit-item-cost').value) || 0; }
+    saveAndRefresh();
+    closeModal();
+    showNotification("Guardado", `${item.name} ha sido actualizado.`);
+}
+
+function deleteInventoryItem(type, index) {
+    const item = character.inventory[type][index];
+    if (confirm(`¿Estás seguro de que quieres borrar "${item.name}"?`)) {
+        character.inventory[type].splice(index, 1);
+        saveAndRefresh();
+        showNotification("Borrado", `${item.name} ha sido eliminado.`);
+    }
+}
+
+function openEquipItemModal(slotName, slotType) {
+    const availableItems = character.inventory.items.filter(item => item.type === slotType || !item.type);
+    if (availableItems.length === 0) { showNotification("Sin Objetos", `No tienes objetos del tipo "${slotType}" para equipar.`); return; }
+    let content = `<h3 class="text-xl font-bold mb-4">Equipar en ${slotName}</h3><div class="space-y-2 modal-scrollable-content">`;
+    availableItems.forEach((item, index) => {
+        const originalIndex = character.inventory.items.indexOf(item);
+        content += `<div class="p-2 border rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700" onclick="equipItem('${slotName}', ${originalIndex})"><p class="font-bold">${item.name}</p><p class="text-sm rarity-text">${item.rarity}</p></div>`;
+    });
+    content += `</div><div class="flex justify-end mt-6"><button class="btn btn-secondary" onclick="closeModal()">Cancelar</button></div>`;
+    openModal(content);
+}
+
+function equipItem(slotName, itemIndex) {
+    const slot = character.equipment.find(s => s.slotName === slotName);
+    const item = character.inventory.items[itemIndex];
+    if (slot && item) {
+        if (slot.item) { // If slot is occupied, return item to inventory
+            character.inventory.items.push(slot.item);
+        }
+        slot.item = item;
+        character.inventory.items.splice(itemIndex, 1);
+        saveAndRefresh();
+        closeModal();
+        showNotification("Equipado", `${item.name} ha sido equipado en ${slotName}.`);
+    }
+}
+
+function unequipItem(slotName) {
+    const slot = character.equipment.find(s => s.slotName === slotName);
+    if (slot && slot.item) {
+        character.inventory.items.push(slot.item);
+        slot.item = null;
+        saveAndRefresh();
+        showNotification("Quitado", `El objeto de ${slotName} ha sido devuelto al inventario.`);
+    }
+}
+
+function openManageSlotsModal() {
+    let content = `<h3 class="text-xl font-bold mb-4">Gestionar Slots de Equipamiento</h3><div class="space-y-3">`;
+    character.equipment.forEach(slot => {
+        content += `<div class="flex justify-between items-center p-2 border rounded"><span>${slot.slotName}</span><button class="btn btn-danger text-sm" onclick="removeSlot('${slot.slotName}')">Eliminar Slot</button></div>`;
+    });
+    content += `</div><div class="mt-4"><input type="text" id="new-slot-name" class="input-field" placeholder="Nombre del nuevo slot"></div><div class="flex justify-end mt-6 space-x-2"><button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="addSlot()">Añadir Slot</button></div>`;
+    openModal(content);
+}
+
+function addSlot() {
+    const name = document.getElementById('new-slot-name').value.trim();
+    if (name) { character.equipment.push({ slotName: name, type: 'accesorio', item: null }); saveAndRefresh(); closeModal(); openManageSlotsModal(); }
+}
+
+function removeSlot(slotName) {
+    const slot = character.equipment.find(s => s.slotName === slotName);
+    if (slot && slot.item) { character.inventory.items.push(slot.item); }
+    character.equipment = character.equipment.filter(s => s.slotName !== slotName);
+    saveAndRefresh();
+    closeModal();
+    openManageSlotsModal();
+}
+
+function openAddStatusEffectModal() {
+    tempLinkedEffects = [];
+    let content = `<h3 class="text-xl font-bold mb-4">Añadir Estado</h3><form id="add-status-form" class="space-y-3">`;
+    content += `<div><label class="block text-sm font-medium">Nombre</label><input type="text" id="status-name" class="input-field" required></div>`;
+    content += `<div><label class="block text-sm font-medium">Descripción</label><textarea id="status-description" class="input-field" rows="2"></textarea></div>`;
+    content += `<div><label class="block text-sm font-medium">Tipo</label><select id="status-type" class="input-field"><option value="Buff">Buff</option><option value="Debuff">Debuff</option><option value="Neutral">Neutral</option></select></div>`;
+    content += `<div><label class="block text-sm font-medium">Duración (turnos, -1 para infinito)</label><input type="number" id="status-duration" class="input-field" value="-1"></div>`;
+    content += `<div class="border-t pt-3"><h4 class="font-semibold mb-2">Efectos Vinculados</h4><div id="linked-effects-container"></div><button type="button" class="btn btn-secondary" onclick="addLinkedEffectToModal()">Añadir Efecto</button></div>`;
+    content += `</form><div class="flex justify-end mt-6 space-x-2"><button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="addStatusEffect()">Añadir Estado</button></div>`;
+    openModal(content);
+    renderLinkedEffectsInModal();
+}
+
+function addLinkedEffectToModal() {
+    tempLinkedEffects.push({ attribute: 'stats.health', modification: 'fijo', value: 0, applyOn: 'continuo', target: 'self' });
+    renderLinkedEffectsInModal();
+}
+
+function renderLinkedEffectsInModal() {
+    const container = document.getElementById('linked-effects-container');
+    if (!container) return;
+    container.innerHTML = '';
+    tempLinkedEffects.forEach((effect, index) => {
+        const div = document.createElement('div'); div.className = 'grid grid-cols-5 gap-2 items-center';
         div.innerHTML = `
-            <span class="font-medium">${resource.name}</span>
-            <div class="flex items-center gap-2">
-                <input type="number" class="input-field w-16 text-center" value="${resource.current}" onchange="updateResource(${index}, this.value, 'current')">
-                <span>/</span>
-                <input type="number" class="input-field w-16 text-center" value="${resource.max}" onchange="updateResource(${index}, this.value, 'max')">
-                <button class="btn btn-danger text-sm" onclick="removeResource(${index})">✕</button>
-            </div>
+            <select class="input-field" data-index="${index}" data-field="attribute"><option value="stats.health">Vida</option><option value="stats.mana">Místyculas</option><option value="stats.armor">Armadura</option><option value="attributes.FUE">Fuerza</option><option value="attributes.AGI">Agilidad</option></select>
+            <select class="input-field" data-index="${index}" data-field="modification"><option value="fijo">Fijo (+/-)</option><option value="porcentaje">Porcentaje (%)</option></select>
+            <input type="number" class="input-field" data-index="${index}" data-field="value" value="${effect.value}">
+            <select class="input-field" data-index="${index}" data-field="applyOn"><option value="continuo">Continuo</option><option value="inicio_turno">Inicio Turno</option></select>
+            <button class="btn btn-danger" onclick="removeLinkedEffect(${index})">X</button>
         `;
         container.appendChild(div);
     });
 }
 
-function renderQuests() {
-    // Active quests
-    const activeList = document.getElementById('active-quests-list');
-    activeList.innerHTML = '';
-    character.quests.active.forEach((quest, index) => {
-        const div = createQuestCard(quest, 'active', index);
-        activeList.appendChild(div);
-    });
-    
-    // Completed quests
-    const completedList = document.getElementById('completed-quests-list');
-    completedList.innerHTML = '';
-    character.quests.completed.forEach((quest, index) => {
-        const div = createQuestCard(quest, 'completed', index);
-        completedList.appendChild(div);
-    });
-    
-    // Failed quests
-    const failedList = document.getElementById('failed-quests-list');
-    failedList.innerHTML = '';
-    character.quests.failed.forEach((quest, index) => {
-        const div = createQuestCard(quest, 'failed', index);
-        failedList.appendChild(div);
-    });
-}
+function removeLinkedEffect(index) { tempLinkedEffects.splice(index, 1); renderLinkedEffectsInModal(); }
 
-function createQuestCard(quest, status, index) {
-    const div = document.createElement('div');
-    div.className = `quest-card p-3 rounded-lg data-status="${status}"`;
-    
-    const objectivesHtml = quest.objectives.map((obj, objIndex) => `
-        <div class="quest-objective ${obj.completed ? 'completed' : ''}">
-            <input type="checkbox" ${obj.completed ? 'checked' : ''} onchange="toggleQuestObjective('${status}', ${index}, ${objIndex})">
-            <span>${obj.description}</span>
-        </div>
-    `).join('');
-    
-    div.innerHTML = `
-        <div class="flex justify-between items-start">
-            <div class="flex-1">
-                <h4 class="font-semibold">${quest.name}</h4>
-                <p class="text-sm">${quest.description}</p>
-                <div class="mt-2">
-                    ${objectivesHtml}
-                </div>
-                ${quest.reward ? `<p class="text-sm mt-2 font-medium">Recompensa: ${quest.reward}</p>` : ''}
-            </div>
-            <div class="flex gap-1">
-                ${status === 'active' ? `
-                    <button class="btn btn-success text-sm" onclick="completeQuest(${index})">✓</button>
-                    <button class="btn btn-danger text-sm" onclick="failQuest(${index})">✕</button>
-                ` : ''}
-                <button class="btn btn-secondary text-sm" onclick="removeQuest('${status}', ${index})">🗑</button>
-            </div>
-        </div>
-    `;
-    
-    return div;
-}
-
-// ===================================================================================
-// MODALES Y FUNCIONALIDAD INTERACTIVA
-// ===================================================================================
-
-function openModal(content, title = '') {
-    const modal = document.getElementById('modal');
-    const modalTitle = document.getElementById('modal-title');
-    const modalBody = document.getElementById('modal-body');
-    const modalFooter = document.getElementById('modal-footer');
-    
-    if (title) modalTitle.textContent = title;
-    modalBody.innerHTML = content;
-    modalFooter.innerHTML = '';
-    modal.classList.add('active');
-}
-
-function closeModal() {
-    document.getElementById('modal').classList.remove('active');
-}
-
-function showNotification(title, message) {
-    const modal = document.getElementById('notification-modal');
-    document.getElementById('notification-title').textContent = title;
-    document.getElementById('notification-message').textContent = message;
-    modal.classList.add('active');
-    
-    setTimeout(() => {
-        modal.classList.remove('active');
-    }, 3000);
-}
-
-// ===================================================================================
-// MODALES DE CREACIÓN (FUNCIONALIDAD ORIGINAL MEJORADA)
-// ===================================================================================
-
-function openSkillModal(skill = null, index = null) {
-    const isEdit = skill !== null;
-    const name = skill ? skill.name : '';
-    const description = skill ? skill.description : '';
-    const level = skill ? skill.level : 0;
-    const rarity = skill ? skill.rarity : 'Común';
-    
-    openModal(`
-        <h3 class="text-xl font-bold mb-4">${isEdit ? 'Editar Habilidad' : 'Nueva Habilidad'}</h3>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium mb-1">Nombre</label>
-                <input type="text" id="skill-name" class="input-field" value="${name}" placeholder="Nombre de la habilidad">
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Descripción</label>
-                <textarea id="skill-description" class="input-field" rows="3" placeholder="Descripción">${description}</textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Rareza</label>
-                <select id="skill-rarity" class="input-field">
-                    ${RARITIES.map(r => `<option value="${r}" ${r === rarity ? 'selected' : ''}>${r}</option>`).join('')}
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Nivel</label>
-                <input type="number" id="skill-level" class="input-field" value="${level}" min="0">
-            </div>
-        </div>
-        <div class="flex justify-end mt-6 space-x-2">
-            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-            <button class="btn btn-primary" onclick="saveSkill(${index})">${isEdit ? 'Guardar Cambios' : 'Crear Habilidad'}</button>
-        </div>
-    `, isEdit ? 'Editar Habilidad' : 'Nueva Habilidad');
-}
-
-function saveSkill(index) {
-    const name = document.getElementById('skill-name').value;
-    const description = document.getElementById('skill-description').value;
-    const rarity = document.getElementById('skill-rarity').value;
-    const level = parseInt(document.getElementById('skill-level').value) || 0;
-    
-    if (!name || !description) {
-        showNotification('Error', 'Por favor completa todos los campos requeridos.');
-        return;
-    }
-    
-    const skill = {
-        name,
-        description,
-        rarity,
-        level,
-        upgrades: 0,
-        effects: []
-    };
-    
-    if (index !== null) {
-        character.inventory.skills[index] = skill;
-    } else {
-        character.inventory.skills.push(skill);
-    }
-    
-    saveAndRefresh();
-    closeModal();
-    showNotification('Habilidad Guardada', `La habilidad "${name}" ha sido guardada exitosamente.`);
-}
-
-// Funciones similares para técnicas, objetos, mascotas y estados
-function openTechniqueModal(technique = null, index = null) {
-    const isEdit = technique !== null;
-    const name = technique ? technique.name : '';
-    const description = technique ? technique.description : '';
-    const level = technique ? technique.level : 0;
-    const rarity = technique ? technique.rarity : 'Común';
-    
-    openModal(`
-        <h3 class="text-xl font-bold mb-4">${isEdit ? 'Editar Técnica/Hechizo' : 'Nueva Técnica/Hechizo'}</h3>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium mb-1">Nombre</label>
-                <input type="text" id="technique-name" class="input-field" value="${name}" placeholder="Nombre de la técnica/hechizo">
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Descripción</label>
-                <textarea id="technique-description" class="input-field" rows="3" placeholder="Descripción">${description}</textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Rareza</label>
-                <select id="technique-rarity" class="input-field">
-                    ${RARITIES.map(r => `<option value="${r}" ${r === rarity ? 'selected' : ''}>${r}</option>`).join('')}
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Nivel</label>
-                <input type="number" id="technique-level" class="input-field" value="${level}" min="0">
-            </div>
-        </div>
-        <div class="flex justify-end mt-6 space-x-2">
-            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-            <button class="btn btn-primary" onclick="saveTechnique(${index})">${isEdit ? 'Guardar Cambios' : 'Crear Técnica/Hechizo'}</button>
-        </div>
-    `, isEdit ? 'Editar Técnica/Hechizo' : 'Nueva Técnica/Hechizo');
-}
-
-function saveTechnique(index) {
-    const name = document.getElementById('technique-name').value;
-    const description = document.getElementById('technique-description').value;
-    const rarity = document.getElementById('technique-rarity').value;
-    const level = parseInt(document.getElementById('technique-level').value) || 0;
-    
-    if (!name || !description) {
-        showNotification('Error', 'Por favor completa todos los campos requeridos.');
-        return;
-    }
-    
-    const technique = {
-        name,
-        description,
-        rarity,
-        level,
-        upgrades: 0,
-        effects: []
-    };
-    
-    if (index !== null) {
-        character.inventory.techniques[index] = technique;
-    } else {
-        character.inventory.techniques.push(technique);
-    }
-    
-    saveAndRefresh();
-    closeModal();
-    showNotification('Técnica/Hechizo Guardado', `La técnica/hechizo "${name}" ha sido guardado exitosamente.`);
-}
-
-function openItemModal(item = null, index = null) {
-    const isEdit = item !== null;
-    const name = item ? item.name : '';
-    const description = item ? item.description : '';
-    const rarity = item ? item.rarity : 'Común';
-    const quantity = item ? item.quantity : 1;
-    
-    openModal(`
-        <h3 class="text-xl font-bold mb-4">${isEdit ? 'Editar Objeto' : 'Nuevo Objeto'}</h3>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium mb-1">Nombre</label>
-                <input type="text" id="item-name" class="input-field" value="${name}" placeholder="Nombre del objeto">
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Descripción</label>
-                <textarea id="item-description" class="input-field" rows="3" placeholder="Descripción">${description}</textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Rareza</label>
-                <select id="item-rarity" class="input-field">
-                    ${RARITIES.map(r => `<option value="${r}" ${r === rarity ? 'selected' : ''}>${r}</option>`).join('')}
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Cantidad</label>
-                <input type="number" id="item-quantity" class="input-field" value="${quantity}" min="1">
-            </div>
-        </div>
-        <div class="flex justify-end mt-6 space-x-2">
-            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-            <button class="btn btn-primary" onclick="saveItem(${index})">${isEdit ? 'Guardar Cambios' : 'Crear Objeto'}</button>
-        </div>
-    `, isEdit ? 'Editar Objeto' : 'Nuevo Objeto');
-}
-
-function saveItem(index) {
-    const name = document.getElementById('item-name').value;
-    const description = document.getElementById('item-description').value;
-    const rarity = document.getElementById('item-rarity').value;
-    const quantity = parseInt(document.getElementById('item-quantity').value) || 1;
-    
-    if (!name || !description) {
-        showNotification('Error', 'Por favor completa todos los campos requeridos.');
-        return;
-    }
-    
-    const item = {
-        name,
-        description,
-        rarity,
-        quantity,
-        effects: []
-    };
-    
-    if (index !== null) {
-        character.inventory.items[index] = item;
-    } else {
-        character.inventory.items.push(item);
-    }
-    
-    saveAndRefresh();
-    closeModal();
-    showNotification('Objeto Guardado', `El objeto "${name}" ha sido guardado exitosamente.`);
-}
-
-function openPetModal(pet = null, index = null) {
-    const isEdit = pet !== null;
-    const name = pet ? pet.name : '';
-    const description = pet ? pet.description : '';
-    const level = pet ? pet.level : 1;
-    const rarity = pet ? pet.rarity : 'Común';
-    
-    openModal(`
-        <h3 class="text-xl font-bold mb-4">${isEdit ? 'Editar Mascota' : 'Nueva Mascota'}</h3>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium mb-1">Nombre</label>
-                <input type="text" id="pet-name" class="input-field" value="${name}" placeholder="Nombre de la mascota">
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Descripción</label>
-                <textarea id="pet-description" class="input-field" rows="3" placeholder="Descripción">${description}</textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Rareza</label>
-                <select id="pet-rarity" class="input-field">
-                    ${RARITIES.map(r => `<option value="${r}" ${r === rarity ? 'selected' : ''}>${r}</option>`).join('')}
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Nivel</label>
-                <input type="number" id="pet-level" class="input-field" value="${level}" min="1">
-            </div>
-        </div>
-        <div class="flex justify-end mt-6 space-x-2">
-            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-            <button class="btn btn-primary" onclick="savePet(${index})">${isEdit ? 'Guardar Cambios' : 'Crear Mascota'}</button>
-        </div>
-    `, isEdit ? 'Editar Mascota' : 'Nueva Mascota');
-}
-
-function savePet(index) {
-    const name = document.getElementById('pet-name').value;
-    const description = document.getElementById('pet-description').value;
-    const rarity = document.getElementById('pet-rarity').value;
-    const level = parseInt(document.getElementById('pet-level').value) || 1;
-    
-    if (!name || !description) {
-        showNotification('Error', 'Por favor completa todos los campos requeridos.');
-        return;
-    }
-    
-    const pet = {
-        name,
-        description,
-        rarity,
-        level,
-        upgrades: 0,
-        abilities: []
-    };
-    
-    if (index !== null) {
-        character.inventory.pets[index] = pet;
-    } else {
-        character.inventory.pets.push(pet);
-    }
-    
-    saveAndRefresh();
-    closeModal();
-    showNotification('Mascota Guardada', `La mascota "${name}" ha sido guardada exitosamente.`);
-}
-
-function openStatusEffectModal(effect = null, index = null) {
-    const isEdit = effect !== null;
-    const name = effect ? effect.name : '';
-    const description = effect ? effect.description : '';
-    const duration = effect ? effect.duration : '';
-    const type = effect ? effect.type : 'Neutral';
-    
-    openModal(`
-        <h3 class="text-xl font-bold mb-4">${isEdit ? 'Editar Estado' : 'Nuevo Estado'}</h3>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium mb-1">Nombre</label>
-                <input type="text" id="status-name" class="input-field" value="${name}" placeholder="Nombre del estado">
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Descripción</label>
-                <textarea id="status-description" class="input-field" rows="3" placeholder="Descripción">${description}</textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Tipo</label>
-                <select id="status-type" class="input-field">
-                    <option value="Buff" ${type === 'Buff' ? 'selected' : ''}>Buff</option>
-                    <option value="Debuff" ${type === 'Debuff' ? 'selected' : ''}>Debuff</option>
-                    <option value="Neutral" ${type === 'Neutral' ? 'selected' : ''}>Neutral</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Duración (turnos)</label>
-                <input type="number" id="status-duration" class="input-field" value="${duration}" min="0">
-            </div>
-        </div>
-        <div class="flex justify-end mt-6 space-x-2">
-            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-            <button class="btn btn-primary" onclick="saveStatusEffect(${index})">${isEdit ? 'Guardar Cambios' : 'Crear Estado'}</button>
-        </div>
-    `, isEdit ? 'Editar Estado' : 'Nuevo Estado');
-}
-
-function saveStatusEffect(index) {
-    const name = document.getElementById('status-name').value;
-    const description = document.getElementById('status-description').value;
-    const type = document.getElementById('status-type').value;
-    const duration = parseInt(document.getElementById('status-duration').value) || 0;
-    
-    if (!name || !description) {
-        showNotification('Error', 'Por favor completa todos los campos requeridos.');
-        return;
-    }
-    
-    const statusEffect = {
-        name,
-        description,
-        type,
-        duration,
+function addStatusEffect() {
+    const name = document.getElementById('status-name').value.trim();
+    if (!name) { showNotification("Error", "El nombre es obligatorio."); return; }
+    const newStatus = {
+        name: name,
+        description: document.getElementById('status-description').value.trim(),
+        type: document.getElementById('status-type').value,
+        duration: parseInt(document.getElementById('status-duration').value) || -1,
         linkedEffects: []
     };
-    
-    if (index !== null) {
-        character.statusEffects[index] = statusEffect;
-    } else {
-        character.statusEffects.push(statusEffect);
-    }
-    
+    // Capture values from dynamically created inputs
+    tempLinkedEffects.forEach((effect, index) => {
+        newStatus.linkedEffects.push({
+            attribute: document.querySelector(`[data-index="${index}"][data-field="attribute"]`).value,
+            modification: document.querySelector(`[data-index="${index}"][data-field="modification"]`).value,
+            value: parseFloat(document.querySelector(`[data-index="${index}"][data-field="value"]`).value) || 0,
+            applyOn: document.querySelector(`[data-index="${index}"][data-field="applyOn"]`).value,
+            target: 'self'
+        });
+    });
+    character.statusEffects.push(newStatus);
     saveAndRefresh();
     closeModal();
-    showNotification('Estado Guardado', `El estado "${name}" ha sido guardado exitosamente.`);
-}
-
-// ===================================================================================
-// SISTEMA DE MISIONES (NUEVO)
-// ===================================================================================
-
-function openQuestModal(quest = null, status = 'active', index = null) {
-    const isEdit = quest !== null;
-    const name = quest ? quest.name : '';
-    const description = quest ? quest.description : '';
-    const reward = quest ? quest.reward || '';
-    const objectives = quest ? quest.objectives.map(obj => obj.description).join('\n') : '';
-    
-    openModal(`
-        <h3 class="text-xl font-bold mb-4">${isEdit ? 'Editar Misión' : 'Nueva Misión'}</h3>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium mb-1">Nombre de la Misión</label>
-                <input type="text" id="quest-name" class="input-field" value="${name}" placeholder="Nombre de la misión">
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Descripción</label>
-                <textarea id="quest-description" class="input-field" rows="3" placeholder="Descripción de la misión">${description}</textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Objetivos (uno por línea)</label>
-                <textarea id="quest-objectives" class="input-field" rows="4" placeholder="Objetivo 1\nObjetivo 2\nObjetivo 3">${objectives}</textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">Recompensa</label>
-                <input type="text" id="quest-reward" class="input-field" value="${reward}" placeholder="Recompensa de la misión">
-            </div>
-        </div>
-        <div class="flex justify-end mt-6 space-x-2">
-            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-            <button class="btn btn-primary" onclick="saveQuest('${status}', ${index})">${isEdit ? 'Guardar Cambios' : 'Crear Misión'}</button>
-        </div>
-    `, isEdit ? 'Editar Misión' : 'Nueva Misión');
-}
-
-function saveQuest(status, index) {
-    const name = document.getElementById('quest-name').value;
-    const description = document.getElementById('quest-description').value;
-    const reward = document.getElementById('quest-reward').value;
-    const objectivesText = document.getElementById('quest-objectives').value;
-    
-    if (!name || !description || !objectivesText) {
-        showNotification('Error', 'Por favor completa todos los campos requeridos.');
-        return;
-    }
-    
-    const objectives = objectivesText.split('\n').filter(obj => obj.trim()).map(obj => ({
-        description: obj.trim(),
-        completed: false
-    }));
-    
-    const quest = {
-        name,
-        description,
-        objectives,
-        reward,
-        createdAt: new Date().toISOString()
-    };
-    
-    if (index !== null) {
-        character.quests[status][index] = quest;
-    } else {
-        character.quests[status].push(quest);
-    }
-    
-    saveAndRefresh();
-    closeModal();
-    showNotification('Misión Guardada', `La misión "${name}" ha sido guardada exitosamente.`);
-}
-
-function toggleQuestObjective(status, questIndex, objectiveIndex) {
-    const quest = character.quests[status][questIndex];
-    quest.objectives[objectiveIndex].completed = !quest.objectives[objectiveIndex].completed;
-    saveAndRefresh();
-}
-
-function completeQuest(index) {
-    const quest = character.quests.active[index];
-    quest.completedAt = new Date().toISOString();
-    character.quests.completed.push(quest);
-    character.quests.active.splice(index, 1);
-    saveAndRefresh();
-    showNotification('Misión Completada', `¡Has completado la misión "${quest.name}"!`);
-}
-
-function failQuest(index) {
-    const quest = character.quests.active[index];
-    quest.failedAt = new Date().toISOString();
-    character.quests.failed.push(quest);
-    character.quests.active.splice(index, 1);
-    saveAndRefresh();
-    showNotification('Misión Fallida', `La misión "${quest.name}" ha fallado.`);
-}
-
-function removeQuest(status, index) {
-    const quest = character.quests[status][index];
-    if (confirm(`¿Estás seguro de que quieres eliminar la misión "${quest.name}"?`)) {
-        character.quests[status].splice(index, 1);
-        saveAndRefresh();
-    }
-}
-
-// ===================================================================================
-// SISTEMA DE MEJORA DE EQUIPO (NUEVO)
-// ===================================================================================
-
-function openEnhancementModal() {
-    const equipmentWithItems = character.equipment.filter(slot => slot.item !== null);
-    
-    if (equipmentWithItems.length === 0) {
-        showNotification('Sin Equipamiento', 'No tienes ningún equipo equipado para mejorar.');
-        return;
-    }
-    
-    let content = '<div class="space-y-4">';
-    
-    equipmentWithItems.forEach((slot, index) => {
-        const actualIndex = character.equipment.indexOf(slot);
-        const enhancementLevel = slot.enhancementLevel || 0;
-        const nextLevel = enhancementLevel + 1;
-        const cost = nextLevel * 100; // Enhancement cost formula
-        
-        content += `
-            <div class="enhancement-slot p-4 border rounded-lg ${selectedEnhancementSlot === actualIndex ? 'selected' : ''}" 
-                 onclick="selectEnhancementSlot(${actualIndex})">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h4 class="font-semibold">${slot.item.name}</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">${slot.item.type}</p>
-                        <p class="text-sm rarity-text">${slot.item.rarity}</p>
-                        <div class="mt-2">
-                            <div class="enhancement-level">Nivel actual: +${enhancementLevel}</div>
-                            <div class="enhancement-cost">
-                                <span>Costo para mejorar a +${nextLevel}:</span>
-                                <span class="font-bold">${cost} de oro</span>
-                            </div>
-                            <div class="enhancement-progress">
-                                <div class="enhancement-progress-bar" style="width: ${(enhancementLevel / 10) * 100}%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    content += '</div>';
-    
-    content += `
-        <div class="flex justify-end mt-6 space-x-2">
-            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-            <button class="btn btn-primary" onclick="enhanceEquipment()" ${selectedEnhancementSlot === null ? 'disabled' : ''}>
-                Mejorar Equipo
-            </button>
-        </div>
-    `;
-    
-    openModal(content, 'Mejorar Equipo');
-}
-
-function selectEnhancementSlot(index) {
-    selectedEnhancementSlot = index;
-    
-    // Update visual selection
-    document.querySelectorAll('.enhancement-slot').forEach((slot, i) => {
-        const actualIndex = character.equipment.findIndex(e => e.item && e.item.name === slot.querySelector('h4').textContent);
-        if (actualIndex === index) {
-            slot.classList.add('selected');
-        } else {
-            slot.classList.remove('selected');
-        }
-    });
-    
-    // Update enhance button
-    const enhanceBtn = document.querySelector('#modal-footer .btn-primary');
-    if (enhanceBtn) {
-        enhanceBtn.disabled = false;
-    }
-}
-
-function enhanceEquipment() {
-    if (selectedEnhancementSlot === null) return;
-    
-    const slot = character.equipment[selectedEnhancementSlot];
-    const currentLevel = slot.enhancementLevel || 0;
-    const nextLevel = currentLevel + 1;
-    const cost = nextLevel * 100;
-    
-    // Check if player has enough gold (assuming gold is a resource)
-    const goldResource = character.resources.find(r => r.name.toLowerCase() === 'oro');
-    if (!goldResource || goldResource.current < cost) {
-        showNotification('Recursos Insuficientes', `Necesitas ${cost} de oro para mejorar este equipo.`);
-        return;
-    }
-    
-    // Check max enhancement level
-    if (currentLevel >= 10) {
-        showNotification('Máximo Alcanzado', 'Este equipo ya ha alcanzado su nivel máximo de mejora.');
-        return;
-    }
-    
-    // Deduct cost and enhance
-    goldResource.current -= cost;
-    slot.enhancementLevel = nextLevel;
-    
-    selectedEnhancementSlot = null;
-    saveAndRefresh();
-    closeModal();
-    showNotification('Mejora Exitosa', `${slot.item.name} ha sido mejorado a +${nextLevel}.`);
-}
-
-// ===================================================================================
-// SISTEMA DE PUNTOS DE HABILIDAD (MEJORADO)
-// ===================================================================================
-
-function openSpendSkillPointsModal() {
-    if (character.skillPoints <= 0) {
-        showNotification('Sin Puntos de Habilidad', 'No tienes puntos de habilidad disponibles para gastar.');
-        return;
-    }
-    
-    let content = '<div class="space-y-4">';
-    
-    // Attributes section
-    content += `
-        <div>
-            <h4 class="font-semibold mb-2">Atributos</h4>
-            <div class="space-y-2">
-    `;
-    
-    for (const key in character.attributes) {
-        const attr = character.attributes[key];
-        const cost = 1; // Costo por punto de atributo
-        content += `
-            <div class="flex justify-between items-center p-2 border rounded">
-                <span>${attr.name}: ${attr.value}</span>
-                <button class="btn btn-primary text-sm" onclick="upgradeAttributeWithPoints('${key}', ${cost})" 
-                        ${character.skillPoints < cost ? 'disabled' : ''}>
-                    Mejorar (${cost} PH)
-                </button>
-            </div>
-        `;
-    }
-    
-    content += `
-            </div>
-        </div>
-    `;
-    
-    // Elements section
-    content += `
-        <div>
-            <h4 class="font-semibold mb-2">Elementos</h4>
-            <div class="space-y-2">
-    `;
-    
-    for (const key in character.elements) {
-        const element = character.elements[key];
-        const cost = 2; // Costo por punto de elemento
-        content += `
-            <div class="flex justify-between items-center p-2 border rounded">
-                <span>${ELEMENTS_CONFIG[key].name}: ${element.level}</span>
-                <button class="btn btn-primary text-sm" onclick="upgradeElementWithPoints('${key}', ${cost})" 
-                        ${character.skillPoints < cost ? 'disabled' : ''}>
-                    Mejorar (${cost} PH)
-                </button>
-            </div>
-        `;
-    }
-    
-    content += `
-            </div>
-        </div>
-    `;
-    
-    // Skills section
-    content += `
-        <div>
-            <h4 class="font-semibold mb-2">Habilidades</h4>
-            <div class="space-y-2">
-    `;
-    
-    character.inventory.skills.forEach((skill, index) => {
-        const cost = 1; // Costo por punto de habilidad
-        content += `
-            <div class="flex justify-between items-center p-2 border rounded">
-                <span>${skill.name}: Nivel ${skill.level}</span>
-                <button class="btn btn-primary text-sm" onclick="upgradeSkillWithPoints(${index}, ${cost})" 
-                        ${character.skillPoints < cost ? 'disabled' : ''}>
-                    Mejorar (${cost} PH)
-                </button>
-            </div>
-        `;
-    });
-    
-    content += `
-            </div>
-        </div>
-    `;
-    
-    content += `
-        <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-            <p class="text-sm">Puntos de Habilidad Disponibles: <span class="font-bold">${character.skillPoints}</span></p>
-        </div>
-    `;
-    
-    content += '</div>';
-    
-    content += `
-        <div class="flex justify-end mt-6 space-x-2">
-            <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
-        </div>
-    `;
-    
-    openModal(content, 'Gastar Puntos de Habilidad');
-}
-
-function upgradeAttributeWithPoints(attrKey, cost) {
-    if (character.skillPoints >= cost) {
-        character.attributes[attrKey].value += 1;
-        character.attributes[attrKey].upgrades += 1;
-        character.skillPoints -= cost;
-        
-        calculateDerivedStats();
-        updateUI();
-        
-        // Refresh modal to show updated values
-        openSpendSkillPointsModal();
-        
-        showNotification('Atributo Mejorado', `${character.attributes[attrKey].name} ha sido mejorado a ${character.attributes[attrKey].value}.`);
-    }
-}
-
-function upgradeElementWithPoints(elementKey, cost) {
-    if (character.skillPoints >= cost) {
-        character.elements[elementKey].level += 1;
-        character.elements[elementKey].upgrades += 1;
-        character.skillPoints -= cost;
-        
-        calculateDerivedStats();
-        updateUI();
-        
-        // Refresh modal to show updated values
-        openSpendSkillPointsModal();
-        
-        showNotification('Elemento Mejorado', `${ELEMENTS_CONFIG[elementKey].name} ha sido mejorado a nivel ${character.elements[elementKey].level}.`);
-    }
-}
-
-function upgradeSkillWithPoints(skillIndex, cost) {
-    if (character.skillPoints >= cost) {
-        character.inventory.skills[skillIndex].level += 1;
-        character.inventory.skills[skillIndex].upgrades += 1;
-        character.skillPoints -= cost;
-        
-        calculateDerivedStats();
-        updateUI();
-        
-        // Refresh modal to show updated values
-        openSpendSkillPointsModal();
-        
-        showNotification('Habilidad Mejorada', `${character.inventory.skills[skillIndex].name} ha sido mejorada a nivel ${character.inventory.skills[skillIndex].level}.`);
-    }
-}
-
-// ===================================================================================
-// FUNCIONES DE UTILIDAD (MEJORADAS)
-// ===================================================================================
-
-// v4.6 - Quick actions
-function quickHeal() {
-    const healAmount = Math.floor(character.stats.health.max * 0.25);
-    character.stats.health.current = Math.min(character.stats.health.current + healAmount, character.stats.health.max);
-    saveAndRefresh();
-    showNotification('Curación Rápida', `Has recuperado ${healAmount} puntos de vida.`);
-}
-
-function quickManaRestore() {
-    const manaAmount = Math.floor(character.stats.mana.max * 0.25);
-    character.stats.mana.current = Math.min(character.stats.mana.current + manaAmount, character.stats.mana.max);
-    saveAndRefresh();
-    showNotification('Recuperación de Místyculas', `Has recuperado ${manaAmount} místyculas.`);
-}
-
-function quickRest() {
-    character.stats.health.current = character.stats.health.max;
-    character.stats.mana.current = character.stats.mana.max;
-    character.combat.currentActions = character.stats.actions.current;
-    saveAndRefresh();
-    showNotification('Descanso Completo', 'Has recuperado toda tu vida, místyculas y acciones.');
-}
-
-// v4.6 - Keyboard shortcuts
-function initKeyboardShortcuts() {
-    document.addEventListener('keydown', (e) => {
-        // Ctrl+S: Save
-        if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            saveCharacterToLocalStorage();
-            showSaveIndicator();
-            updateLastSavedTime();
-            showNotification('Guardado Manual', 'Los datos han sido guardados exitosamente.');
-        }
-        
-        // Ctrl+H: Quick heal
-        if (e.ctrlKey && e.key === 'h') {
-            e.preventDefault();
-            quickHeal();
-        }
-        
-        // Ctrl+M: Quick mana restore
-        if (e.ctrlKey && e.key === 'm') {
-            e.preventDefault();
-            quickManaRestore();
-        }
-        
-        // Ctrl+Q: New quest
-        if (e.ctrlKey && e.key === 'q') {
-            e.preventDefault();
-            openQuestModal();
-        }
-        
-        // Ctrl+E: Enhance equipment
-        if (e.ctrlKey && e.key === 'e') {
-            e.preventDefault();
-            openEnhancementModal();
-        }
-        
-        // ?: Show/hide shortcuts help
-        if (e.key === '?') {
-            e.preventDefault();
-            toggleShortcutsHelp();
-        }
-    });
-}
-
-function toggleShortcutsHelp() {
-    const help = document.getElementById('shortcuts-help');
-    help.classList.toggle('hidden');
-}
-
-// Auto-save functionality
-function initAutoSave() {
-    clearTimeout(autoSaveTimer);
-    autoSaveTimer = setTimeout(() => {
-        saveCharacterToLocalStorage();
-        showSaveIndicator();
-        updateLastSavedTime();
-    }, 2000); // Auto-save after 2 seconds of inactivity
-}
-
-function showSaveIndicator() {
-    const indicator = document.getElementById('save-indicator');
-    indicator.classList.add('show');
-    setTimeout(() => {
-        indicator.classList.remove('show');
-    }, 2000);
-}
-
-function updateLastSavedTime() {
-    lastSavedTime = new Date();
-    const timeString = lastSavedTime.toLocaleTimeString();
-    document.getElementById('last-saved-time').textContent = timeString;
-}
-
-// Roll Functions (mejoradas)
-function rollAttributeCheck(attribute) {
-    const baseValue = character.attributes[attribute].value;
-    const mod = getModifier(baseValue);
-    const roll = Math.floor(Math.random() * 20) + 1;
-    const total = roll + mod;
-    
-    let result = '';
-    let resultClass = '';
-    if (total <= 5) {
-        result = 'Fallo Crítico';
-        resultClass = 'roll-critical';
-    } else if (total <= 10) {
-        result = 'Fallo';
-        resultClass = 'roll-fail';
-    } else if (total <= 15) {
-        result = 'Éxito';
-        resultClass = 'roll-success';
-    } else if (total <= 19) {
-        result = 'Éxito Bueno';
-        resultClass = 'roll-good';
-    } else {
-        result = 'Éxito Crítico';
-        resultClass = 'roll-amazing';
-    }
-    
-    openModal(`
-        <div class="roll-result">
-            <h3 class="text-xl font-bold mb-4">Tirada de ${character.attributes[attribute].name}</h3>
-            <div class="roll-dice ${resultClass}">${roll}</div>
-            <div class="text-xl">
-                <span class="text-gray-600">1d20</span>
-                <span class="mx-2">+</span>
-                <span class="${mod >= 0 ? 'text-green-600' : 'text-red-600'}">${mod >= 0 ? '+' : ''}${mod}</span>
-                <span class="mx-2">=</span>
-                <span class="font-bold text-2xl">${total}</span>
-            </div>
-            <div class="text-xl font-semibold ${resultClass}">${result}</div>
-            <div class="text-sm text-gray-600">
-                Atributo base: ${baseValue} (Modificador: ${mod >= 0 ? '+' : ''}${mod})
-            </div>
-        </div>
-        <div class="flex justify-end mt-6">
-            <button class="btn btn-primary" onclick="rollAttributeCheck('${attribute}')">Volver a Lanzar</button>
-            <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
-        </div>
-    `, `Tirada de ${character.attributes[attribute].name}`);
-}
-
-function rollStatCheck(stat) {
-    const value = character.stats[stat].current;
-    const roll = Math.floor(Math.random() * 20) + 1;
-    const total = roll + value;
-    
-    let result = '';
-    let resultClass = '';
-    if (total <= 5) {
-        result = 'Fallo Crítico';
-        resultClass = 'roll-critical';
-    } else if (total <= 10) {
-        result = 'Fallo';
-        resultClass = 'roll-fail';
-    } else if (total <= 15) {
-        result = 'Éxito';
-        resultClass = 'roll-success';
-    } else if (total <= 19) {
-        result = 'Éxito Bueno';
-        resultClass = 'roll-good';
-    } else {
-        result = 'Éxito Crítico';
-        resultClass = 'roll-amazing';
-    }
-    
-    openModal(`
-        <div class="roll-result">
-            <h3 class="text-xl font-bold mb-4">Tirada de ${character.stats[stat].name}</h3>
-            <div class="roll-dice ${resultClass}">${roll}</div>
-            <div class="text-xl">
-                <span class="text-gray-600">1d20</span>
-                <span class="mx-2">+</span>
-                <span class="text-green-600">+${value}</span>
-                <span class="mx-2">=</span>
-                <span class="font-bold text-2xl">${total}</span>
-            </div>
-            <div class="text-xl font-semibold ${resultClass}">${result}</div>
-            <div class="text-sm text-gray-600">
-                Valor de ${character.stats[stat].name}: ${value}
-            </div>
-        </div>
-        <div class="flex justify-end mt-6">
-            <button class="btn btn-primary" onclick="rollStatCheck('${stat}')">Volver a Lanzar</button>
-            <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
-        </div>
-    `, `Tirada de ${character.stats[stat].name}`);
-}
-
-// Theme Management (mejorado)
-function toggleTheme() {
-    const themes = ['', 'theme-dark', 'theme-forest', 'theme-ocean', 'theme-fire', 'theme-dusk'];
-    const body = document.body;
-    let currentTheme = '';
-    
-    themes.forEach(theme => {
-        if (body.classList.contains(theme)) {
-            currentTheme = theme;
-        }
-    });
-    
-    const currentIndex = themes.indexOf(currentTheme);
-    const nextIndex = (currentIndex + 1) % themes.length;
-    const nextTheme = themes[nextIndex];
-    
-    if (currentTheme) {
-        body.classList.remove(currentTheme);
-    }
-    
-    if (nextTheme) {
-        body.classList.add(nextTheme);
-    }
-    
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-    
-    const themeNames = {
-        '': 'Predeterminado',
-        'theme-dark': 'Oscuro',
-        'theme-forest': 'Bosque',
-        'theme-ocean': 'Océano',
-        'theme-fire': 'Fuego',
-        'theme-dusk': 'Atardecer'
-    };
-    
-    showNotification('Tema Cambiado', `El tema ha sido cambiado a: ${themeNames[nextTheme]}`);
-}
-
-function loadTheme() {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (savedTheme) {
-        document.body.classList.add(savedTheme);
-    }
-}
-
-// ===================================================================================
-// FUNCIONES AUXILIARES (MANTENIENDO FUNCIONALIDAD ORIGINAL)
-// ===================================================================================
-
-function useAction(cost, name) {
-    if (character.combat.currentActions >= cost) {
-        character.combat.currentActions -= cost;
-        saveAndRefresh();
-        showNotification('Acción Realizada', `Has usado la acción "${name}" por ${cost} PA.`);
-    } else {
-        showNotification('Acción Insuficiente', `No tienes suficientes puntos de acción para "${name}".`);
-    }
-}
-
-function upgradeElement(elementKey) {
-    const element = character.elements[elementKey];
-    const nextLevel = element.level + 1;
-    const cost = nextLevel * 5; // Costo en puntos de experiencia
-    
-    if (character.stats.xp.current >= cost) {
-        character.stats.xp.current -= cost;
-        element.level = nextLevel;
-        element.upgrades += 1;
-        
-        saveAndRefresh();
-        showNotification('Elemento Mejorado', `${ELEMENTS_CONFIG[elementKey].name} ha sido mejorado a nivel ${nextLevel}.`);
-    } else {
-        showNotification('Experiencia Insuficiente', `Necesitas ${cost} XP para mejorar ${ELEMENTS_CONFIG[elementKey].name} a nivel ${nextLevel}.`);
-    }
-}
-
-function upgradeItem(type, index) {
-    const item = character.inventory[type][index];
-    if (item.level === undefined) item.level = 0;
-    if (item.upgrades === undefined) item.upgrades = 0;
-    
-    item.level++;
-    item.upgrades++;
-    saveAndRefresh();
-}
-
-function removeItem(type, index) {
-    if (confirm('¿Estás seguro de que quieres eliminar este elemento?')) {
-        character.inventory[type].splice(index, 1);
-        saveAndRefresh();
-    }
+    showNotification("Añadido", `El estado "${name}" ha sido aplicado.`);
 }
 
 function removeStatusEffect(index) {
-    character.statusEffects.splice(index, 1);
-    saveAndRefresh();
-}
-
-function addResource() {
-    const name = document.getElementById('resource-name').value;
-    const current = parseInt(document.getElementById('resource-current').value) || 0;
-    const max = parseInt(document.getElementById('resource-max').value) || 100;
-    
-    if (name) {
-        character.resources.push({ name, current, max });
+    const status = character.statusEffects[index];
+    if (confirm(`¿Quitar el estado "${status.name}"?`)) {
+        character.statusEffects.splice(index, 1);
         saveAndRefresh();
-        closeModal();
     }
 }
 
-function updateResource(index, value, type) {
-    character.resources[index][type] = parseInt(value) || 0;
-    saveAndRefresh();
+function processStatusEffects() {
+    character.statusEffects.forEach((status, index) => {
+        if (status.duration > 0) { status.duration--; }
+        if (status.duration === 0) {
+            showNotification("Estado Expirado", `El estado "${status.name}" ha terminado.`);
+            character.statusEffects.splice(index, 1);
+        }
+    });
+}
+
+function openManageResourcesModal() {
+    let content = `<h3 class="text-xl font-bold mb-4">Gestionar Recursos</h3><div class="space-y-2 modal-scrollable-content">`;
+    if (character.resources.length === 0) { content += '<p>No hay recursos definidos. Añade uno abajo.</p>'; }
+    character.resources.forEach((resource, index) => {
+        content += `<div class="flex justify-between items-center p-2 border rounded"><span>${resource.name} (Max: ${resource.max})</span><button class="btn btn-danger text-sm" onclick="removeResource(${index})">Eliminar</button></div>`;
+    });
+    content += `</div><div class="mt-4 border-t pt-4 space-y-2"><input type="text" id="new-resource-name" class="input-field" placeholder="Nombre del recurso"><input type="number" id="new-resource-max" class="input-field" placeholder="Cantidad Máxima"></div><div class="flex justify-end mt-6 space-x-2"><button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="addResource()">Añadir Recurso</button></div>`;
+    openModal(content);
+}
+
+function addResource() {
+    const name = document.getElementById('new-resource-name').value.trim();
+    const max = parseInt(document.getElementById('new-resource-max').value) || 0;
+    if (name && max > 0) {
+        character.resources.push({ name: name, max: max, current: max });
+        saveAndRefresh();
+        closeModal();
+        openManageResourcesModal();
+    }
 }
 
 function removeResource(index) {
     character.resources.splice(index, 1);
     saveAndRefresh();
+    closeModal();
+    openManageResourcesModal();
 }
 
-function unequipItem(index) {
-    character.equipment[index].item = null;
-    character.equipment[index].enhancementLevel = 0;
-    saveAndRefresh();
-}
-
-function openEquipmentModal(index) {
-    // Simplified equipment modal for now
-    showNotification('Equipamiento', 'Función de equipamiento básica implementada.');
-}
 
 // ===================================================================================
-// EVENT LISTENERS (MEJORADOS)
+// UTILIDADES Y OTRAS FUNCIONES
 // ===================================================================================
 
-function initEventListeners() {
-    // v4.6 - Quick action buttons
-    document.getElementById('quick-heal-btn').addEventListener('click', quickHeal);
-    document.getElementById('quick-mana-btn').addEventListener('click', quickManaRestore);
-    document.getElementById('quick-rest-btn').addEventListener('click', quickRest);
-    document.getElementById('shortcuts-toggle-btn').addEventListener('click', toggleShortcutsHelp);
-    
-    // v4.6 - Manual save button
-    document.getElementById('manual-save-btn').addEventListener('click', () => {
-        saveCharacterToLocalStorage();
-        showSaveIndicator();
-        updateLastSavedTime();
-        showNotification('Guardado Manual', 'Los datos han sido guardados exitosamente.');
-    });
-    
-    // Identity
-    document.getElementById('character-image-upload').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                character.identity.image = event.target.result;
-                document.getElementById('character-image-preview').src = event.target.result;
-                saveAndRefresh();
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-    
-    // Auto-save on input changes
-    document.querySelectorAll('input, textarea').forEach(element => {
-        element.addEventListener('input', () => {
-            initAutoSave();
-        });
-    });
-    
-    // XP
-    document.getElementById('add-xp-btn').addEventListener('click', () => {
-        const input = document.getElementById('xp-to-add');
-        const amount = parseInt(input.value) || 0;
-        if (amount > 0) {
-            addXP(amount);
-            input.value = '';
-        }
-    });
-    
-    // Combat
-    document.getElementById('end-turn-btn').addEventListener('click', () => {
-        character.combat.currentActions = character.stats.actions.current;
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => { character.identity.image = e.target.result; document.getElementById('character-image-preview').src = e.target.result; saveAndRefresh(); };
+        reader.readAsDataURL(file);
+    }
+}
+
+function rollAttributeCheck(attrKey) {
+    const attr = character.attributes[attrKey];
+    const mod = getModifier(attr.value);
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const total = roll + mod;
+    showNotification(`Tirada de ${attr.name}`, `1d20 + ${mod} = ${roll} + ${mod} = ${total}`);
+}
+
+function rollStatCheck(statKey) {
+    const stat = character.stats[statKey];
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const total = roll + stat.current;
+    showNotification(`Tirada de ${stat.name}`, `1d20 + ${stat.current} = ${roll} + ${stat.current} = ${total}`);
+}
+
+function useAction(cost, name) {
+    if (character.combat.currentActions >= cost) {
+        character.combat.currentActions -= cost;
         saveAndRefresh();
-        showNotification('Turno Finalizado', 'Tus puntos de acción han sido restaurados.');
-    });
-    
-    // Equipment
-    document.getElementById('manage-slots-btn').addEventListener('click', () => {
-        showNotification('Gestión de Slots', 'Función de gestión de slots implementada.');
-    });
-    
-    // v4.9 - Enhancement button
-    document.getElementById('enhance-equipment-btn').addEventListener('click', openEnhancementModal);
-    
-    // Resources
-    document.getElementById('add-resource-btn').addEventListener('click', () => {
-        openModal(`
-            <h3 class="text-xl font-bold mb-4">Añadir Recurso</h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Nombre del Recurso</label>
-                    <input type="text" id="resource-name" class="input-field" placeholder="Ej: Oro, Gemas">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Cantidad Actual</label>
-                    <input type="number" id="resource-current" class="input-field" value="0">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Cantidad Máxima</label>
-                    <input type="number" id="resource-max" class="input-field" value="100">
-                </div>
-            </div>
-            <div class="flex justify-end mt-6 space-x-2">
-                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-                <button class="btn btn-primary" onclick="addResource()">Añadir</button>
-            </div>
-        `);
-    });
-    
-    // v4.7 - Quest button
-    document.getElementById('add-quest-btn').addEventListener('click', () => openQuestModal());
-    
-    // Creation buttons
-    document.getElementById('add-skill-btn').addEventListener('click', () => openSkillModal());
-    document.getElementById('add-technique-btn').addEventListener('click', () => openTechniqueModal());
-    document.getElementById('add-item-btn').addEventListener('click', () => openItemModal());
-    document.getElementById('add-pet-btn').addEventListener('click', () => openPetModal());
-    document.getElementById('add-status-effect-btn').addEventListener('click', () => openStatusEffectModal());
-    
-    // Inventory tabs
-    document.querySelectorAll('#inventory-tabs button, #quest-tabs button').forEach(button => {
-        button.addEventListener('click', () => {
-            const tabName = button.dataset.tab;
-            const container = button.closest('.card');
-            
-            // Update active button
-            container.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            // Show corresponding content
-            const contentContainer = container.querySelector('#inventory-content, #quest-content');
-            contentContainer.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
-            contentContainer.querySelector(`#tab-content-${tabName}`).classList.remove('hidden');
-        });
-    });
-    
-    // Theme toggle
-    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
-    
-    // Data management
-    document.getElementById('export-json-btn').addEventListener('click', () => {
-        const dataStr = JSON.stringify(character, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-        
-        const exportFileDefaultName = `character_${character.identity.name || 'unnamed'}_${new Date().toISOString().split('T')[0]}.json`;
-        
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
-    });
-    
-    document.getElementById('import-json-btn').addEventListener('click', () => {
-        document.getElementById('json-import-input').click();
-    });
-    
-    document.getElementById('json-import-input').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const importedData = JSON.parse(event.target.result);
-                    character = importedData;
-                    saveAndRefresh();
-                    showNotification('Importación Exitosa', 'Los datos del personaje han sido importados.');
-                } catch (error) {
-                    showNotification('Error de Importación', 'El archivo seleccionado no es válido.');
-                }
-            };
-            reader.readAsText(file);
-        }
-    });
-    
-    document.getElementById('clear-local-data-btn').addEventListener('click', () => {
-        if (confirm('¿Estás seguro de que quieres borrar todos los datos del personaje? Esta acción no se puede deshacer.')) {
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-            localStorage.removeItem(THEME_STORAGE_KEY);
-            location.reload();
-        }
-    });
+        showNotification("Acción Usada", `Has usado "${name}" por ${cost} PA.`);
+    } else {
+        showNotification("Insuficientes PA", `No tienes suficientes Puntos de Acción para usar "${name}".`);
+    }
 }
 
-// ===================================================================================
-// INICIALIZACIÓN
-// ===================================================================================
+function exportCharacter() {
+    const dataStr = JSON.stringify(character, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const exportFileDefaultName = `character_${character.identity.name || 'sin_nombre'}.json`;
+    const linkElement = document.createElement('a'); linkElement.setAttribute('href', dataUri); linkElement.setAttribute('download', exportFileDefaultName); linkElement.click();
+}
 
-window.onload = () => {
-    // Load saved data or create new character
-    const savedData = loadCharacterFromLocalStorage();
-    character = savedData || getDefaultCharacter();
-    
-    // Load theme
-    loadTheme();
-    
-    // Initialize UI
-    updateUI();
-    
-    // Initialize event listeners
-    initEventListeners();
-    
-    // v4.6 - Initialize keyboard shortcuts
-    initKeyboardShortcuts();
-    
-    // Update last saved time if exists
-    if (lastSavedTime) {
-        updateLastSavedTime();
+function importCharacter(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try { character = JSON.parse(e.target.result); saveAndRefresh(); showNotification("Importado", "Personaje cargado correctamente."); }
+            catch (error) { showNotification("Error de Importación", "El archivo no es un JSON válido."); }
+        };
+        reader.readAsText(file);
     }
-    
-    // Show welcome message for new characters
-    if (!savedData) {
-        showNotification('Bienvenido', '¡Bienvenido a la Hoja de Personaje v5.0! Comienza creando tu personaje.');
-    }
-};
+}
+
+function clearLocalData() {
+    openModal(`<h3 class="text-xl font-bold mb-4">Confirmar Eliminación</h3><p>¿Seguro que quieres borrar todos los datos del personaje? Esta acción no se puede deshacer y la página se recargará.</p><div class="flex justify-end mt-6 space-x-2"><button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" id="confirm-delete-btn">Sí, borrar todo</button></div>`);
+    document.getElementById('confirm-delete-btn').onclick = () => { localStorage.removeItem(LOCAL_STORAGE_KEY); localStorage.removeItem(THEME_STORAGE_KEY); location.reload(); };
+}
+
+function applyStoredTheme() {
+    const theme = localStorage.getItem(THEME_STORAGE_KEY) || 'default';
+    if (theme !== 'default') { document.body.classList.add(theme); }
+}
+
+function toggleTheme() {
+    const themes = ['theme-dark', 'theme-forest', 'theme-ocean', 'theme-fire', 'theme-dusk'];
+    const currentTheme = themes.find(t => document.body.classList.contains(t));
+    if (currentTheme) { document.body.classList.remove(currentTheme); localStorage.setItem(THEME_STORAGE_KEY, 'default'); }
+    else { const nextTheme = themes[Math.floor(Math.random() * themes.length)]; document.body.classList.add(nextTheme); localStorage.setItem(THEME_STORAGE_KEY, nextTheme); }
+}
+
+function drag(ev) { ev.dataTransfer.setData("text", ev.target.id); } // Simplified drag start
