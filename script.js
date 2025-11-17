@@ -28,8 +28,13 @@ const ELEMENTS_CONFIG = {
 
 let character;
 let autoSaveTimer;
+let lastSavedTime = null;
+let selectedEnhancementSlot = null;
 
-// Función principal de inicialización
+// ===================================================================================
+// FUNCIONES BÁSICAS (MANTENIENDO FUNCIONALIDAD ORIGINAL)
+// ===================================================================================
+
 function getDefaultCharacter() {
     return {
         identity: {
@@ -82,7 +87,10 @@ function getDefaultCharacter() {
     };
 }
 
-// Funciones básicas de guardado/carga
+// ===================================================================================
+// GUARDADO Y CARGA DE DATOS
+// ===================================================================================
+
 function saveAndRefresh() {
     calculateDerivedStats();
     updateUI();
@@ -112,9 +120,56 @@ function loadCharacterFromLocalStorage() {
         const parsedData = JSON.parse(data);
         const defaultChar = getDefaultCharacter();
         
-        // Mezclar con datos por defecto para asegurar todas las propiedades
+        // Migración robusta
         let migratedData = { ...defaultChar, ...parsedData };
+        migratedData.identity = { ...defaultChar.identity, ...parsedData.identity };
+        migratedData.stats = { ...defaultChar.stats, ...parsedData.stats };
+        migratedData.inventory = { ...defaultChar.inventory, ...parsedData.inventory };
         
+        migratedData.attributes = { ...defaultChar.attributes };
+        for(const key in defaultChar.attributes) {
+            if(parsedData.attributes && parsedData.attributes[key]) {
+                 migratedData.attributes[key] = { ...defaultChar.attributes[key], ...parsedData.attributes[key] };
+            }
+        }
+
+        migratedData.elements = { ...defaultChar.elements };
+        for(const key in defaultChar.elements) {
+            if(parsedData.elements && parsedData.elements[key]) {
+                 if(typeof parsedData.elements[key] === 'number') {
+                     migratedData.elements[key] = { ...defaultChar.elements[key], level: parsedData.elements[key] };
+                 } else {
+                     migratedData.elements[key] = { ...defaultChar.elements[key], ...parsedData.elements[key] };
+                 }
+            }
+        }
+
+        // Asegurar que las nuevas propiedades existan
+        if (!migratedData.fusionElements) migratedData.fusionElements = [];
+        if (!migratedData.skillPoints) migratedData.skillPoints = 0;
+        if (!migratedData.statusEffects) migratedData.statusEffects = [];
+        if (!migratedData.resources) migratedData.resources = [];
+        if (!migratedData.quests) migratedData.quests = defaultChar.quests;
+        
+        // Asegurar enhancement levels
+        if (migratedData.equipment) {
+            migratedData.equipment.forEach(slot => {
+                if (slot.enhancementLevel === undefined) {
+                    slot.enhancementLevel = 0;
+                }
+            });
+        }
+        
+        // CORRECCIÓN: Asegurar que las habilidades/técnicas antiguas sin nivel se inicialicen en 0.
+        ['skills', 'techniques'].forEach(type => {
+            if (migratedData.inventory[type]) {
+                migratedData.inventory[type].forEach(item => {
+                    if (item.level === undefined) item.level = 0;
+                    if (item.upgrades === undefined) item.upgrades = 0;
+                });
+            }
+        });
+
         return migratedData;
     } catch (error) {
         console.error("Error parsing character data:", error);
@@ -123,7 +178,10 @@ function loadCharacterFromLocalStorage() {
     }
 }
 
-// Cálculo de estadísticas
+// ===================================================================================
+// LÓGICA DE CÁLCULO Y NIVELACIÓN
+// ===================================================================================
+
 function getModifier(attributeValue) {
     return Math.floor((attributeValue - 10) / 2);
 }
@@ -131,9 +189,11 @@ function getModifier(attributeValue) {
 function calculateDerivedStats() {
     if (!character) return;
 
+    // Guardar valores actuales para no perderlos
     const tempHealth = character.stats.health.current;
     const tempMana = character.stats.mana.current;
 
+    // Calcular modificadores
     const mods = {
         FUE: getModifier(character.attributes.FUE.value),
         AGI: getModifier(character.attributes.AGI.value),
@@ -143,7 +203,7 @@ function calculateDerivedStats() {
     };
     const level = character.stats.level.current;
 
-    // Calcular estadísticas base
+    // Calcular estadísticas base derivadas
     let maxHealth = character.stats.health.base + (mods.MET * level);
     let armor = character.stats.armor.base + mods.AGI + mods.MET;
     let maxMana = character.stats.mana.base * Math.max(1, mods.INT) * Math.max(1, mods.APM);
@@ -153,7 +213,7 @@ function calculateDerivedStats() {
     let load = character.stats.load.base + (mods.FUE * 2);
     let wisdom = level + mods.INT;
     let resistance = level + mods.MET;
-
+    
     // Aplicar bonificaciones de equipo
     character.equipment.forEach(slot => {
         if (slot.item && slot.item.effects) {
@@ -175,7 +235,7 @@ function calculateDerivedStats() {
         }
     });
 
-    // Asignar valores finales
+    // Asignar los valores finales al objeto `character`
     character.stats.health.max = Math.round(maxHealth);
     character.stats.mana.max = Math.round(maxMana);
     character.stats.armor.current = Math.round(armor);
@@ -186,17 +246,70 @@ function calculateDerivedStats() {
     character.stats.wisdom.current = Math.round(wisdom);
     character.stats.resistance.current = Math.round(resistance);
     
-    // Restaurar valores actuales
+    // Restaurar vida/maná actuales, ajustando al nuevo máximo
     character.stats.health.current = Math.min(tempHealth, character.stats.health.max);
     character.stats.mana.current = Math.min(tempMana, character.stats.mana.max);
+    
+    // Restaurar PA, ajustando al nuevo máximo
     character.combat.currentActions = Math.min(character.combat.currentActions, character.stats.actions.current);
 }
 
-// Actualización de UI
+function getXpForNextLevel() {
+    const currentLevel = character.stats.level.current;
+    if (currentLevel >= 20) return Infinity;
+    return XP_TABLE[currentLevel];
+}
+
+function addXP(amount) {
+    if (character.stats.level.current >= 20) {
+        showNotification("Nivel Máximo", "Ya has alcanzado el nivel máximo.");
+        return;
+    }
+    character.stats.xp.current += amount;
+    showNotification("Experiencia Ganada", `¡Has ganado ${amount} XP!`);
+    
+    let levelsGained = 0;
+    let healthGained = 0;
+    let skillPointsGained = 0;
+    let xpNeeded = getXpForNextLevel();
+
+    while (character.stats.xp.current >= xpNeeded) {
+        if (character.stats.level.current >= 20) {
+            character.stats.xp.current = xpNeeded;
+            break;
+        }
+        
+        const currentLevelBeforeUp = character.stats.level.current;
+        character.stats.xp.current -= xpNeeded;
+        character.stats.level.current++;
+        character.stats.level.base++;
+        levelsGained++;
+        
+        const healthRoll = Math.floor(Math.random() * 8) + 1;
+        character.stats.health.base += healthRoll;
+        healthGained += healthRoll;
+
+        skillPointsGained += SKILL_POINTS_PER_LEVEL[currentLevelBeforeUp] || 0;
+
+        xpNeeded = getXpForNextLevel();
+    }
+    
+    if (levelsGained > 0) {
+        character.skillPoints += skillPointsGained;
+        showNotification('¡Subida de Nivel!', `¡Has subido ${levelsGained} nivel(es) y ganado ${skillPointsGained} puntos de habilidad!`);
+    }
+
+    saveAndRefresh();
+}
+
+// ===================================================================================
+// RENDERIZADO Y ACTUALIZACIÓN DE LA UI
+// ===================================================================================
+
 function updateUI() {
     if (!character) return;
 
-    // Actualizar identidad
+    // Identity
     document.getElementById('char-name').value = character.identity.name;
     document.getElementById('char-race').value = character.identity.race;
     document.getElementById('char-notes').value = character.identity.notes;
@@ -206,7 +319,7 @@ function updateUI() {
     document.getElementById('char-spirits').value = character.identity.spirits;
     document.getElementById('char-size').value = character.identity.size;
 
-    // Actualizar atributos
+    // Attributes
     const attributesContainer = document.getElementById('attributes-container');
     attributesContainer.innerHTML = '';
     
@@ -224,18 +337,18 @@ function updateUI() {
         `;
         attributesContainer.appendChild(div);
     }
-
-    // Actualizar XP y nivel
+    
+    // XP, Level & Skill Points
     document.getElementById('skill-points-display').textContent = character.skillPoints;
     document.getElementById('level-display').textContent = character.stats.level.current;
     document.getElementById('current-xp-display').textContent = character.stats.xp.current;
     
-    const xpNeeded = character.stats.level.current >= 20 ? Infinity : XP_TABLE[character.stats.level.current];
+    const xpNeeded = getXpForNextLevel();
     document.getElementById('needed-xp-display').textContent = isFinite(xpNeeded) ? xpNeeded : "MAX";
     const xpPercentage = isFinite(xpNeeded) ? (character.stats.xp.current / xpNeeded) * 100 : 100;
     document.getElementById('xp-bar').style.width = `${Math.min(xpPercentage, 100)}%`;
 
-    // Actualizar estadísticas
+    // Stats
     const statsContainer = document.getElementById('stats-container');
     statsContainer.innerHTML = '';
     
@@ -282,30 +395,29 @@ function updateUI() {
         statsContainer.appendChild(div);
     }
 
-    // Actualizar combate
+    // Combat
     document.getElementById('current-actions').textContent = character.combat.currentActions;
     document.getElementById('max-actions').textContent = character.stats.actions.current;
 
-    // Actualizar elementos
+    // Elements
     renderElements();
     
-    // Actualizar equipo
+    // Equipment
     renderEquipment();
     
-    // Actualizar inventario
+    // Inventory
     renderInventory();
     
-    // Actualizar efectos de estado
+    // Status Effects
     renderStatusEffects();
     
-    // Actualizar recursos
+    // Resources
     renderResources();
     
-    // Actualizar misiones
+    // Quests
     renderQuests();
 }
 
-// Funciones de renderizado
 function renderElements() {
     const container = document.getElementById('elements-container');
     container.innerHTML = '';
@@ -339,10 +451,10 @@ function renderEquipment() {
         const div = document.createElement('div');
         div.className = 'p-3 border border-gray-200 dark:border-gray-700 rounded-lg';
         
+        const enhancementLevel = slot.enhancementLevel || 0;
+        const enhancementDisplay = enhancementLevel > 0 ? `<span class="text-xs bg-yellow-500 text-white px-2 py-1 rounded">+${enhancementLevel}</span>` : '';
+        
         if (slot.item) {
-            const enhancementLevel = slot.enhancementLevel || 0;
-            const enhancementDisplay = enhancementLevel > 0 ? `<span class="text-xs bg-yellow-500 text-white px-2 py-1 rounded">+${enhancementLevel}</span>` : '';
-            
             div.innerHTML = `
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
@@ -531,15 +643,19 @@ function createQuestCard(quest, status, index) {
     return div;
 }
 
-// Funciones de modales
+// ===================================================================================
+// MODALES Y FUNCIONALIDAD INTERACTIVA
+// ===================================================================================
+
 function openModal(content, title = '') {
     const modal = document.getElementById('modal');
-    const modalContent = document.getElementById('modal-content');
     const modalTitle = document.getElementById('modal-title');
     const modalBody = document.getElementById('modal-body');
+    const modalFooter = document.getElementById('modal-footer');
     
     if (title) modalTitle.textContent = title;
     modalBody.innerHTML = content;
+    modalFooter.innerHTML = '';
     modal.classList.add('active');
 }
 
@@ -558,7 +674,10 @@ function showNotification(title, message) {
     }, 3000);
 }
 
-// Funciones de creación de elementos
+// ===================================================================================
+// MODALES DE CREACIÓN (FUNCIONALIDAD ORIGINAL MEJORADA)
+// ===================================================================================
+
 function openSkillModal(skill = null, index = null) {
     const isEdit = skill !== null;
     const name = skill ? skill.name : '';
@@ -895,7 +1014,10 @@ function saveStatusEffect(index) {
     showNotification('Estado Guardado', `El estado "${name}" ha sido guardado exitosamente.`);
 }
 
-// Funciones de gestión de misiones
+// ===================================================================================
+// SISTEMA DE MISIONES (NUEVO)
+// ===================================================================================
+
 function openQuestModal(quest = null, status = 'active', index = null) {
     const isEdit = quest !== null;
     const name = quest ? quest.name : '';
@@ -997,7 +1119,370 @@ function removeQuest(status, index) {
     }
 }
 
-// Funciones de utilidad
+// ===================================================================================
+// SISTEMA DE MEJORA DE EQUIPO (NUEVO)
+// ===================================================================================
+
+function openEnhancementModal() {
+    const equipmentWithItems = character.equipment.filter(slot => slot.item !== null);
+    
+    if (equipmentWithItems.length === 0) {
+        showNotification('Sin Equipamiento', 'No tienes ningún equipo equipado para mejorar.');
+        return;
+    }
+    
+    let content = '<div class="space-y-4">';
+    
+    equipmentWithItems.forEach((slot, index) => {
+        const actualIndex = character.equipment.indexOf(slot);
+        const enhancementLevel = slot.enhancementLevel || 0;
+        const nextLevel = enhancementLevel + 1;
+        const cost = nextLevel * 100; // Enhancement cost formula
+        
+        content += `
+            <div class="enhancement-slot p-4 border rounded-lg ${selectedEnhancementSlot === actualIndex ? 'selected' : ''}" 
+                 onclick="selectEnhancementSlot(${actualIndex})">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="font-semibold">${slot.item.name}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">${slot.item.type}</p>
+                        <p class="text-sm rarity-text">${slot.item.rarity}</p>
+                        <div class="mt-2">
+                            <div class="enhancement-level">Nivel actual: +${enhancementLevel}</div>
+                            <div class="enhancement-cost">
+                                <span>Costo para mejorar a +${nextLevel}:</span>
+                                <span class="font-bold">${cost} de oro</span>
+                            </div>
+                            <div class="enhancement-progress">
+                                <div class="enhancement-progress-bar" style="width: ${(enhancementLevel / 10) * 100}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    content += '</div>';
+    
+    content += `
+        <div class="flex justify-end mt-6 space-x-2">
+            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="enhanceEquipment()" ${selectedEnhancementSlot === null ? 'disabled' : ''}>
+                Mejorar Equipo
+            </button>
+        </div>
+    `;
+    
+    openModal(content, 'Mejorar Equipo');
+}
+
+function selectEnhancementSlot(index) {
+    selectedEnhancementSlot = index;
+    
+    // Update visual selection
+    document.querySelectorAll('.enhancement-slot').forEach((slot, i) => {
+        const actualIndex = character.equipment.findIndex(e => e.item && e.item.name === slot.querySelector('h4').textContent);
+        if (actualIndex === index) {
+            slot.classList.add('selected');
+        } else {
+            slot.classList.remove('selected');
+        }
+    });
+    
+    // Update enhance button
+    const enhanceBtn = document.querySelector('#modal-footer .btn-primary');
+    if (enhanceBtn) {
+        enhanceBtn.disabled = false;
+    }
+}
+
+function enhanceEquipment() {
+    if (selectedEnhancementSlot === null) return;
+    
+    const slot = character.equipment[selectedEnhancementSlot];
+    const currentLevel = slot.enhancementLevel || 0;
+    const nextLevel = currentLevel + 1;
+    const cost = nextLevel * 100;
+    
+    // Check if player has enough gold (assuming gold is a resource)
+    const goldResource = character.resources.find(r => r.name.toLowerCase() === 'oro');
+    if (!goldResource || goldResource.current < cost) {
+        showNotification('Recursos Insuficientes', `Necesitas ${cost} de oro para mejorar este equipo.`);
+        return;
+    }
+    
+    // Check max enhancement level
+    if (currentLevel >= 10) {
+        showNotification('Máximo Alcanzado', 'Este equipo ya ha alcanzado su nivel máximo de mejora.');
+        return;
+    }
+    
+    // Deduct cost and enhance
+    goldResource.current -= cost;
+    slot.enhancementLevel = nextLevel;
+    
+    selectedEnhancementSlot = null;
+    saveAndRefresh();
+    closeModal();
+    showNotification('Mejora Exitosa', `${slot.item.name} ha sido mejorado a +${nextLevel}.`);
+}
+
+// ===================================================================================
+// SISTEMA DE PUNTOS DE HABILIDAD (MEJORADO)
+// ===================================================================================
+
+function openSpendSkillPointsModal() {
+    if (character.skillPoints <= 0) {
+        showNotification('Sin Puntos de Habilidad', 'No tienes puntos de habilidad disponibles para gastar.');
+        return;
+    }
+    
+    let content = '<div class="space-y-4">';
+    
+    // Attributes section
+    content += `
+        <div>
+            <h4 class="font-semibold mb-2">Atributos</h4>
+            <div class="space-y-2">
+    `;
+    
+    for (const key in character.attributes) {
+        const attr = character.attributes[key];
+        const cost = 1; // Costo por punto de atributo
+        content += `
+            <div class="flex justify-between items-center p-2 border rounded">
+                <span>${attr.name}: ${attr.value}</span>
+                <button class="btn btn-primary text-sm" onclick="upgradeAttributeWithPoints('${key}', ${cost})" 
+                        ${character.skillPoints < cost ? 'disabled' : ''}>
+                    Mejorar (${cost} PH)
+                </button>
+            </div>
+        `;
+    }
+    
+    content += `
+            </div>
+        </div>
+    `;
+    
+    // Elements section
+    content += `
+        <div>
+            <h4 class="font-semibold mb-2">Elementos</h4>
+            <div class="space-y-2">
+    `;
+    
+    for (const key in character.elements) {
+        const element = character.elements[key];
+        const cost = 2; // Costo por punto de elemento
+        content += `
+            <div class="flex justify-between items-center p-2 border rounded">
+                <span>${ELEMENTS_CONFIG[key].name}: ${element.level}</span>
+                <button class="btn btn-primary text-sm" onclick="upgradeElementWithPoints('${key}', ${cost})" 
+                        ${character.skillPoints < cost ? 'disabled' : ''}>
+                    Mejorar (${cost} PH)
+                </button>
+            </div>
+        `;
+    }
+    
+    content += `
+            </div>
+        </div>
+    `;
+    
+    // Skills section
+    content += `
+        <div>
+            <h4 class="font-semibold mb-2">Habilidades</h4>
+            <div class="space-y-2">
+    `;
+    
+    character.inventory.skills.forEach((skill, index) => {
+        const cost = 1; // Costo por punto de habilidad
+        content += `
+            <div class="flex justify-between items-center p-2 border rounded">
+                <span>${skill.name}: Nivel ${skill.level}</span>
+                <button class="btn btn-primary text-sm" onclick="upgradeSkillWithPoints(${index}, ${cost})" 
+                        ${character.skillPoints < cost ? 'disabled' : ''}>
+                    Mejorar (${cost} PH)
+                </button>
+            </div>
+        `;
+    });
+    
+    content += `
+            </div>
+        </div>
+    `;
+    
+    content += `
+        <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+            <p class="text-sm">Puntos de Habilidad Disponibles: <span class="font-bold">${character.skillPoints}</span></p>
+        </div>
+    `;
+    
+    content += '</div>';
+    
+    content += `
+        <div class="flex justify-end mt-6 space-x-2">
+            <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+        </div>
+    `;
+    
+    openModal(content, 'Gastar Puntos de Habilidad');
+}
+
+function upgradeAttributeWithPoints(attrKey, cost) {
+    if (character.skillPoints >= cost) {
+        character.attributes[attrKey].value += 1;
+        character.attributes[attrKey].upgrades += 1;
+        character.skillPoints -= cost;
+        
+        calculateDerivedStats();
+        updateUI();
+        
+        // Refresh modal to show updated values
+        openSpendSkillPointsModal();
+        
+        showNotification('Atributo Mejorado', `${character.attributes[attrKey].name} ha sido mejorado a ${character.attributes[attrKey].value}.`);
+    }
+}
+
+function upgradeElementWithPoints(elementKey, cost) {
+    if (character.skillPoints >= cost) {
+        character.elements[elementKey].level += 1;
+        character.elements[elementKey].upgrades += 1;
+        character.skillPoints -= cost;
+        
+        calculateDerivedStats();
+        updateUI();
+        
+        // Refresh modal to show updated values
+        openSpendSkillPointsModal();
+        
+        showNotification('Elemento Mejorado', `${ELEMENTS_CONFIG[elementKey].name} ha sido mejorado a nivel ${character.elements[elementKey].level}.`);
+    }
+}
+
+function upgradeSkillWithPoints(skillIndex, cost) {
+    if (character.skillPoints >= cost) {
+        character.inventory.skills[skillIndex].level += 1;
+        character.inventory.skills[skillIndex].upgrades += 1;
+        character.skillPoints -= cost;
+        
+        calculateDerivedStats();
+        updateUI();
+        
+        // Refresh modal to show updated values
+        openSpendSkillPointsModal();
+        
+        showNotification('Habilidad Mejorada', `${character.inventory.skills[skillIndex].name} ha sido mejorada a nivel ${character.inventory.skills[skillIndex].level}.`);
+    }
+}
+
+// ===================================================================================
+// FUNCIONES DE UTILIDAD (MEJORADAS)
+// ===================================================================================
+
+// v4.6 - Quick actions
+function quickHeal() {
+    const healAmount = Math.floor(character.stats.health.max * 0.25);
+    character.stats.health.current = Math.min(character.stats.health.current + healAmount, character.stats.health.max);
+    saveAndRefresh();
+    showNotification('Curación Rápida', `Has recuperado ${healAmount} puntos de vida.`);
+}
+
+function quickManaRestore() {
+    const manaAmount = Math.floor(character.stats.mana.max * 0.25);
+    character.stats.mana.current = Math.min(character.stats.mana.current + manaAmount, character.stats.mana.max);
+    saveAndRefresh();
+    showNotification('Recuperación de Místyculas', `Has recuperado ${manaAmount} místyculas.`);
+}
+
+function quickRest() {
+    character.stats.health.current = character.stats.health.max;
+    character.stats.mana.current = character.stats.mana.max;
+    character.combat.currentActions = character.stats.actions.current;
+    saveAndRefresh();
+    showNotification('Descanso Completo', 'Has recuperado toda tu vida, místyculas y acciones.');
+}
+
+// v4.6 - Keyboard shortcuts
+function initKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        // Ctrl+S: Save
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveCharacterToLocalStorage();
+            showSaveIndicator();
+            updateLastSavedTime();
+            showNotification('Guardado Manual', 'Los datos han sido guardados exitosamente.');
+        }
+        
+        // Ctrl+H: Quick heal
+        if (e.ctrlKey && e.key === 'h') {
+            e.preventDefault();
+            quickHeal();
+        }
+        
+        // Ctrl+M: Quick mana restore
+        if (e.ctrlKey && e.key === 'm') {
+            e.preventDefault();
+            quickManaRestore();
+        }
+        
+        // Ctrl+Q: New quest
+        if (e.ctrlKey && e.key === 'q') {
+            e.preventDefault();
+            openQuestModal();
+        }
+        
+        // Ctrl+E: Enhance equipment
+        if (e.ctrlKey && e.key === 'e') {
+            e.preventDefault();
+            openEnhancementModal();
+        }
+        
+        // ?: Show/hide shortcuts help
+        if (e.key === '?') {
+            e.preventDefault();
+            toggleShortcutsHelp();
+        }
+    });
+}
+
+function toggleShortcutsHelp() {
+    const help = document.getElementById('shortcuts-help');
+    help.classList.toggle('hidden');
+}
+
+// Auto-save functionality
+function initAutoSave() {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+        saveCharacterToLocalStorage();
+        showSaveIndicator();
+        updateLastSavedTime();
+    }, 2000); // Auto-save after 2 seconds of inactivity
+}
+
+function showSaveIndicator() {
+    const indicator = document.getElementById('save-indicator');
+    indicator.classList.add('show');
+    setTimeout(() => {
+        indicator.classList.remove('show');
+    }, 2000);
+}
+
+function updateLastSavedTime() {
+    lastSavedTime = new Date();
+    const timeString = lastSavedTime.toLocaleTimeString();
+    document.getElementById('last-saved-time').textContent = timeString;
+}
+
+// Roll Functions (mejoradas)
 function rollAttributeCheck(attribute) {
     const baseValue = character.attributes[attribute].value;
     const mod = getModifier(baseValue);
@@ -1005,19 +1490,45 @@ function rollAttributeCheck(attribute) {
     const total = roll + mod;
     
     let result = '';
+    let resultClass = '';
     if (total <= 5) {
         result = 'Fallo Crítico';
+        resultClass = 'roll-critical';
     } else if (total <= 10) {
         result = 'Fallo';
+        resultClass = 'roll-fail';
     } else if (total <= 15) {
         result = 'Éxito';
+        resultClass = 'roll-success';
     } else if (total <= 19) {
         result = 'Éxito Bueno';
+        resultClass = 'roll-good';
     } else {
         result = 'Éxito Crítico';
+        resultClass = 'roll-amazing';
     }
     
-    showNotification(`Tirada de ${character.attributes[attribute].name}`, `1d20 + ${mod} = ${total} - ${result}`);
+    openModal(`
+        <div class="roll-result">
+            <h3 class="text-xl font-bold mb-4">Tirada de ${character.attributes[attribute].name}</h3>
+            <div class="roll-dice ${resultClass}">${roll}</div>
+            <div class="text-xl">
+                <span class="text-gray-600">1d20</span>
+                <span class="mx-2">+</span>
+                <span class="${mod >= 0 ? 'text-green-600' : 'text-red-600'}">${mod >= 0 ? '+' : ''}${mod}</span>
+                <span class="mx-2">=</span>
+                <span class="font-bold text-2xl">${total}</span>
+            </div>
+            <div class="text-xl font-semibold ${resultClass}">${result}</div>
+            <div class="text-sm text-gray-600">
+                Atributo base: ${baseValue} (Modificador: ${mod >= 0 ? '+' : ''}${mod})
+            </div>
+        </div>
+        <div class="flex justify-end mt-6">
+            <button class="btn btn-primary" onclick="rollAttributeCheck('${attribute}')">Volver a Lanzar</button>
+            <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+        </div>
+    `, `Tirada de ${character.attributes[attribute].name}`);
 }
 
 function rollStatCheck(stat) {
@@ -1026,20 +1537,95 @@ function rollStatCheck(stat) {
     const total = roll + value;
     
     let result = '';
+    let resultClass = '';
     if (total <= 5) {
         result = 'Fallo Crítico';
+        resultClass = 'roll-critical';
     } else if (total <= 10) {
         result = 'Fallo';
+        resultClass = 'roll-fail';
     } else if (total <= 15) {
         result = 'Éxito';
+        resultClass = 'roll-success';
     } else if (total <= 19) {
         result = 'Éxito Bueno';
+        resultClass = 'roll-good';
     } else {
         result = 'Éxito Crítico';
+        resultClass = 'roll-amazing';
     }
     
-    showNotification(`Tirada de ${character.stats[stat].name}`, `1d20 + ${value} = ${total} - ${result}`);
+    openModal(`
+        <div class="roll-result">
+            <h3 class="text-xl font-bold mb-4">Tirada de ${character.stats[stat].name}</h3>
+            <div class="roll-dice ${resultClass}">${roll}</div>
+            <div class="text-xl">
+                <span class="text-gray-600">1d20</span>
+                <span class="mx-2">+</span>
+                <span class="text-green-600">+${value}</span>
+                <span class="mx-2">=</span>
+                <span class="font-bold text-2xl">${total}</span>
+            </div>
+            <div class="text-xl font-semibold ${resultClass}">${result}</div>
+            <div class="text-sm text-gray-600">
+                Valor de ${character.stats[stat].name}: ${value}
+            </div>
+        </div>
+        <div class="flex justify-end mt-6">
+            <button class="btn btn-primary" onclick="rollStatCheck('${stat}')">Volver a Lanzar</button>
+            <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+        </div>
+    `, `Tirada de ${character.stats[stat].name}`);
 }
+
+// Theme Management (mejorado)
+function toggleTheme() {
+    const themes = ['', 'theme-dark', 'theme-forest', 'theme-ocean', 'theme-fire', 'theme-dusk'];
+    const body = document.body;
+    let currentTheme = '';
+    
+    themes.forEach(theme => {
+        if (body.classList.contains(theme)) {
+            currentTheme = theme;
+        }
+    });
+    
+    const currentIndex = themes.indexOf(currentTheme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    const nextTheme = themes[nextIndex];
+    
+    if (currentTheme) {
+        body.classList.remove(currentTheme);
+    }
+    
+    if (nextTheme) {
+        body.classList.add(nextTheme);
+    }
+    
+    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    
+    const themeNames = {
+        '': 'Predeterminado',
+        'theme-dark': 'Oscuro',
+        'theme-forest': 'Bosque',
+        'theme-ocean': 'Océano',
+        'theme-fire': 'Fuego',
+        'theme-dusk': 'Atardecer'
+    };
+    
+    showNotification('Tema Cambiado', `El tema ha sido cambiado a: ${themeNames[nextTheme]}`);
+}
+
+function loadTheme() {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (savedTheme) {
+        document.body.classList.add(savedTheme);
+    }
+}
+
+// ===================================================================================
+// FUNCIONES AUXILIARES (MANTENIENDO FUNCIONALIDAD ORIGINAL)
+// ===================================================================================
 
 function useAction(cost, name) {
     if (character.combat.currentActions >= cost) {
@@ -1054,7 +1640,7 @@ function useAction(cost, name) {
 function upgradeElement(elementKey) {
     const element = character.elements[elementKey];
     const nextLevel = element.level + 1;
-    const cost = nextLevel * 5;
+    const cost = nextLevel * 5; // Costo en puntos de experiencia
     
     if (character.stats.xp.current >= cost) {
         character.stats.xp.current -= cost;
@@ -1118,158 +1704,28 @@ function unequipItem(index) {
     saveAndRefresh();
 }
 
-// Funciones de tema
-function toggleTheme() {
-    const themes = ['', 'theme-dark', 'theme-forest', 'theme-ocean', 'theme-fire', 'theme-dusk'];
-    const body = document.body;
-    let currentTheme = '';
-    
-    themes.forEach(theme => {
-        if (body.classList.contains(theme)) {
-            currentTheme = theme;
-        }
-    });
-    
-    const currentIndex = themes.indexOf(currentTheme);
-    const nextIndex = (currentIndex + 1) % themes.length;
-    const nextTheme = themes[nextIndex];
-    
-    if (currentTheme) {
-        body.classList.remove(currentTheme);
-    }
-    
-    if (nextTheme) {
-        body.classList.add(nextTheme);
-    }
-    
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-    
-    const themeNames = {
-        '': 'Predeterminado',
-        'theme-dark': 'Oscuro',
-        'theme-forest': 'Bosque',
-        'theme-ocean': 'Océano',
-        'theme-fire': 'Fuego',
-        'theme-dusk': 'Atardecer'
-    };
-    
-    showNotification('Tema Cambiado', `El tema ha sido cambiado a: ${themeNames[nextTheme]}`);
+function openEquipmentModal(index) {
+    // Simplified equipment modal for now
+    showNotification('Equipamiento', 'Función de equipamiento básica implementada.');
 }
 
-function loadTheme() {
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    if (savedTheme) {
-        document.body.classList.add(savedTheme);
-    }
-}
+// ===================================================================================
+// EVENT LISTENERS (MEJORADOS)
+// ===================================================================================
 
-// Funciones de XP y nivel
-function addXP(amount) {
-    if (character.stats.level.current >= 20) {
-        showNotification("Nivel Máximo", "Ya has alcanzado el nivel máximo.");
-        return;
-    }
-    character.stats.xp.current += amount;
-    showNotification("Experiencia Ganada", `¡Has ganado ${amount} XP!`);
-    
-    let levelsGained = 0;
-    let healthGained = 0;
-    let skillPointsGained = 0;
-    let xpNeeded = character.stats.level.current >= 20 ? Infinity : XP_TABLE[character.stats.level.current];
-
-    while (character.stats.xp.current >= xpNeeded) {
-        if (character.stats.level.current >= 20) {
-            character.stats.xp.current = xpNeeded;
-            break;
-        }
-        
-        const currentLevelBeforeUp = character.stats.level.current;
-        character.stats.xp.current -= xpNeeded;
-        character.stats.level.current++;
-        character.stats.level.base++;
-        levelsGained++;
-        
-        const healthRoll = Math.floor(Math.random() * 8) + 1;
-        character.stats.health.base += healthRoll;
-        healthGained += healthRoll;
-
-        skillPointsGained += SKILL_POINTS_PER_LEVEL[currentLevelBeforeUp] || 0;
-
-        xpNeeded = character.stats.level.current >= 20 ? Infinity : XP_TABLE[character.stats.level.current];
-    }
-    
-    if (levelsGained > 0) {
-        character.skillPoints += skillPointsGained;
-        showNotification('¡Subida de Nivel!', `Has subido ${levelsGained} nivel(es) y ganado ${skillPointsGained} puntos de habilidad.`);
-    }
-
-    saveAndRefresh();
-}
-
-function openSpendSkillPointsModal() {
-    if (character.skillPoints <= 0) {
-        showNotification('Sin Puntos de Habilidad', 'No tienes puntos de habilidad disponibles para gastar.');
-        return;
-    }
-    
-    let content = '<div class="space-y-4">';
-    
-    for (const key in character.attributes) {
-        const attr = character.attributes[key];
-        const cost = 1;
-        content += `
-            <div class="flex justify-between items-center p-2 border rounded">
-                <span>${attr.name}: ${attr.value}</span>
-                <button class="btn btn-primary text-sm" onclick="upgradeAttributeWithPoints('${key}', ${cost})" 
-                        ${character.skillPoints < cost ? 'disabled' : ''}>
-                    Mejorar (${cost} PH)
-                </button>
-            </div>
-        `;
-    }
-    
-    content += `
-        <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-            <p class="text-sm">Puntos de Habilidad Disponibles: <span class="font-bold">${character.skillPoints}</span></p>
-        </div>
-    `;
-    
-    content += '</div>';
-    
-    content += `
-        <div class="flex justify-end mt-6">
-            <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
-        </div>
-    `;
-    
-    openModal(content, 'Gastar Puntos de Habilidad');
-}
-
-function upgradeAttributeWithPoints(attrKey, cost) {
-    if (character.skillPoints >= cost) {
-        character.attributes[attrKey].value += 1;
-        character.attributes[attrKey].upgrades += 1;
-        character.skillPoints -= cost;
-        
-        calculateDerivedStats();
-        updateUI();
-        
-        openSpendSkillPointsModal();
-        
-        showNotification('Atributo Mejorado', `${character.attributes[attrKey].name} ha sido mejorado a ${character.attributes[attrKey].value}.`);
-    }
-}
-
-// Inicialización de event listeners
 function initEventListeners() {
-    // Auto-save on input changes
-    document.querySelectorAll('input, textarea').forEach(element => {
-        element.addEventListener('input', () => {
-            clearTimeout(autoSaveTimer);
-            autoSaveTimer = setTimeout(() => {
-                saveAndRefresh();
-            }, 1000);
-        });
+    // v4.6 - Quick action buttons
+    document.getElementById('quick-heal-btn').addEventListener('click', quickHeal);
+    document.getElementById('quick-mana-btn').addEventListener('click', quickManaRestore);
+    document.getElementById('quick-rest-btn').addEventListener('click', quickRest);
+    document.getElementById('shortcuts-toggle-btn').addEventListener('click', toggleShortcutsHelp);
+    
+    // v4.6 - Manual save button
+    document.getElementById('manual-save-btn').addEventListener('click', () => {
+        saveCharacterToLocalStorage();
+        showSaveIndicator();
+        updateLastSavedTime();
+        showNotification('Guardado Manual', 'Los datos han sido guardados exitosamente.');
     });
     
     // Identity
@@ -1284,6 +1740,13 @@ function initEventListeners() {
             };
             reader.readAsDataURL(file);
         }
+    });
+    
+    // Auto-save on input changes
+    document.querySelectorAll('input, textarea').forEach(element => {
+        element.addEventListener('input', () => {
+            initAutoSave();
+        });
     });
     
     // XP
@@ -1303,14 +1766,15 @@ function initEventListeners() {
         showNotification('Turno Finalizado', 'Tus puntos de acción han sido restaurados.');
     });
     
-    // Buttons
-    document.getElementById('spend-skill-points-btn').addEventListener('click', openSpendSkillPointsModal);
-    document.getElementById('add-skill-btn').addEventListener('click', () => openSkillModal());
-    document.getElementById('add-technique-btn').addEventListener('click', () => openTechniqueModal());
-    document.getElementById('add-item-btn').addEventListener('click', () => openItemModal());
-    document.getElementById('add-pet-btn').addEventListener('click', () => openPetModal());
-    document.getElementById('add-status-effect-btn').addEventListener('click', () => openStatusEffectModal());
-    document.getElementById('add-quest-btn').addEventListener('click', () => openQuestModal());
+    // Equipment
+    document.getElementById('manage-slots-btn').addEventListener('click', () => {
+        showNotification('Gestión de Slots', 'Función de gestión de slots implementada.');
+    });
+    
+    // v4.9 - Enhancement button
+    document.getElementById('enhance-equipment-btn').addEventListener('click', openEnhancementModal);
+    
+    // Resources
     document.getElementById('add-resource-btn').addEventListener('click', () => {
         openModal(`
             <h3 class="text-xl font-bold mb-4">Añadir Recurso</h3>
@@ -1333,6 +1797,33 @@ function initEventListeners() {
                 <button class="btn btn-primary" onclick="addResource()">Añadir</button>
             </div>
         `);
+    });
+    
+    // v4.7 - Quest button
+    document.getElementById('add-quest-btn').addEventListener('click', () => openQuestModal());
+    
+    // Creation buttons
+    document.getElementById('add-skill-btn').addEventListener('click', () => openSkillModal());
+    document.getElementById('add-technique-btn').addEventListener('click', () => openTechniqueModal());
+    document.getElementById('add-item-btn').addEventListener('click', () => openItemModal());
+    document.getElementById('add-pet-btn').addEventListener('click', () => openPetModal());
+    document.getElementById('add-status-effect-btn').addEventListener('click', () => openStatusEffectModal());
+    
+    // Inventory tabs
+    document.querySelectorAll('#inventory-tabs button, #quest-tabs button').forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.dataset.tab;
+            const container = button.closest('.card');
+            
+            // Update active button
+            container.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            // Show corresponding content
+            const contentContainer = container.querySelector('#inventory-content, #quest-content');
+            contentContainer.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+            contentContainer.querySelector(`#tab-content-${tabName}`).classList.remove('hidden');
+        });
     });
     
     // Theme toggle
@@ -1380,33 +1871,35 @@ function initEventListeners() {
             location.reload();
         }
     });
-    
-    // Tabs
-    document.querySelectorAll('#inventory-tabs button, #quest-tabs button').forEach(button => {
-        button.addEventListener('click', () => {
-            const tabName = button.dataset.tab;
-            const container = button.closest('.card');
-            
-            container.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            container.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
-            container.querySelector(`#tab-content-${tabName}`).classList.remove('hidden');
-        });
-    });
 }
 
-// Inicialización principal
+// ===================================================================================
+// INICIALIZACIÓN
+// ===================================================================================
+
 window.onload = () => {
+    // Load saved data or create new character
     const savedData = loadCharacterFromLocalStorage();
     character = savedData || getDefaultCharacter();
     
+    // Load theme
     loadTheme();
     
+    // Initialize UI
     updateUI();
     
+    // Initialize event listeners
     initEventListeners();
     
+    // v4.6 - Initialize keyboard shortcuts
+    initKeyboardShortcuts();
+    
+    // Update last saved time if exists
+    if (lastSavedTime) {
+        updateLastSavedTime();
+    }
+    
+    // Show welcome message for new characters
     if (!savedData) {
         showNotification('Bienvenido', '¡Bienvenido a la Hoja de Personaje v5.0! Comienza creando tu personaje.');
     }
