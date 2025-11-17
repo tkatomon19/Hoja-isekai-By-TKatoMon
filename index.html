@@ -29,30 +29,30 @@
 
     <!-- Quick Actions Bar -->
     <div class="fixed top-4 right-4 z-30 flex gap-2">
-        <button id="quick-heal-btn" class="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110" aria-label="Curación Rápida">
+        <button id="quick-heal-btn" class="quick-action-btn bg-green-600 hover:bg-green-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110" aria-label="Curación Rápida">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
         </button>
-        <button id="quick-mana-btn" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110" aria-label="Recuperar Místyculas">
+        <button id="quick-mana-btn" class="quick-action-btn bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110" aria-label="Recuperar Místyculas">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
         </button>
-        <button id="quick-rest-btn" class="bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110" aria-label="Descansar">
+        <button id="quick-rest-btn" class="quick-action-btn bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110" aria-label="Descansar">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
             </svg>
         </button>
-        <button id="shortcuts-toggle-btn" class="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110" aria-label="Mostrar Atajos">
+        <button id="shortcuts-toggle-btn" class="quick-action-btn bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110" aria-label="Mostrar Atajos">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 018 0z" />
             </svg>
         </button>
     </div>
 
     <!-- Auto-save Indicator -->
-    <div id="save-indicator" class="fixed bottom-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full shadow-lg transition-opacity duration-300 opacity-0 z-30">
+    <div id="save-indicator" class="save-indicator">
         <span class="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -62,7 +62,7 @@
     </div>
 
     <!-- Last Saved Timestamp -->
-    <div id="last-saved" class="fixed bottom-4 left-4 bg-gray-700 text-white px-3 py-1 rounded-full shadow-lg text-xs z-30">
+    <div id="last-saved" class="last-saved">
         Último guardado: <span id="last-saved-time">Nunca</span>
     </div>
 
@@ -73,9 +73,9 @@
             
             <!-- Manual Save Button -->
             <div class="flex justify-center">
-                <button id="manual-save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center">
+                <button id="manual-save-btn" class="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002 2M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2z" />
                     </svg>
                     Guardar Manualmente
                 </button>
@@ -83,7 +83,7 @@
         </header>
 
         <!-- Main Content -->
-        <main id="main-content" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <main id="main-content" class="grid grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Columna Izquierda -->
             <div class="space-y-6">
                 <!-- Identidad del Personaje -->
@@ -91,7 +91,7 @@
                     <h2 id="identity-title" class="card-title">Identidad</h2>
                     <div class="space-y-4">
                         <div class="flex items-center space-x-4">
-                            <img id="character-image-preview" src="https://placehold.co/100x100/e0e0e0/2c3e50?text=Avatar" alt="Avatar del Personaje" class="w-24 h-24 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700">
+                            <img id="character-image-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f3f4f6'/%3E%3Ccircle cx='50' cy='50' r='40' fill='%236b7280'/%3E%3Ctext x='50' y='50' text-anchor='middle' font-size='40' fill='white' font-family='Arial'%3E%3CP%3C/tspan%3E%3C/svg%3E" alt="Avatar por defecto" class="w-24 h-24 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700">
                             <div class="space-y-2">
                                 <label for="character-image-upload" class="btn btn-primary text-sm w-full">Cargar Imagen</label>
                                 <input type="file" id="character-image-upload" class="hidden" accept="image/*">
@@ -326,15 +326,6 @@
         <div class="modal-content max-w-sm text-center">
             <h3 id="notification-title" class="text-xl font-bold mb-4"></h3>
             <p id="notification-message" class="whitespace-pre-wrap"></p>
-        </div>
-    </div>
-
-    <!-- Equipment Enhancement Modal -->
-    <div id="enhancement-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="enhancement-title" style="z-index: 70;">
-        <div id="enhancement-content" class="modal-content max-w-2xl">
-            <h3 id="enhancement-title" class="text-xl font-bold mb-4">Mejorar Equipo</h3>
-            <div id="enhancement-body" class="modal-scrollable-content"></div>
-            <div id="enhancement-footer" class="flex justify-end mt-6 space-x-2"></div>
         </div>
     </div>
 
