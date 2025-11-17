@@ -674,7 +674,7 @@ input:checked + .slider:before {
 
 .enhancement-slot:hover {
     border-color: var(--accent-color);
-    background-color: var(--stat-bg);
+    background-color: var(--rarity-rare-bg);
 }
 
 .enhancement-slot.selected {
@@ -774,17 +774,6 @@ input:checked + .slider:before {
 .tooltip:hover::before {
     opacity: 1;
     visibility: visible;
-}
-
-/* Theme Selector Styles */
-.theme-option {
-    cursor: pointer;
-    transition: all var(--transition-speed);
-}
-
-.theme-option:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Roll Result Styles */
