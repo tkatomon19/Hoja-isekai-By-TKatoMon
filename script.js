@@ -1,343 +1,1413 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Personaje - Isekai Delivery Service v5.0</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body class="p-4 md:p-8">
-    <!-- Skip to content link for accessibility -->
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md z-50">Saltar al contenido principal</a>
+// ===================================================================================
+// HOJA DE PERSONAJE - ISEKAI DELIVERY SERVICE v5.0
+// Versión corregida manteniendo la funcionalidad original
+// ===================================================================================
 
-    <!-- Keyboard Shortcuts Help Modal -->
-    <div id="shortcuts-help" class="hidden fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg z-40 max-w-xs">
-        <h3 class="font-bold mb-2">Atajos de Teclado</h3>
-        <ul class="text-sm space-y-1">
-            <li><kbd class="px-2 py-1 bg-gray-700 rounded">Ctrl+S</kbd> Guardar</li>
-            <li><kbd class="px-2 py-1 bg-gray-700 rounded">Ctrl+H</kbd> Curar</li>
-            <li><kbd class="px-2 py-1 bg-gray-700 rounded">Ctrl+M</kbd> Recuperar Místyculas</li>
-            <li><kbd class="px-2 py-1 bg-gray-700 rounded">Ctrl+Q</kbd> Nueva Misión</li>
-            <li><kbd class="px-2 py-1 bg-gray-700 rounded">Ctrl+E</kbd> Mejorar Equipo</li>
-            <li><kbd class="px-2 py-1 bg-gray-700 rounded">?</kbd> Mostrar/Ocultar Ayuda</li>
-        </ul>
-    </div>
+// CONFIGURACIÓN Y ESTADO
+const XP_TABLE = {
+    1: 300, 2: 900, 3: 2700, 4: 6500, 5: 14000, 6: 23000, 7: 34000, 8: 48000, 9: 64000, 10: 85000,
+    11: 100000, 12: 120000, 13: 145000, 14: 165000, 15: 195000, 16: 225000, 17: 250000, 18: 280000, 19: 315000, 20: Infinity
+};
+const SKILL_POINTS_PER_LEVEL = {
+    1: 3, 2: 3, 3: 4, 4: 4, 5: 5, 6: 5, 7: 6, 8: 6, 9: 7, 10: 7,
+    11: 8, 12: 8, 13: 9, 14: 9, 15: 10, 16: 10, 17: 11, 18: 12, 19: 12, 20: 13
+};
+const RARITIES = ['Intrínseco', 'Común', 'Raro', 'Épico', 'Legendario', 'Mítico / Único', 'Genesis'];
+const LOCAL_STORAGE_KEY = 'characterSheetData_v5.0';
+const THEME_STORAGE_KEY = 'characterSheetTheme_v5.0';
 
-    <!-- Quick Actions Bar -->
-    <div class="fixed top-4 right-4 z-30 flex gap-2">
-        <button id="quick-heal-btn" class="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110" aria-label="Curación Rápida">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-        </button>
-        <button id="quick-mana-btn" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110" aria-label="Recuperar Místyculas">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-        </button>
-        <button id="quick-rest-btn" class="bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110" aria-label="Descansar">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-        </button>
-        <button id="shortcuts-toggle-btn" class="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 transform hover:scale-110" aria-label="Mostrar Atajos">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-        </button>
-    </div>
+const ELEMENTS_CONFIG = {
+    fuego: { name: 'Fuego', emoji: '🔥' },
+    aire: { name: 'Aire', emoji: '💨' },
+    agua: { name: 'Agua', emoji: '💧' },
+    electricidad: { name: 'Electricidad', emoji: '⚡' },
+    tierra: { name: 'Tierra', emoji: '🌍' },
+    luz: { name: 'Luz', emoji: '☀️' },
+    oscuridad: { name: 'Oscuridad', emoji: '🌙' }
+};
 
-    <!-- Auto-save Indicator -->
-    <div id="save-indicator" class="fixed bottom-4 left-4 bg-green-600 text-white px-3 py-1 rounded-full shadow-lg transition-opacity duration-300 opacity-0 z-30">
-        <span class="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            Guardado
-        </span>
-    </div>
+let character;
+let autoSaveTimer;
 
-    <!-- Last Saved Timestamp -->
-    <div id="last-saved" class="fixed bottom-4 left-4 bg-gray-700 text-white px-3 py-1 rounded-full shadow-lg text-xs z-30">
-        Último guardado: <span id="last-saved-time">Nunca</span>
-    </div>
+// Función principal de inicialización
+function getDefaultCharacter() {
+    return {
+        identity: {
+            name: '', race: '', notes: '', personality: '',
+            image: 'https://placehold.co/100x100/e0e0e0/2c3e50?text=Avatar',
+            titles: '', spirits: '', size: ''
+        },
+        attributes: {
+            FUE: { name: 'Fuerza', value: 10, upgrades: 0 },
+            AGI: { name: 'Agilidad', value: 10, upgrades: 0 },
+            MET: { name: 'Metabolismo', value: 10, upgrades: 0 },
+            INT: { name: 'Inteligencia', value: 10, upgrades: 0 },
+            APM: { name: 'Aptitud Mágica', value: 10, upgrades: 0 },
+        },
+        elements: {
+            fuego: { name: 'Fuego', level: 0, upgrades: 0 },
+            aire: { name: 'Aire', level: 0, upgrades: 0 },
+            agua: { name: 'Agua', level: 0, upgrades: 0 },
+            electricidad: { name: 'Electricidad', level: 0, upgrades: 0 },
+            tierra: { name: 'Tierra', level: 0, upgrades: 0 },
+            luz: { name: 'Luz', level: 0, upgrades: 0 },
+            oscuridad: { name: 'Oscuridad', level: 0, upgrades: 0 }
+        },
+        stats: {
+            level: { name: 'Nivel', base: 1, current: 1 },
+            xp: { name: 'Experiencia', base: 0, current: 0 },
+            health: { name: 'Vida', base: 25, current: 25, max: 25 },
+            armor: { name: 'Armadura', base: 10, current: 10 },
+            mana: { name: 'Místyculas', base: 100, current: 100, max: 100 },
+            actions: { name: 'Acciones', base: 2, current: 3 },
+            movement: { name: 'Movimiento (pies)', base: 30, current: 30 },
+            magicSave: { name: 'Salvación Magia', base: 10, current: 10 },
+            load: { name: 'Carga', base: 10, current: 10 },
+            resistance: { name: 'Resistencia', base: 0, current: 0 },
+            wisdom: { name: 'Sabiduría', base: 0, current: 0 },
+        },
+        skillPoints: 0,
+        combat: { currentActions: 3 },
+        equipment: [
+            { slotName: 'Arma', type: 'arma', item: null, enhancementLevel: 0 },
+            { slotName: 'Armadura', type: 'armadura', item: null, enhancementLevel: 0 },
+            { slotName: 'Accesorio 1', type: 'accesorio', item: null, enhancementLevel: 0 },
+            { slotName: 'Accesorio 2', type: 'accesorio', item: null, enhancementLevel: 0 },
+        ],
+        inventory: { skills: [], techniques: [], items: [], pets: [] },
+        statusEffects: [],
+        resources: [],
+        quests: { active: [], completed: [], failed: [] },
+        fusionElements: []
+    };
+}
 
-    <div class="max-w-7xl mx-auto">
-        <header class="mb-6">
-            <h1 class="text-3xl md:text-4xl font-bold text-center mb-2 text-gray-800 dark:text-gray-200">Hoja de Personaje v5.0</h1>
-            <p class="text-center text-gray-500 dark:text-gray-400 mb-4">Los cambios se guardan automáticamente en tu navegador.</p>
+// Funciones básicas de guardado/carga
+function saveAndRefresh() {
+    calculateDerivedStats();
+    updateUI();
+    saveCharacterToLocalStorage();
+}
+
+function saveCharacterToLocalStorage() {
+    try {
+        character.identity.name = document.getElementById('char-name').value;
+        character.identity.race = document.getElementById('char-race').value;
+        character.identity.notes = document.getElementById('char-notes').value;
+        character.identity.personality = document.getElementById('char-personality').value;
+        character.identity.titles = document.getElementById('char-titles').value;
+        character.identity.spirits = document.getElementById('char-spirits').value;
+        character.identity.size = document.getElementById('char-size').value;
+        
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(character));
+    } catch (error) {
+        console.error("Error saving character:", error);
+    }
+}
+
+function loadCharacterFromLocalStorage() {
+    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!data) return null;
+    try {
+        const parsedData = JSON.parse(data);
+        const defaultChar = getDefaultCharacter();
+        
+        // Mezclar con datos por defecto para asegurar todas las propiedades
+        let migratedData = { ...defaultChar, ...parsedData };
+        
+        return migratedData;
+    } catch (error) {
+        console.error("Error parsing character data:", error);
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        return null;
+    }
+}
+
+// Cálculo de estadísticas
+function getModifier(attributeValue) {
+    return Math.floor((attributeValue - 10) / 2);
+}
+
+function calculateDerivedStats() {
+    if (!character) return;
+
+    const tempHealth = character.stats.health.current;
+    const tempMana = character.stats.mana.current;
+
+    const mods = {
+        FUE: getModifier(character.attributes.FUE.value),
+        AGI: getModifier(character.attributes.AGI.value),
+        MET: getModifier(character.attributes.MET.value),
+        INT: getModifier(character.attributes.INT.value),
+        APM: getModifier(character.attributes.APM.value)
+    };
+    const level = character.stats.level.current;
+
+    // Calcular estadísticas base
+    let maxHealth = character.stats.health.base + (mods.MET * level);
+    let armor = character.stats.armor.base + mods.AGI + mods.MET;
+    let maxMana = character.stats.mana.base * Math.max(1, mods.INT) * Math.max(1, mods.APM);
+    let actions = character.stats.actions.base + mods.AGI + level;
+    let movement = character.stats.movement.base + (mods.AGI * 5);
+    let magicSave = character.stats.magicSave.base + mods.APM + mods.MET;
+    let load = character.stats.load.base + (mods.FUE * 2);
+    let wisdom = level + mods.INT;
+    let resistance = level + mods.MET;
+
+    // Aplicar bonificaciones de equipo
+    character.equipment.forEach(slot => {
+        if (slot.item && slot.item.effects) {
+            const enhancementBonus = slot.enhancementLevel || 0;
+            slot.item.effects.forEach(effect => {
+                const [type, key, value] = effect.split(':');
+                if (type === 'stat') {
+                    if (key === 'health') maxHealth += parseFloat(value) + (enhancementBonus * 2);
+                    if (key === 'mana') maxMana += parseFloat(value) + (enhancementBonus * 5);
+                    if (key === 'armor') armor += parseFloat(value) + (enhancementBonus * 1);
+                    if (key === 'actions') actions += parseFloat(value);
+                    if (key === 'movement') movement += parseFloat(value);
+                    if (key === 'load') load += parseFloat(value);
+                    if (key === 'resistance') resistance += parseFloat(value);
+                    if (key === 'wisdom') wisdom += parseFloat(value);
+                    if (key === 'magicSave') magicSave += parseFloat(value);
+                }
+            });
+        }
+    });
+
+    // Asignar valores finales
+    character.stats.health.max = Math.round(maxHealth);
+    character.stats.mana.max = Math.round(maxMana);
+    character.stats.armor.current = Math.round(armor);
+    character.stats.actions.current = Math.round(actions);
+    character.stats.movement.current = Math.round(movement);
+    character.stats.magicSave.current = Math.round(magicSave);
+    character.stats.load.current = Math.round(load);
+    character.stats.wisdom.current = Math.round(wisdom);
+    character.stats.resistance.current = Math.round(resistance);
+    
+    // Restaurar valores actuales
+    character.stats.health.current = Math.min(tempHealth, character.stats.health.max);
+    character.stats.mana.current = Math.min(tempMana, character.stats.mana.max);
+    character.combat.currentActions = Math.min(character.combat.currentActions, character.stats.actions.current);
+}
+
+// Actualización de UI
+function updateUI() {
+    if (!character) return;
+
+    // Actualizar identidad
+    document.getElementById('char-name').value = character.identity.name;
+    document.getElementById('char-race').value = character.identity.race;
+    document.getElementById('char-notes').value = character.identity.notes;
+    document.getElementById('char-personality').value = character.identity.personality;
+    document.getElementById('character-image-preview').src = character.identity.image;
+    document.getElementById('char-titles').value = character.identity.titles;
+    document.getElementById('char-spirits').value = character.identity.spirits;
+    document.getElementById('char-size').value = character.identity.size;
+
+    // Actualizar atributos
+    const attributesContainer = document.getElementById('attributes-container');
+    attributesContainer.innerHTML = '';
+    
+    for (const key in character.attributes) {
+        const attr = character.attributes[key];
+        const mod = getModifier(attr.value);
+        const div = document.createElement('div');
+        div.className = 'grid grid-cols-6 items-center gap-2';
+        div.innerHTML = `
+            <label for="attr-${key}" class="font-semibold col-span-2">${attr.name}</label>
+            <input type="number" id="attr-${key}" class="input-field text-center" value="${attr.value}">
+            <span class="text-green-600 font-medium text-center">(+${attr.upgrades})</span>
+            <div class="bg-gray-200 dark:bg-gray-600 text-center font-bold rounded-md py-2">${mod >= 0 ? '+' : ''}${mod}</div>
+            <button class="btn btn-primary" onclick="rollAttributeCheck('${key}')" title="Lanzar 1d20 + Modificador">🎲</button>
+        `;
+        attributesContainer.appendChild(div);
+    }
+
+    // Actualizar XP y nivel
+    document.getElementById('skill-points-display').textContent = character.skillPoints;
+    document.getElementById('level-display').textContent = character.stats.level.current;
+    document.getElementById('current-xp-display').textContent = character.stats.xp.current;
+    
+    const xpNeeded = character.stats.level.current >= 20 ? Infinity : XP_TABLE[character.stats.level.current];
+    document.getElementById('needed-xp-display').textContent = isFinite(xpNeeded) ? xpNeeded : "MAX";
+    const xpPercentage = isFinite(xpNeeded) ? (character.stats.xp.current / xpNeeded) * 100 : 100;
+    document.getElementById('xp-bar').style.width = `${Math.min(xpPercentage, 100)}%`;
+
+    // Actualizar estadísticas
+    const statsContainer = document.getElementById('stats-container');
+    statsContainer.innerHTML = '';
+    
+    const statsToDisplay = {
+        health: { name: 'Vida', base: character.stats.health.max, current: character.stats.health.current },
+        mana: { name: 'Místyculas', base: character.stats.mana.max, current: character.stats.mana.current },
+        armor: { name: 'Armadura', current: character.stats.armor.current },
+        actions: { name: 'Acciones', current: character.stats.actions.current },
+        movement: { name: 'Movimiento (pies)', current: character.stats.movement.current },
+        magicSave: { name: 'Salvación Magia', current: character.stats.magicSave.current },
+        load: { name: 'Carga', current: character.stats.load.current },
+        resistance: { name: 'Resistencia', current: character.stats.resistance.current },
+        wisdom: { name: 'Sabiduría', current: character.stats.wisdom.current },
+    };
+
+    for (const key in statsToDisplay) {
+        const stat = statsToDisplay[key];
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center stat-block p-2 rounded-md';
+        
+        if (key === 'health' || key === 'mana') {
+            div.innerHTML = `
+                <span class="font-medium">${stat.name}</span>
+                <div class="flex items-center gap-1">
+                    <input type="number" id="stat-${key}-current" value="${stat.current}" class="input-field w-16 text-center">
+                    <span>/</span>
+                    <span class="font-bold">${stat.base}</span>
+                </div>
+            `;
+        } else if (['resistance', 'wisdom', 'magicSave'].includes(key)) {
+            div.innerHTML = `
+                <span class="font-medium">${stat.name}</span>
+                <div class="flex items-center gap-2">
+                    <span class="font-bold">${stat.current}</span>
+                    <button class="btn btn-primary" onclick="rollStatCheck('${key}')" title="Lanzar 1d20 + Valor">🎲</button>
+                </div>
+            `;
+        } else {
+            div.innerHTML = `
+                <span class="font-medium">${stat.name}</span>
+                <span class="font-bold">${stat.current}</span>
+            `;
+        }
+        statsContainer.appendChild(div);
+    }
+
+    // Actualizar combate
+    document.getElementById('current-actions').textContent = character.combat.currentActions;
+    document.getElementById('max-actions').textContent = character.stats.actions.current;
+
+    // Actualizar elementos
+    renderElements();
+    
+    // Actualizar equipo
+    renderEquipment();
+    
+    // Actualizar inventario
+    renderInventory();
+    
+    // Actualizar efectos de estado
+    renderStatusEffects();
+    
+    // Actualizar recursos
+    renderResources();
+    
+    // Actualizar misiones
+    renderQuests();
+}
+
+// Funciones de renderizado
+function renderElements() {
+    const container = document.getElementById('elements-container');
+    container.innerHTML = '';
+    
+    for (const key in character.elements) {
+        const element = character.elements[key];
+        const config = ELEMENTS_CONFIG[key];
+        const div = document.createElement('div');
+        div.className = 'p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-700';
+        div.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl">${config.emoji}</span>
+                    <span class="font-medium">${config.name}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="element-${key}" class="input-field w-16 text-center" value="${element.level}">
+                    <button class="btn btn-primary text-sm" onclick="upgradeElement('${key}')">↑</button>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+}
+
+function renderEquipment() {
+    const container = document.getElementById('equipment-slots');
+    container.innerHTML = '';
+    
+    character.equipment.forEach((slot, index) => {
+        const div = document.createElement('div');
+        div.className = 'p-3 border border-gray-200 dark:border-gray-700 rounded-lg';
+        
+        if (slot.item) {
+            const enhancementLevel = slot.enhancementLevel || 0;
+            const enhancementDisplay = enhancementLevel > 0 ? `<span class="text-xs bg-yellow-500 text-white px-2 py-1 rounded">+${enhancementLevel}</span>` : '';
             
-            <!-- Manual Save Button -->
-            <div class="flex justify-center">
-                <button id="manual-save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
-                    </svg>
-                    Guardar Manualmente
+            div.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-semibold">${slot.item.name}</h4>
+                            ${enhancementDisplay}
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">${slot.item.type}</p>
+                        <p class="text-sm rarity-text">${slot.item.rarity || 'Común'}</p>
+                        <p class="text-sm mt-1">${slot.item.description}</p>
+                    </div>
+                    <button class="btn btn-danger text-sm" onclick="unequipItem(${index})">Quitar</button>
+                </div>
+            `;
+        } else {
+            div.innerHTML = `
+                <div class="text-center text-gray-500 dark:text-gray-400">
+                    <p>${slot.slotName}</p>
+                    <button class="btn btn-secondary text-sm mt-2" onclick="openEquipmentModal(${index})">Equipar</button>
+                </div>
+            `;
+        }
+        container.appendChild(div);
+    });
+}
+
+function renderInventory() {
+    // Skills
+    const skillsList = document.getElementById('skills-list');
+    skillsList.innerHTML = '';
+    character.inventory.skills.forEach((skill, index) => {
+        const div = createItemCard(skill, 'skill', index);
+        skillsList.appendChild(div);
+    });
+    
+    // Techniques
+    const techniquesList = document.getElementById('techniques-list');
+    techniquesList.innerHTML = '';
+    character.inventory.techniques.forEach((technique, index) => {
+        const div = createItemCard(technique, 'technique', index);
+        techniquesList.appendChild(div);
+    });
+    
+    // Items
+    const itemsList = document.getElementById('items-list');
+    itemsList.innerHTML = '';
+    character.inventory.items.forEach((item, index) => {
+        const div = createItemCard(item, 'item', index);
+        itemsList.appendChild(div);
+    });
+    
+    // Pets
+    const petsList = document.getElementById('pets-list');
+    petsList.innerHTML = '';
+    character.inventory.pets.forEach((pet, index) => {
+        const div = createItemCard(pet, 'pet', index);
+        petsList.appendChild(div);
+    });
+}
+
+function createItemCard(item, type, index) {
+    const div = document.createElement('div');
+    div.className = `item-card p-3 rounded-lg ${item.rarity ? `data-rarity="${item.rarity}"` : ''}`;
+    
+    const levelDisplay = item.level !== undefined ? `<span class="text-sm">Nivel: ${item.level}</span>` : '';
+    const upgradesDisplay = item.upgrades > 0 ? `<span class="text-sm">Mejoras: ${item.upgrades}</span>` : '';
+    
+    div.innerHTML = `
+        <div class="flex justify-between items-start">
+            <div class="flex-1">
+                <h4 class="font-semibold">${item.name}</h4>
+                ${levelDisplay}
+                ${upgradesDisplay}
+                <p class="text-sm rarity-text">${item.rarity || 'Común'}</p>
+                <p class="text-sm mt-1">${item.description}</p>
+                ${item.effects ? `<p class="text-xs mt-1 text-gray-600 dark:text-gray-400">${item.effects.join(', ')}</p>` : ''}
+            </div>
+            <div class="flex gap-1">
+                ${type === 'skill' || type === 'technique' ? `<button class="btn btn-primary text-sm" onclick="upgradeItem('${type}', ${index})">↑</button>` : ''}
+                <button class="btn btn-danger text-sm" onclick="removeItem('${type}', ${index})">✕</button>
+            </div>
+        </div>
+    `;
+    
+    return div;
+}
+
+function renderStatusEffects() {
+    const container = document.getElementById('status-effects-list');
+    container.innerHTML = '';
+    
+    character.statusEffects.forEach((effect, index) => {
+        const div = document.createElement('div');
+        div.className = `status-card p-3 rounded-lg ${effect.type ? `data-type="${effect.type}"` : ''}`;
+        div.innerHTML = `
+            <div class="flex justify-between items-start">
+                <div class="flex-1">
+                    <h4 class="font-semibold">${effect.name}</h4>
+                    <p class="text-sm">${effect.description}</p>
+                    <p class="text-xs mt-1">Duración: ${effect.duration}</p>
+                </div>
+                <button class="btn btn-danger text-sm" onclick="removeStatusEffect(${index})">✕</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function renderResources() {
+    const container = document.getElementById('resources-container');
+    container.innerHTML = '';
+    
+    character.resources.forEach((resource, index) => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center p-2 bg-gray-100 dark:bg-gray-700 rounded';
+        div.innerHTML = `
+            <span class="font-medium">${resource.name}</span>
+            <div class="flex items-center gap-2">
+                <input type="number" class="input-field w-16 text-center" value="${resource.current}" onchange="updateResource(${index}, this.value, 'current')">
+                <span>/</span>
+                <input type="number" class="input-field w-16 text-center" value="${resource.max}" onchange="updateResource(${index}, this.value, 'max')">
+                <button class="btn btn-danger text-sm" onclick="removeResource(${index})">✕</button>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function renderQuests() {
+    // Active quests
+    const activeList = document.getElementById('active-quests-list');
+    activeList.innerHTML = '';
+    character.quests.active.forEach((quest, index) => {
+        const div = createQuestCard(quest, 'active', index);
+        activeList.appendChild(div);
+    });
+    
+    // Completed quests
+    const completedList = document.getElementById('completed-quests-list');
+    completedList.innerHTML = '';
+    character.quests.completed.forEach((quest, index) => {
+        const div = createQuestCard(quest, 'completed', index);
+        completedList.appendChild(div);
+    });
+    
+    // Failed quests
+    const failedList = document.getElementById('failed-quests-list');
+    failedList.innerHTML = '';
+    character.quests.failed.forEach((quest, index) => {
+        const div = createQuestCard(quest, 'failed', index);
+        failedList.appendChild(div);
+    });
+}
+
+function createQuestCard(quest, status, index) {
+    const div = document.createElement('div');
+    div.className = `quest-card p-3 rounded-lg data-status="${status}"`;
+    
+    const objectivesHtml = quest.objectives.map((obj, objIndex) => `
+        <div class="quest-objective ${obj.completed ? 'completed' : ''}">
+            <input type="checkbox" ${obj.completed ? 'checked' : ''} onchange="toggleQuestObjective('${status}', ${index}, ${objIndex})">
+            <span>${obj.description}</span>
+        </div>
+    `).join('');
+    
+    div.innerHTML = `
+        <div class="flex justify-between items-start">
+            <div class="flex-1">
+                <h4 class="font-semibold">${quest.name}</h4>
+                <p class="text-sm">${quest.description}</p>
+                <div class="mt-2">
+                    ${objectivesHtml}
+                </div>
+                ${quest.reward ? `<p class="text-sm mt-2 font-medium">Recompensa: ${quest.reward}</p>` : ''}
+            </div>
+            <div class="flex gap-1">
+                ${status === 'active' ? `
+                    <button class="btn btn-success text-sm" onclick="completeQuest(${index})">✓</button>
+                    <button class="btn btn-danger text-sm" onclick="failQuest(${index})">✕</button>
+                ` : ''}
+                <button class="btn btn-secondary text-sm" onclick="removeQuest('${status}', ${index})">🗑</button>
+            </div>
+        </div>
+    `;
+    
+    return div;
+}
+
+// Funciones de modales
+function openModal(content, title = '') {
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modal-content');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    
+    if (title) modalTitle.textContent = title;
+    modalBody.innerHTML = content;
+    modal.classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+}
+
+function showNotification(title, message) {
+    const modal = document.getElementById('notification-modal');
+    document.getElementById('notification-title').textContent = title;
+    document.getElementById('notification-message').textContent = message;
+    modal.classList.add('active');
+    
+    setTimeout(() => {
+        modal.classList.remove('active');
+    }, 3000);
+}
+
+// Funciones de creación de elementos
+function openSkillModal(skill = null, index = null) {
+    const isEdit = skill !== null;
+    const name = skill ? skill.name : '';
+    const description = skill ? skill.description : '';
+    const level = skill ? skill.level : 0;
+    const rarity = skill ? skill.rarity : 'Común';
+    
+    openModal(`
+        <h3 class="text-xl font-bold mb-4">${isEdit ? 'Editar Habilidad' : 'Nueva Habilidad'}</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Nombre</label>
+                <input type="text" id="skill-name" class="input-field" value="${name}" placeholder="Nombre de la habilidad">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Descripción</label>
+                <textarea id="skill-description" class="input-field" rows="3" placeholder="Descripción">${description}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Rareza</label>
+                <select id="skill-rarity" class="input-field">
+                    ${RARITIES.map(r => `<option value="${r}" ${r === rarity ? 'selected' : ''}>${r}</option>`).join('')}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Nivel</label>
+                <input type="number" id="skill-level" class="input-field" value="${level}" min="0">
+            </div>
+        </div>
+        <div class="flex justify-end mt-6 space-x-2">
+            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveSkill(${index})">${isEdit ? 'Guardar Cambios' : 'Crear Habilidad'}</button>
+        </div>
+    `, isEdit ? 'Editar Habilidad' : 'Nueva Habilidad');
+}
+
+function saveSkill(index) {
+    const name = document.getElementById('skill-name').value;
+    const description = document.getElementById('skill-description').value;
+    const rarity = document.getElementById('skill-rarity').value;
+    const level = parseInt(document.getElementById('skill-level').value) || 0;
+    
+    if (!name || !description) {
+        showNotification('Error', 'Por favor completa todos los campos requeridos.');
+        return;
+    }
+    
+    const skill = {
+        name,
+        description,
+        rarity,
+        level,
+        upgrades: 0,
+        effects: []
+    };
+    
+    if (index !== null) {
+        character.inventory.skills[index] = skill;
+    } else {
+        character.inventory.skills.push(skill);
+    }
+    
+    saveAndRefresh();
+    closeModal();
+    showNotification('Habilidad Guardada', `La habilidad "${name}" ha sido guardada exitosamente.`);
+}
+
+// Funciones similares para técnicas, objetos, mascotas y estados
+function openTechniqueModal(technique = null, index = null) {
+    const isEdit = technique !== null;
+    const name = technique ? technique.name : '';
+    const description = technique ? technique.description : '';
+    const level = technique ? technique.level : 0;
+    const rarity = technique ? technique.rarity : 'Común';
+    
+    openModal(`
+        <h3 class="text-xl font-bold mb-4">${isEdit ? 'Editar Técnica/Hechizo' : 'Nueva Técnica/Hechizo'}</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Nombre</label>
+                <input type="text" id="technique-name" class="input-field" value="${name}" placeholder="Nombre de la técnica/hechizo">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Descripción</label>
+                <textarea id="technique-description" class="input-field" rows="3" placeholder="Descripción">${description}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Rareza</label>
+                <select id="technique-rarity" class="input-field">
+                    ${RARITIES.map(r => `<option value="${r}" ${r === rarity ? 'selected' : ''}>${r}</option>`).join('')}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Nivel</label>
+                <input type="number" id="technique-level" class="input-field" value="${level}" min="0">
+            </div>
+        </div>
+        <div class="flex justify-end mt-6 space-x-2">
+            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveTechnique(${index})">${isEdit ? 'Guardar Cambios' : 'Crear Técnica/Hechizo'}</button>
+        </div>
+    `, isEdit ? 'Editar Técnica/Hechizo' : 'Nueva Técnica/Hechizo');
+}
+
+function saveTechnique(index) {
+    const name = document.getElementById('technique-name').value;
+    const description = document.getElementById('technique-description').value;
+    const rarity = document.getElementById('technique-rarity').value;
+    const level = parseInt(document.getElementById('technique-level').value) || 0;
+    
+    if (!name || !description) {
+        showNotification('Error', 'Por favor completa todos los campos requeridos.');
+        return;
+    }
+    
+    const technique = {
+        name,
+        description,
+        rarity,
+        level,
+        upgrades: 0,
+        effects: []
+    };
+    
+    if (index !== null) {
+        character.inventory.techniques[index] = technique;
+    } else {
+        character.inventory.techniques.push(technique);
+    }
+    
+    saveAndRefresh();
+    closeModal();
+    showNotification('Técnica/Hechizo Guardado', `La técnica/hechizo "${name}" ha sido guardado exitosamente.`);
+}
+
+function openItemModal(item = null, index = null) {
+    const isEdit = item !== null;
+    const name = item ? item.name : '';
+    const description = item ? item.description : '';
+    const rarity = item ? item.rarity : 'Común';
+    const quantity = item ? item.quantity : 1;
+    
+    openModal(`
+        <h3 class="text-xl font-bold mb-4">${isEdit ? 'Editar Objeto' : 'Nuevo Objeto'}</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Nombre</label>
+                <input type="text" id="item-name" class="input-field" value="${name}" placeholder="Nombre del objeto">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Descripción</label>
+                <textarea id="item-description" class="input-field" rows="3" placeholder="Descripción">${description}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Rareza</label>
+                <select id="item-rarity" class="input-field">
+                    ${RARITIES.map(r => `<option value="${r}" ${r === rarity ? 'selected' : ''}>${r}</option>`).join('')}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Cantidad</label>
+                <input type="number" id="item-quantity" class="input-field" value="${quantity}" min="1">
+            </div>
+        </div>
+        <div class="flex justify-end mt-6 space-x-2">
+            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveItem(${index})">${isEdit ? 'Guardar Cambios' : 'Crear Objeto'}</button>
+        </div>
+    `, isEdit ? 'Editar Objeto' : 'Nuevo Objeto');
+}
+
+function saveItem(index) {
+    const name = document.getElementById('item-name').value;
+    const description = document.getElementById('item-description').value;
+    const rarity = document.getElementById('item-rarity').value;
+    const quantity = parseInt(document.getElementById('item-quantity').value) || 1;
+    
+    if (!name || !description) {
+        showNotification('Error', 'Por favor completa todos los campos requeridos.');
+        return;
+    }
+    
+    const item = {
+        name,
+        description,
+        rarity,
+        quantity,
+        effects: []
+    };
+    
+    if (index !== null) {
+        character.inventory.items[index] = item;
+    } else {
+        character.inventory.items.push(item);
+    }
+    
+    saveAndRefresh();
+    closeModal();
+    showNotification('Objeto Guardado', `El objeto "${name}" ha sido guardado exitosamente.`);
+}
+
+function openPetModal(pet = null, index = null) {
+    const isEdit = pet !== null;
+    const name = pet ? pet.name : '';
+    const description = pet ? pet.description : '';
+    const level = pet ? pet.level : 1;
+    const rarity = pet ? pet.rarity : 'Común';
+    
+    openModal(`
+        <h3 class="text-xl font-bold mb-4">${isEdit ? 'Editar Mascota' : 'Nueva Mascota'}</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Nombre</label>
+                <input type="text" id="pet-name" class="input-field" value="${name}" placeholder="Nombre de la mascota">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Descripción</label>
+                <textarea id="pet-description" class="input-field" rows="3" placeholder="Descripción">${description}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Rareza</label>
+                <select id="pet-rarity" class="input-field">
+                    ${RARITIES.map(r => `<option value="${r}" ${r === rarity ? 'selected' : ''}>${r}</option>`).join('')}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Nivel</label>
+                <input type="number" id="pet-level" class="input-field" value="${level}" min="1">
+            </div>
+        </div>
+        <div class="flex justify-end mt-6 space-x-2">
+            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="savePet(${index})">${isEdit ? 'Guardar Cambios' : 'Crear Mascota'}</button>
+        </div>
+    `, isEdit ? 'Editar Mascota' : 'Nueva Mascota');
+}
+
+function savePet(index) {
+    const name = document.getElementById('pet-name').value;
+    const description = document.getElementById('pet-description').value;
+    const rarity = document.getElementById('pet-rarity').value;
+    const level = parseInt(document.getElementById('pet-level').value) || 1;
+    
+    if (!name || !description) {
+        showNotification('Error', 'Por favor completa todos los campos requeridos.');
+        return;
+    }
+    
+    const pet = {
+        name,
+        description,
+        rarity,
+        level,
+        upgrades: 0,
+        abilities: []
+    };
+    
+    if (index !== null) {
+        character.inventory.pets[index] = pet;
+    } else {
+        character.inventory.pets.push(pet);
+    }
+    
+    saveAndRefresh();
+    closeModal();
+    showNotification('Mascota Guardada', `La mascota "${name}" ha sido guardada exitosamente.`);
+}
+
+function openStatusEffectModal(effect = null, index = null) {
+    const isEdit = effect !== null;
+    const name = effect ? effect.name : '';
+    const description = effect ? effect.description : '';
+    const duration = effect ? effect.duration : '';
+    const type = effect ? effect.type : 'Neutral';
+    
+    openModal(`
+        <h3 class="text-xl font-bold mb-4">${isEdit ? 'Editar Estado' : 'Nuevo Estado'}</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Nombre</label>
+                <input type="text" id="status-name" class="input-field" value="${name}" placeholder="Nombre del estado">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Descripción</label>
+                <textarea id="status-description" class="input-field" rows="3" placeholder="Descripción">${description}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Tipo</label>
+                <select id="status-type" class="input-field">
+                    <option value="Buff" ${type === 'Buff' ? 'selected' : ''}>Buff</option>
+                    <option value="Debuff" ${type === 'Debuff' ? 'selected' : ''}>Debuff</option>
+                    <option value="Neutral" ${type === 'Neutral' ? 'selected' : ''}>Neutral</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Duración (turnos)</label>
+                <input type="number" id="status-duration" class="input-field" value="${duration}" min="0">
+            </div>
+        </div>
+        <div class="flex justify-end mt-6 space-x-2">
+            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveStatusEffect(${index})">${isEdit ? 'Guardar Cambios' : 'Crear Estado'}</button>
+        </div>
+    `, isEdit ? 'Editar Estado' : 'Nuevo Estado');
+}
+
+function saveStatusEffect(index) {
+    const name = document.getElementById('status-name').value;
+    const description = document.getElementById('status-description').value;
+    const type = document.getElementById('status-type').value;
+    const duration = parseInt(document.getElementById('status-duration').value) || 0;
+    
+    if (!name || !description) {
+        showNotification('Error', 'Por favor completa todos los campos requeridos.');
+        return;
+    }
+    
+    const statusEffect = {
+        name,
+        description,
+        type,
+        duration,
+        linkedEffects: []
+    };
+    
+    if (index !== null) {
+        character.statusEffects[index] = statusEffect;
+    } else {
+        character.statusEffects.push(statusEffect);
+    }
+    
+    saveAndRefresh();
+    closeModal();
+    showNotification('Estado Guardado', `El estado "${name}" ha sido guardado exitosamente.`);
+}
+
+// Funciones de gestión de misiones
+function openQuestModal(quest = null, status = 'active', index = null) {
+    const isEdit = quest !== null;
+    const name = quest ? quest.name : '';
+    const description = quest ? quest.description : '';
+    const reward = quest ? quest.reward || '';
+    const objectives = quest ? quest.objectives.map(obj => obj.description).join('\n') : '';
+    
+    openModal(`
+        <h3 class="text-xl font-bold mb-4">${isEdit ? 'Editar Misión' : 'Nueva Misión'}</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Nombre de la Misión</label>
+                <input type="text" id="quest-name" class="input-field" value="${name}" placeholder="Nombre de la misión">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Descripción</label>
+                <textarea id="quest-description" class="input-field" rows="3" placeholder="Descripción de la misión">${description}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Objetivos (uno por línea)</label>
+                <textarea id="quest-objectives" class="input-field" rows="4" placeholder="Objetivo 1\nObjetivo 2\nObjetivo 3">${objectives}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Recompensa</label>
+                <input type="text" id="quest-reward" class="input-field" value="${reward}" placeholder="Recompensa de la misión">
+            </div>
+        </div>
+        <div class="flex justify-end mt-6 space-x-2">
+            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="saveQuest('${status}', ${index})">${isEdit ? 'Guardar Cambios' : 'Crear Misión'}</button>
+        </div>
+    `, isEdit ? 'Editar Misión' : 'Nueva Misión');
+}
+
+function saveQuest(status, index) {
+    const name = document.getElementById('quest-name').value;
+    const description = document.getElementById('quest-description').value;
+    const reward = document.getElementById('quest-reward').value;
+    const objectivesText = document.getElementById('quest-objectives').value;
+    
+    if (!name || !description || !objectivesText) {
+        showNotification('Error', 'Por favor completa todos los campos requeridos.');
+        return;
+    }
+    
+    const objectives = objectivesText.split('\n').filter(obj => obj.trim()).map(obj => ({
+        description: obj.trim(),
+        completed: false
+    }));
+    
+    const quest = {
+        name,
+        description,
+        objectives,
+        reward,
+        createdAt: new Date().toISOString()
+    };
+    
+    if (index !== null) {
+        character.quests[status][index] = quest;
+    } else {
+        character.quests[status].push(quest);
+    }
+    
+    saveAndRefresh();
+    closeModal();
+    showNotification('Misión Guardada', `La misión "${name}" ha sido guardada exitosamente.`);
+}
+
+function toggleQuestObjective(status, questIndex, objectiveIndex) {
+    const quest = character.quests[status][questIndex];
+    quest.objectives[objectiveIndex].completed = !quest.objectives[objectiveIndex].completed;
+    saveAndRefresh();
+}
+
+function completeQuest(index) {
+    const quest = character.quests.active[index];
+    quest.completedAt = new Date().toISOString();
+    character.quests.completed.push(quest);
+    character.quests.active.splice(index, 1);
+    saveAndRefresh();
+    showNotification('Misión Completada', `¡Has completado la misión "${quest.name}"!`);
+}
+
+function failQuest(index) {
+    const quest = character.quests.active[index];
+    quest.failedAt = new Date().toISOString();
+    character.quests.failed.push(quest);
+    character.quests.active.splice(index, 1);
+    saveAndRefresh();
+    showNotification('Misión Fallida', `La misión "${quest.name}" ha fallado.`);
+}
+
+function removeQuest(status, index) {
+    const quest = character.quests[status][index];
+    if (confirm(`¿Estás seguro de que quieres eliminar la misión "${quest.name}"?`)) {
+        character.quests[status].splice(index, 1);
+        saveAndRefresh();
+    }
+}
+
+// Funciones de utilidad
+function rollAttributeCheck(attribute) {
+    const baseValue = character.attributes[attribute].value;
+    const mod = getModifier(baseValue);
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const total = roll + mod;
+    
+    let result = '';
+    if (total <= 5) {
+        result = 'Fallo Crítico';
+    } else if (total <= 10) {
+        result = 'Fallo';
+    } else if (total <= 15) {
+        result = 'Éxito';
+    } else if (total <= 19) {
+        result = 'Éxito Bueno';
+    } else {
+        result = 'Éxito Crítico';
+    }
+    
+    showNotification(`Tirada de ${character.attributes[attribute].name}`, `1d20 + ${mod} = ${total} - ${result}`);
+}
+
+function rollStatCheck(stat) {
+    const value = character.stats[stat].current;
+    const roll = Math.floor(Math.random() * 20) + 1;
+    const total = roll + value;
+    
+    let result = '';
+    if (total <= 5) {
+        result = 'Fallo Crítico';
+    } else if (total <= 10) {
+        result = 'Fallo';
+    } else if (total <= 15) {
+        result = 'Éxito';
+    } else if (total <= 19) {
+        result = 'Éxito Bueno';
+    } else {
+        result = 'Éxito Crítico';
+    }
+    
+    showNotification(`Tirada de ${character.stats[stat].name}`, `1d20 + ${value} = ${total} - ${result}`);
+}
+
+function useAction(cost, name) {
+    if (character.combat.currentActions >= cost) {
+        character.combat.currentActions -= cost;
+        saveAndRefresh();
+        showNotification('Acción Realizada', `Has usado la acción "${name}" por ${cost} PA.`);
+    } else {
+        showNotification('Acción Insuficiente', `No tienes suficientes puntos de acción para "${name}".`);
+    }
+}
+
+function upgradeElement(elementKey) {
+    const element = character.elements[elementKey];
+    const nextLevel = element.level + 1;
+    const cost = nextLevel * 5;
+    
+    if (character.stats.xp.current >= cost) {
+        character.stats.xp.current -= cost;
+        element.level = nextLevel;
+        element.upgrades += 1;
+        
+        saveAndRefresh();
+        showNotification('Elemento Mejorado', `${ELEMENTS_CONFIG[elementKey].name} ha sido mejorado a nivel ${nextLevel}.`);
+    } else {
+        showNotification('Experiencia Insuficiente', `Necesitas ${cost} XP para mejorar ${ELEMENTS_CONFIG[elementKey].name} a nivel ${nextLevel}.`);
+    }
+}
+
+function upgradeItem(type, index) {
+    const item = character.inventory[type][index];
+    if (item.level === undefined) item.level = 0;
+    if (item.upgrades === undefined) item.upgrades = 0;
+    
+    item.level++;
+    item.upgrades++;
+    saveAndRefresh();
+}
+
+function removeItem(type, index) {
+    if (confirm('¿Estás seguro de que quieres eliminar este elemento?')) {
+        character.inventory[type].splice(index, 1);
+        saveAndRefresh();
+    }
+}
+
+function removeStatusEffect(index) {
+    character.statusEffects.splice(index, 1);
+    saveAndRefresh();
+}
+
+function addResource() {
+    const name = document.getElementById('resource-name').value;
+    const current = parseInt(document.getElementById('resource-current').value) || 0;
+    const max = parseInt(document.getElementById('resource-max').value) || 100;
+    
+    if (name) {
+        character.resources.push({ name, current, max });
+        saveAndRefresh();
+        closeModal();
+    }
+}
+
+function updateResource(index, value, type) {
+    character.resources[index][type] = parseInt(value) || 0;
+    saveAndRefresh();
+}
+
+function removeResource(index) {
+    character.resources.splice(index, 1);
+    saveAndRefresh();
+}
+
+function unequipItem(index) {
+    character.equipment[index].item = null;
+    character.equipment[index].enhancementLevel = 0;
+    saveAndRefresh();
+}
+
+// Funciones de tema
+function toggleTheme() {
+    const themes = ['', 'theme-dark', 'theme-forest', 'theme-ocean', 'theme-fire', 'theme-dusk'];
+    const body = document.body;
+    let currentTheme = '';
+    
+    themes.forEach(theme => {
+        if (body.classList.contains(theme)) {
+            currentTheme = theme;
+        }
+    });
+    
+    const currentIndex = themes.indexOf(currentTheme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    const nextTheme = themes[nextIndex];
+    
+    if (currentTheme) {
+        body.classList.remove(currentTheme);
+    }
+    
+    if (nextTheme) {
+        body.classList.add(nextTheme);
+    }
+    
+    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    
+    const themeNames = {
+        '': 'Predeterminado',
+        'theme-dark': 'Oscuro',
+        'theme-forest': 'Bosque',
+        'theme-ocean': 'Océano',
+        'theme-fire': 'Fuego',
+        'theme-dusk': 'Atardecer'
+    };
+    
+    showNotification('Tema Cambiado', `El tema ha sido cambiado a: ${themeNames[nextTheme]}`);
+}
+
+function loadTheme() {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    if (savedTheme) {
+        document.body.classList.add(savedTheme);
+    }
+}
+
+// Funciones de XP y nivel
+function addXP(amount) {
+    if (character.stats.level.current >= 20) {
+        showNotification("Nivel Máximo", "Ya has alcanzado el nivel máximo.");
+        return;
+    }
+    character.stats.xp.current += amount;
+    showNotification("Experiencia Ganada", `¡Has ganado ${amount} XP!`);
+    
+    let levelsGained = 0;
+    let healthGained = 0;
+    let skillPointsGained = 0;
+    let xpNeeded = character.stats.level.current >= 20 ? Infinity : XP_TABLE[character.stats.level.current];
+
+    while (character.stats.xp.current >= xpNeeded) {
+        if (character.stats.level.current >= 20) {
+            character.stats.xp.current = xpNeeded;
+            break;
+        }
+        
+        const currentLevelBeforeUp = character.stats.level.current;
+        character.stats.xp.current -= xpNeeded;
+        character.stats.level.current++;
+        character.stats.level.base++;
+        levelsGained++;
+        
+        const healthRoll = Math.floor(Math.random() * 8) + 1;
+        character.stats.health.base += healthRoll;
+        healthGained += healthRoll;
+
+        skillPointsGained += SKILL_POINTS_PER_LEVEL[currentLevelBeforeUp] || 0;
+
+        xpNeeded = character.stats.level.current >= 20 ? Infinity : XP_TABLE[character.stats.level.current];
+    }
+    
+    if (levelsGained > 0) {
+        character.skillPoints += skillPointsGained;
+        showNotification('¡Subida de Nivel!', `Has subido ${levelsGained} nivel(es) y ganado ${skillPointsGained} puntos de habilidad.`);
+    }
+
+    saveAndRefresh();
+}
+
+function openSpendSkillPointsModal() {
+    if (character.skillPoints <= 0) {
+        showNotification('Sin Puntos de Habilidad', 'No tienes puntos de habilidad disponibles para gastar.');
+        return;
+    }
+    
+    let content = '<div class="space-y-4">';
+    
+    for (const key in character.attributes) {
+        const attr = character.attributes[key];
+        const cost = 1;
+        content += `
+            <div class="flex justify-between items-center p-2 border rounded">
+                <span>${attr.name}: ${attr.value}</span>
+                <button class="btn btn-primary text-sm" onclick="upgradeAttributeWithPoints('${key}', ${cost})" 
+                        ${character.skillPoints < cost ? 'disabled' : ''}>
+                    Mejorar (${cost} PH)
                 </button>
             </div>
-        </header>
-
-        <!-- Main Content -->
-        <main id="main-content" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Columna Izquierda -->
-            <div class="space-y-6">
-                <!-- Identidad del Personaje -->
-                <section class="card p-6" draggable="true" ondragstart="drag(event)" aria-labelledby="identity-title">
-                    <h2 id="identity-title" class="card-title">Identidad</h2>
-                    <div class="space-y-4">
-                        <div class="flex items-center space-x-4">
-                            <img id="character-image-preview" src="https://placehold.co/100x100/e0e0e0/2c3e50?text=Avatar" alt="Avatar del Personaje" class="w-24 h-24 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700">
-                            <div class="space-y-2">
-                                <label for="character-image-upload" class="btn btn-primary text-sm w-full">Cargar Imagen</label>
-                                <input type="file" id="character-image-upload" class="hidden" accept="image/*">
-                            </div>
-                        </div>
-                        <div>
-                            <label for="char-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
-                            <input type="text" id="char-name" class="input-field" placeholder="Nombre del Personaje">
-                        </div>
-                        <div>
-                            <label for="char-race" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Raza</label>
-                            <input type="text" id="char-race" class="input-field" placeholder="Ej: Humano, Elfo">
-                        </div>
-                        <div>
-                            <label for="char-notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notas</label>
-                            <textarea id="char-notes" class="input-field" rows="2" placeholder="Anotaciones sobre el personaje..."></textarea>
-                        </div>
-                        <div>
-                            <label for="char-personality" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Personalidad</label>
-                            <textarea id="char-personality" class="input-field" rows="3" placeholder="Describe la personalidad..."></textarea>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Atributos -->
-                <section class="card p-6" draggable="true" ondragstart="drag(event)" aria-labelledby="attributes-title">
-                    <h2 id="attributes-title" class="card-title">Atributos</h2>
-                    <div id="attributes-container" class="space-y-3">
-                        <!-- Los atributos se generan dinámicamente aquí -->
-                    </div>
-                </section>
-
-                <!-- Elementos -->
-                <section class="card p-6" draggable="true" ondragstart="drag(event)" aria-labelledby="elements-title">
-                    <h2 id="elements-title" class="card-title">Afinidad Elemental</h2>
-                    <div id="elements-container" class="grid grid-cols-1 gap-4"></div>
-                    <div id="fusion-elements-container" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"></div>
-                     <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
-                        <div id="spirit-amulet-container"></div>
-                    </div>
-                </section>
-
-                <!-- Quest Log (New from v4.7) -->
-                <section class="card p-6" draggable="true" ondragstart="drag(event)" aria-labelledby="quest-title">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 id="quest-title" class="card-title m-0 p-0 border-none">Registro de Misiones</h2>
-                        <button id="add-quest-btn" class="btn btn-primary text-sm">Añadir Misión</button>
-                    </div>
-                    <div class="border-b border-gray-200 dark:border-gray-700 mb-4">
-                        <nav class="-mb-px flex space-x-4" id="quest-tabs">
-                            <button data-tab="active" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 active">Activas</button>
-                            <button data-tab="completed" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Completadas</button>
-                            <button data-tab="failed" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Fallidas</button>
-                        </nav>
-                    </div>
-                    <div id="quest-content">
-                        <div id="tab-content-active" class="tab-pane active space-y-3">
-                            <div id="active-quests-list" class="space-y-3"></div>
-                        </div>
-                        <div id="tab-content-completed" class="tab-pane hidden space-y-3">
-                            <div id="completed-quests-list" class="space-y-3"></div>
-                        </div>
-                        <div id="tab-content-failed" class="tab-pane hidden space-y-3">
-                            <div id="failed-quests-list" class="space-y-3"></div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- Columna Central -->
-            <div class="space-y-6">
-                <!-- Experiencia y Nivel -->
-                <section class="card p-6" draggable="true" ondragstart="drag(event)" aria-labelledby="level-title">
-                    <div class="flex justify-between items-center mb-4">
-                         <h2 id="level-title" class="card-title m-0 p-0 border-none">Nivel y Experiencia</h2>
-                         <div class="text-right">
-                            <button id="spend-skill-points-btn" class="btn btn-primary">
-                                <span>Gastar PH</span>
-                                <span id="skill-points-display" class="ml-2 bg-sky-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">0</span>
-                            </button>
-                         </div>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="text-center">
-                            <p class="text-lg font-medium">Nivel Actual</p>
-                            <p class="text-5xl font-bold" id="level-display">1</p>
-                        </div>
-                        <div>
-                            <p class="text-center font-medium">Experiencia (XP)</p>
-                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mt-1">
-                                <div id="xp-bar" class="bg-sky-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
-                            </div>
-                            <p class="text-center text-sm mt-1"><span id="current-xp-display">0</span> / <span id="needed-xp-display">300</span> XP</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <input type="number" id="xp-to-add" class="input-field" placeholder="Añadir XP">
-                            <button id="add-xp-btn" class="btn btn-primary">Añadir</button>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Estadísticas Derivadas -->
-                <section class="card p-6" draggable="true" ondragstart="drag(event)" aria-labelledby="stats-title">
-                    <div class="flex justify-between items-center mb-4 gap-2">
-                        <h2 id="stats-title" class="card-title m-0 p-0 border-none">Estadísticas</h2>
-                        <div class="flex gap-2">
-                           <button id="restore-stats-btn" class="btn btn-primary text-sm">Restaurar</button>
-                           <button id="edit-base-stats-btn" class="btn btn-secondary text-sm">Editar Base</button>
-                        </div>
-                    </div>
-                    <div id="stats-container" class="grid grid-cols-1 gap-y-3"></div>
-                </section>
-
-                <!-- Combate -->
-                <section class="card p-6" draggable="true" ondragstart="drag(event)" aria-labelledby="combat-title">
-                    <h2 id="combat-title" class="card-title">Combate</h2>
-                    <div class="space-y-4">
-                        <div class="text-center">
-                            <p class="text-lg font-medium">Puntos de Acción (PA)</p>
-                            <p class="text-4xl font-bold"><span id="current-actions">3</span> / <span id="max-actions">3</span></p>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button class="btn btn-primary" onclick="useAction(0, 'Hablar')">Hablar (0)</button>
-                            <button class="btn btn-primary" onclick="useAction(1, 'Menor')">A. Menor (1)</button>
-                            <button class="btn btn-primary" onclick="useAction(1, 'Objeto')">A. Objeto (1)</button>
-                            <button class="btn btn-primary" onclick="useAction(2, 'Compleja')">A. Compleja (2)</button>
-                            <button class="btn btn-primary" onclick="useAction(3, 'Reacción')">Reacción (3)</button>
-                            <button class="btn btn-secondary" onclick="useAction(-1, 'Bonus')">A. Bonus (+1)</button>
-                        </div>
-                        <button class="btn-primary w-full mt-2" onclick="useAction(20, 'Legendaria')">Acción Legendaria (20)</button>
-                        <button id="end-turn-btn" class="btn btn-secondary w-full">Finalizar Turno</button>
-                    </div>
-                </section>
-
-                <!-- Estados -->
-                <section class="card p-6" draggable="true" ondragstart="drag(event)" aria-labelledby="status-title">
-                    <h2 id="status-title" class="card-title">Estados</h2>
-                    <button id="add-status-effect-btn" class="btn btn-primary w-full mb-4">Añadir Estado</button>
-                    <div id="status-effects-list" class="space-y-3"></div>
-                </section>
-            </div>
-
-            <!-- Columna Derecha -->
-            <div class="space-y-6">
-                <!-- Equipamiento -->
-                <section class="card p-6" draggable="true" ondragstart="drag(event)" aria-labelledby="equipment-title">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 id="equipment-title" class="card-title m-0 p-0 border-none">Equipamiento</h2>
-                        <button id="enhance-equipment-btn" class="btn btn-primary text-sm">Mejorar</button>
-                    </div>
-                    <div id="equipment-slots" class="space-y-3"></div>
-                    <button id="manage-slots-btn" class="btn btn-secondary w-full mt-4 text-sm">Gestionar Slots</button>
-                </section>
-
-                <!-- Recursos -->
-                <section class="card p-6" draggable="true" ondragstart="drag(event)" aria-labelledby="resources-title">
-                    <h2 id="resources-title" class="card-title">Recursos</h2>
-                    <div id="resources-container" class="space-y-3 mb-4"></div>
-                    <button id="add-resource-btn" class="btn btn-secondary w-full text-sm">Gestionar Recursos</button>
-                </section>
-
-                <!-- Inventario -->
-                <section class="card p-6" draggable="true" ondragstart="drag(event)" aria-labelledby="inventory-title">
-                    <h2 id="inventory-title" class="card-title">Inventario y Habilidades</h2>
-                    <div class="border-b border-gray-200 dark:border-gray-700 mb-4">
-                        <nav class="-mb-px flex space-x-4" id="inventory-tabs">
-                            <button data-tab="skills" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 active">Habilidades</button>
-                            <button data-tab="techniques" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Técnicas/Hechizos</button>
-                            <button data-tab="items" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Objetos</button>
-                            <button data-tab="pets" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Mascotas</button>
-                        </nav>
-                    </div>
-                    <div id="inventory-content">
-                        <div id="tab-content-skills" class="tab-pane active space-y-4">
-                            <button id="add-skill-btn" class="btn btn-primary w-full">Añadir Habilidad</button>
-                            <div id="skills-list" class="space-y-3"></div>
-                        </div>
-                        <div id="tab-content-techniques" class="tab-pane hidden space-y-4">
-                            <div class="text-center font-medium">Slots: <span id="technique-slots">0</span></div>
-                            <button id="add-technique-btn" class="btn btn-primary w-full">Añadir Técnica/Hechizo</button>
-                            <div id="techniques-list" class="space-y-3"></div>
-                        </div>
-                        <div id="tab-content-items" class="tab-pane hidden space-y-4">
-                            <button id="add-item-btn" class="btn btn-primary w-full">Añadir Objeto</button>
-                            <div id="items-list" class="space-y-3"></div>
-                        </div>
-                        <div id="tab-content-pets" class="tab-pane hidden space-y-4">
-                            <button id="add-pet-btn" class="btn btn-primary w-full">Añadir Mascota</button>
-                            <div id="pets-list" class="space-y-3"></div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Gestión -->
-                 <section class="card p-6" draggable="true" ondragstart="drag(event)" aria-labelledby="management-title">
-                    <h2 id="management-title" class="card-title">Gestión de Datos</h2>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="theme-toggle-btn" class="btn btn-secondary">Cambiar Tema</button>
-                        <button id="export-json-btn" class="btn btn-primary">Exportar</button>
-                        <button id="import-json-btn" class="btn btn-primary">Importar</button>
-                        <input type="file" id="json-import-input" class="hidden" accept=".json, .txt">
-                        <button id="clear-local-data-btn" class="btn btn-danger col-span-2">Limpiar Datos y Reiniciar</button>
-                    </div>
-                    <div class="mt-4 space-y-2">
-                        <input type="text" id="char-titles" class="input-field" placeholder="Títulos y Honores">
-                        <input type="text" id="char-spirits" class="input-field" placeholder="Espíritus y Vínculos">
-                        <input type="text" id="char-size" class="input-field" placeholder="Tamaño Físico">
-                    </div>
-                </section>
-            </div>
-        </main>
-    </div>
-
-    <!-- Modals -->
-    <div id="modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <div id="modal-content" class="modal-content">
-            <h3 id="modal-title" class="text-xl font-bold mb-4"></h3>
-            <div id="modal-body" class="modal-scrollable-content"></div>
-            <div id="modal-footer" class="flex justify-end mt-6 space-x-2"></div>
-        </div>
-    </div>
+        `;
+    }
     
-    <div id="modal-secondary" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-secondary-title" style="z-index: 60;">
-        <div id="modal-secondary-content" class="modal-content">
-            <h3 id="modal-secondary-title" class="text-xl font-bold mb-4"></h3>
-            <div id="modal-secondary-body" class="modal-scrollable-content"></div>
-            <div id="modal-secondary-footer" class="flex justify-end mt-6 space-x-2"></div>
+    content += `
+        <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+            <p class="text-sm">Puntos de Habilidad Disponibles: <span class="font-bold">${character.skillPoints}</span></p>
         </div>
-    </div>
+    `;
     
-    <div id="notification-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="notification-title" onclick="this.classList.remove('active')">
-        <div class="modal-content max-w-sm text-center">
-            <h3 id="notification-title" class="text-xl font-bold mb-4"></h3>
-            <p id="notification-message" class="whitespace-pre-wrap"></p>
+    content += '</div>';
+    
+    content += `
+        <div class="flex justify-end mt-6">
+            <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
         </div>
-    </div>
+    `;
+    
+    openModal(content, 'Gastar Puntos de Habilidad');
+}
 
-    <!-- Equipment Enhancement Modal (New from v4.9) -->
-    <div id="enhancement-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="enhancement-title">
-        <div id="enhancement-content" class="modal-content max-w-2xl">
-            <h3 id="enhancement-title" class="text-xl font-bold mb-4">Mejorar Equipo</h3>
-            <div id="enhancement-body" class="modal-scrollable-content"></div>
-            <div id="enhancement-footer" class="flex justify-end mt-6 space-x-2"></div>
-        </div>
-    </div>
+function upgradeAttributeWithPoints(attrKey, cost) {
+    if (character.skillPoints >= cost) {
+        character.attributes[attrKey].value += 1;
+        character.attributes[attrKey].upgrades += 1;
+        character.skillPoints -= cost;
+        
+        calculateDerivedStats();
+        updateUI();
+        
+        openSpendSkillPointsModal();
+        
+        showNotification('Atributo Mejorado', `${character.attributes[attrKey].name} ha sido mejorado a ${character.attributes[attrKey].value}.`);
+    }
+}
 
-    <script src="script.js"></script>
-</body>
-</html>
+// Inicialización de event listeners
+function initEventListeners() {
+    // Auto-save on input changes
+    document.querySelectorAll('input, textarea').forEach(element => {
+        element.addEventListener('input', () => {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                saveAndRefresh();
+            }, 1000);
+        });
+    });
+    
+    // Identity
+    document.getElementById('character-image-upload').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                character.identity.image = event.target.result;
+                document.getElementById('character-image-preview').src = event.target.result;
+                saveAndRefresh();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // XP
+    document.getElementById('add-xp-btn').addEventListener('click', () => {
+        const input = document.getElementById('xp-to-add');
+        const amount = parseInt(input.value) || 0;
+        if (amount > 0) {
+            addXP(amount);
+            input.value = '';
+        }
+    });
+    
+    // Combat
+    document.getElementById('end-turn-btn').addEventListener('click', () => {
+        character.combat.currentActions = character.stats.actions.current;
+        saveAndRefresh();
+        showNotification('Turno Finalizado', 'Tus puntos de acción han sido restaurados.');
+    });
+    
+    // Buttons
+    document.getElementById('spend-skill-points-btn').addEventListener('click', openSpendSkillPointsModal);
+    document.getElementById('add-skill-btn').addEventListener('click', () => openSkillModal());
+    document.getElementById('add-technique-btn').addEventListener('click', () => openTechniqueModal());
+    document.getElementById('add-item-btn').addEventListener('click', () => openItemModal());
+    document.getElementById('add-pet-btn').addEventListener('click', () => openPetModal());
+    document.getElementById('add-status-effect-btn').addEventListener('click', () => openStatusEffectModal());
+    document.getElementById('add-quest-btn').addEventListener('click', () => openQuestModal());
+    document.getElementById('add-resource-btn').addEventListener('click', () => {
+        openModal(`
+            <h3 class="text-xl font-bold mb-4">Añadir Recurso</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nombre del Recurso</label>
+                    <input type="text" id="resource-name" class="input-field" placeholder="Ej: Oro, Gemas">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Cantidad Actual</label>
+                    <input type="number" id="resource-current" class="input-field" value="0">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Cantidad Máxima</label>
+                    <input type="number" id="resource-max" class="input-field" value="100">
+                </div>
+            </div>
+            <div class="flex justify-end mt-6 space-x-2">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="addResource()">Añadir</button>
+            </div>
+        `);
+    });
+    
+    // Theme toggle
+    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+    
+    // Data management
+    document.getElementById('export-json-btn').addEventListener('click', () => {
+        const dataStr = JSON.stringify(character, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileDefaultName = `character_${character.identity.name || 'unnamed'}_${new Date().toISOString().split('T')[0]}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+    });
+    
+    document.getElementById('import-json-btn').addEventListener('click', () => {
+        document.getElementById('json-import-input').click();
+    });
+    
+    document.getElementById('json-import-input').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const importedData = JSON.parse(event.target.result);
+                    character = importedData;
+                    saveAndRefresh();
+                    showNotification('Importación Exitosa', 'Los datos del personaje han sido importados.');
+                } catch (error) {
+                    showNotification('Error de Importación', 'El archivo seleccionado no es válido.');
+                }
+            };
+            reader.readAsText(file);
+        }
+    });
+    
+    document.getElementById('clear-local-data-btn').addEventListener('click', () => {
+        if (confirm('¿Estás seguro de que quieres borrar todos los datos del personaje? Esta acción no se puede deshacer.')) {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            localStorage.removeItem(THEME_STORAGE_KEY);
+            location.reload();
+        }
+    });
+    
+    // Tabs
+    document.querySelectorAll('#inventory-tabs button, #quest-tabs button').forEach(button => {
+        button.addEventListener('click', () => {
+            const tabName = button.dataset.tab;
+            const container = button.closest('.card');
+            
+            container.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            container.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+            container.querySelector(`#tab-content-${tabName}`).classList.remove('hidden');
+        });
+    });
+}
+
+// Inicialización principal
+window.onload = () => {
+    const savedData = loadCharacterFromLocalStorage();
+    character = savedData || getDefaultCharacter();
+    
+    loadTheme();
+    
+    updateUI();
+    
+    initEventListeners();
+    
+    if (!savedData) {
+        showNotification('Bienvenido', '¡Bienvenido a la Hoja de Personaje v5.0! Comienza creando tu personaje.');
+    }
+};
