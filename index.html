@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Personaje - Isekai Delivery Service v4.5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl md:text-4xl font-bold text-center mb-2 text-gray-800 dark:text-gray-200">Hoja de Personaje v4.5</h1>
+        <p class="text-center text-gray-500 dark:text-gray-400 mb-6">Los cambios se guardan automáticamente en tu navegador.</p>
+
+        <!-- Contenedor Principal con Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Columna Izquierda -->
+            <div class="space-y-6">
+                <!-- Identidad del Personaje -->
+                <div class="card p-6" draggable="true" ondragstart="drag(event)">
+                    <h2 class="card-title">Identidad</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-4">
+                            <img id="character-image-preview" src="https://placehold.co/100x100/e0e0e0/2c3e50?text=Avatar" alt="Avatar del Personaje" class="w-24 h-24 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700">
+                            <div class="space-y-2">
+                                <label for="character-image-upload" class="btn btn-primary text-sm w-full">Cargar Imagen</label>
+                                <input type="file" id="character-image-upload" class="hidden" accept="image/*">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="char-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre</label>
+                            <input type="text" id="char-name" class="input-field" placeholder="Nombre del Personaje">
+                        </div>
+                        <div>
+                            <label for="char-race" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Raza</label>
+                            <input type="text" id="char-race" class="input-field" placeholder="Ej: Humano, Elfo">
+                        </div>
+                        <div>
+                            <label for="char-notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notas</label>
+                            <textarea id="char-notes" class="input-field" rows="2" placeholder="Anotaciones sobre el personaje..."></textarea>
+                        </div>
+                        <div>
+                            <label for="char-personality" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Personalidad</label>
+                            <textarea id="char-personality" class="input-field" rows="3" placeholder="Describe la personalidad..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Atributos -->
+                <div class="card p-6" draggable="true" ondragstart="drag(event)">
+                    <h2 class="card-title">Atributos</h2>
+                    <div id="attributes-container" class="space-y-3">
+                        <!-- Los atributos se generan dinámicamente aquí -->
+                    </div>
+                </div>
+
+                <!-- Elementos -->
+                <div class="card p-6" draggable="true" ondragstart="drag(event)">
+                    <h2 class="card-title">Afinidad Elemental</h2>
+                    <div id="elements-container" class="grid grid-cols-1 gap-4"></div>
+                    <div id="fusion-elements-container" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"></div>
+                     <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                        <div id="spirit-amulet-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Central -->
+            <div class="space-y-6">
+                <!-- Experiencia y Nivel -->
+                <div class="card p-6" draggable="true" ondragstart="drag(event)">
+                    <div class="flex justify-between items-center mb-4">
+                         <h2 class="card-title m-0 p-0 border-none">Nivel y Experiencia</h2>
+                         <div class="text-right">
+                            <button id="spend-skill-points-btn" class="btn btn-primary">
+                                <span>Gastar PH</span>
+                                <span id="skill-points-display" class="ml-2 bg-sky-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">0</span>
+                            </button>
+                         </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="text-center">
+                            <p class="text-lg font-medium">Nivel Actual</p>
+                            <p class="text-5xl font-bold" id="level-display">1</p>
+                        </div>
+                        <div>
+                            <p class="text-center font-medium">Experiencia (XP)</p>
+                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mt-1">
+                                <div id="xp-bar" class="bg-sky-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <p class="text-center text-sm mt-1"><span id="current-xp-display">0</span> / <span id="needed-xp-display">300</span> XP</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="number" id="xp-to-add" class="input-field" placeholder="Añadir XP">
+                            <button id="add-xp-btn" class="btn btn-primary">Añadir</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estadísticas Derivadas -->
+                <div class="card p-6" draggable="true" ondragstart="drag(event)">
+                    <div class="flex justify-between items-center mb-4 gap-2">
+                        <h2 class="card-title m-0 p-0 border-none">Estadísticas</h2>
+                        <div class="flex gap-2">
+                           <button id="restore-stats-btn" class="btn btn-primary text-sm">Restaurar</button>
+                           <button id="edit-base-stats-btn" class="btn btn-secondary text-sm">Editar Base</button>
+                        </div>
+                    </div>
+                    <div id="stats-container" class="grid grid-cols-1 gap-y-3"></div>
+                </div>
+
+                <!-- Combate -->
+                <div class="card p-6" draggable="true" ondragstart="drag(event)">
+                    <h2 class="card-title">Combate</h2>
+                    <div class="space-y-4">
+                        <div class="text-center">
+                            <p class="text-lg font-medium">Puntos de Acción (PA)</p>
+                            <p class="text-4xl font-bold"><span id="current-actions">3</span> / <span id="max-actions">3</span></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="btn btn-primary" onclick="useAction(0, 'Hablar')">Hablar (0)</button>
+                            <button class="btn btn-primary" onclick="useAction(1, 'Menor')">A. Menor (1)</button>
+                            <button class="btn btn-primary" onclick="useAction(1, 'Objeto')">A. Objeto (1)</button>
+                            <button class="btn btn-primary" onclick="useAction(2, 'Compleja')">A. Compleja (2)</button>
+                            <button class="btn btn-primary" onclick="useAction(3, 'Reacción')">Reacción (3)</button>
+                            <button class="btn btn-secondary" onclick="useAction(-1, 'Bonus')">A. Bonus (+1)</button>
+                        </div>
+                        <button class="btn-primary w-full mt-2" onclick="useAction(20, 'Legendaria')">Acción Legendaria (20)</button>
+                        <button id="end-turn-btn" class="btn btn-secondary w-full">Finalizar Turno</button>
+                    </div>
+                </div>
+
+                <!-- Estados -->
+                <div class="card p-6" draggable="true" ondragstart="drag(event)">
+                    <h2 class="card-title">Estados</h2>
+                    <button id="add-status-effect-btn" class="btn btn-primary w-full mb-4">Añadir Estado</button>
+                    <div id="status-effects-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha -->
+            <div class="space-y-6">
+                <!-- Equipamiento -->
+                <div class="card p-6" draggable="true" ondragstart="drag(event)">
+                    <h2 class="card-title">Equipamiento</h2>
+                    <div id="equipment-slots" class="space-y-3"></div>
+                    <button id="manage-slots-btn" class="btn btn-secondary w-full mt-4 text-sm">Gestionar Slots</button>
+                </div>
+
+                <!-- NUEVO: Recursos -->
+                <div class="card p-6" draggable="true" ondragstart="drag(event)">
+                    <h2 class="card-title">Recursos</h2>
+                    <div id="resources-container" class="space-y-3 mb-4"></div>
+                    <button id="add-resource-btn" class="btn btn-secondary w-full text-sm">Gestionar Recursos</button>
+                </div>
+
+                <!-- Inventario -->
+                <div class="card p-6" draggable="true" ondragstart="drag(event)">
+                    <h2 class="card-title">Inventario y Habilidades</h2>
+                    <div class="border-b border-gray-200 dark:border-gray-700 mb-4">
+                        <nav class="-mb-px flex space-x-4" id="inventory-tabs">
+                            <button data-tab="skills" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 active">Habilidades</button>
+                            <button data-tab="techniques" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Técnicas/Hechizos</button>
+                            <button data-tab="items" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Objetos</button>
+                            <button data-tab="pets" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Mascotas</button>
+                        </nav>
+                    </div>
+                    <div id="inventory-content">
+                        <div id="tab-content-skills" class="tab-pane active space-y-4">
+                            <button id="add-skill-btn" class="btn btn-primary w-full">Añadir Habilidad</button>
+                            <div id="skills-list" class="space-y-3"></div>
+                        </div>
+                        <div id="tab-content-techniques" class="tab-pane hidden space-y-4">
+                            <div class="text-center font-medium">Slots: <span id="technique-slots">0</span></div>
+                            <button id="add-technique-btn" class="btn btn-primary w-full">Añadir Técnica/Hechizo</button>
+                            <div id="techniques-list" class="space-y-3"></div>
+                        </div>
+                        <div id="tab-content-items" class="tab-pane hidden space-y-4">
+                            <button id="add-item-btn" class="btn btn-primary w-full">Añadir Objeto</button>
+                            <div id="items-list" class="space-y-3"></div>
+                        </div>
+                        <div id="tab-content-pets" class="tab-pane hidden space-y-4">
+                            <button id="add-pet-btn" class="btn btn-primary w-full">Añadir Mascota</button>
+                            <div id="pets-list" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gestión -->
+                 <div class="card p-6" draggable="true" ondragstart="drag(event)">
+                    <h2 class="card-title">Gestión de Datos</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="theme-toggle-btn" class="btn btn-secondary">Cambiar Tema</button>
+                        <button id="export-json-btn" class="btn btn-primary">Exportar</button>
+                        <button id="import-json-btn" class="btn btn-primary">Importar</button>
+                        <input type="file" id="json-import-input" class="hidden" accept=".json, .txt">
+                        <button id="clear-local-data-btn" class="btn btn-danger col-span-2">Limpiar Datos y Reiniciar</button>
+                    </div>
+                    <div class="mt-4 space-y-2">
+                        <input type="text" id="char-titles" class="input-field" placeholder="Títulos y Honores">
+                        <input type="text" id="char-spirits" class="input-field" placeholder="Espíritus y Vínculos">
+                        <input type="text" id="char-size" class="input-field" placeholder="Tamaño Físico">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales -->
+    <div id="modal" class="modal-overlay"><div id="modal-content" class="modal-content"></div></div>
+    <div id="modal-secondary" class="modal-overlay" style="z-index: 60;"><div id="modal-secondary-content" class="modal-content"></div></div>
+    <div id="notification-modal" class="modal-overlay" onclick="this.classList.remove('active')">
+        <div class="modal-content max-w-sm text-center">
+            <h3 id="notification-title" class="text-xl font-bold mb-4"></h3>
+            <p id="notification-message" class="whitespace-pre-wrap"></p>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
