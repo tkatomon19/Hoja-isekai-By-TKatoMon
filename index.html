@@ -260,21 +260,51 @@
             padding: 1rem;
         }
         
-        /* Nuevo layout más compacto */
+        /* Nuevo layout más ancho */
         .combat-grid-compact {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: auto auto auto;
             gap: 1.5rem;
             padding: 1rem;
         }
         .combat-grid-full {
             grid-column: 1 / -1;
         }
+        .combat-col-left {
+            grid-column: 1;
+        }
+        .combat-col-center {
+            grid-column: 2;
+        }
+        .combat-col-right {
+            grid-column: 3;
+        }
         
-        @media (max-width: 1200px) {
+        @media (max-width: 1400px) {
+            .combat-grid-compact {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .combat-col-right {
+                grid-column: 2;
+                grid-row: 1 / 3;
+            }
+        }
+        @media (max-width: 768px) {
             .combat-grid-compact {
                 grid-template-columns: 1fr;
             }
+            .combat-col-right {
+                grid-column: 1;
+                grid-row: auto;
+            }
+        }
+        
+        /* Botones de acción en items */
+        .item-action-btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
         }
         .combat-section {
             background: linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg) 100%);
@@ -2885,7 +2915,7 @@ function openCombatMode() {
     const modal = document.getElementById('modal-secondary');
     const modalContent = document.getElementById('modal-secondary-content');
     
-    // Generar HTML del modo combate - Layout compacto y organizado
+    // Generar HTML del modo combate - Layout ancho de 3 columnas
     let combatHTML = `
         <div class="combat-header">
             <h2>⚔️ MODO DE COMBATE</h2>
@@ -2893,8 +2923,37 @@ function openCombatMode() {
         </div>
         
         <div class="combat-grid-compact">
-            <!-- COLUMNA IZQUIERDA TOP: ESTADÍSTICAS VITALES Y ATRIBUTOS -->
-            <div class="space-y-4">
+            <!-- COLUMNA IZQUIERDA: MASCOTAS -->
+            <div class="combat-col-left space-y-4">
+                <div class="combat-section h-full">
+                    <div class="combat-section-title">🐾 Mascotas</div>
+                    <div class="space-y-2 max-h-96 overflow-y-auto">
+    `;
+    
+    if (character.inventory.pets.length > 0) {
+        character.inventory.pets.forEach((pet, idx) => {
+            combatHTML += `
+                <div class="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500">
+                    <p class="font-bold text-orange-700 dark:text-orange-400 text-sm">${pet.name}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">${pet.description || ''}</p>
+                    <div class="flex gap-1">
+                        <button class="item-action-btn btn btn-primary flex-1" onclick="showNotification('Mascota', '${pet.name} está listo para el combate!')">Usar</button>
+                        <button class="item-action-btn btn btn-secondary flex-1" onclick="showNotification('Info', '${pet.name} - ${pet.description || 'Sin descripción'}')">Info</button>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        combatHTML += '<p class="text-xs text-gray-500 italic text-center py-4">Sin mascotas</p>';
+    }
+    
+    combatHTML += `
+                    </div>
+                </div>
+            </div>
+            
+            <!-- COLUMNA CENTRAL: ESTADÍSTICAS Y HABILIDADES -->
+            <div class="combat-col-center space-y-4">
                 <!-- ESTADÍSTICAS VITALES -->
                 <div class="combat-section">
                     <div class="combat-section-title">⚡ Vitales</div>
@@ -2918,13 +2977,12 @@ function openCombatMode() {
                     </div>
                 </div>
                 
-                <!-- ATRIBUTOS PRINCIPALES -->
+                <!-- ATRIBUTOS -->
                 <div class="combat-section">
                     <div class="combat-section-title">💪 Atributos</div>
                     <div class="grid grid-cols-2 gap-2">
     `;
     
-    // Agregar atributos en grid 2x3
     for (const key in character.attributes) {
         const attr = character.attributes[key];
         const mod = getModifier(attr.value);
@@ -2940,28 +2998,86 @@ function openCombatMode() {
     combatHTML += `
                     </div>
                 </div>
-            </div>
-            
-            <!-- COLUMNA DERECHA TOP: RESUMEN RÁPIDO -->
-            <div class="space-y-4">
-                <!-- EQUIPAMIENTO RÁPIDO -->
+                
+                <!-- HABILIDADES -->
                 <div class="combat-section">
-                    <div class="combat-section-title">🛡️ Equipamiento</div>
-                    <div class="space-y-1.5">
+                    <div class="combat-section-title">🎯 Habilidades</div>
+                    <div class="space-y-2 max-h-40 overflow-y-auto">
     `;
     
-    character.equipment.forEach(slot => {
+    if (character.inventory.skills.length > 0) {
+        character.inventory.skills.forEach(skill => {
+            combatHTML += `
+                <div class="p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500">
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-green-700 dark:text-green-400 text-sm">${skill.name}</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">${skill.description || ''}</p>
+                        </div>
+                        <button class="item-action-btn btn btn-primary whitespace-nowrap" onclick="showNotification('Habilidad', 'Usando ${skill.name}!')">Usar</button>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        combatHTML += '<p class="text-xs text-gray-500 italic">Sin habilidades</p>';
+    }
+    
+    combatHTML += `
+                    </div>
+                </div>
+            </div>
+            
+            <!-- COLUMNA DERECHA: TÉCNICAS Y EQUIPO -->
+            <div class="combat-col-right space-y-4">
+                <!-- TÉCNICAS/HECHIZOS -->
+                <div class="combat-section">
+                    <div class="combat-section-title">✨ Técnicas/Hechizos</div>
+                    <div class="space-y-2 max-h-40 overflow-y-auto">
+    `;
+    
+    if (character.inventory.techniques.length > 0) {
+        character.inventory.techniques.forEach(tech => {
+            combatHTML += `
+                <div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500">
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-purple-700 dark:text-purple-400 text-sm">${tech.name}</p>
+                            <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">${tech.description || ''}</p>
+                        </div>
+                        <button class="item-action-btn btn btn-primary whitespace-nowrap" onclick="showNotification('Técnica', 'Usando ${tech.name}!')">Usar</button>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        combatHTML += '<p class="text-xs text-gray-500 italic">Sin técnicas</p>';
+    }
+    
+    combatHTML += `
+                    </div>
+                </div>
+                
+                <!-- EQUIPAMIENTO -->
+                <div class="combat-section">
+                    <div class="combat-section-title">🛡️ Equipo</div>
+                    <div class="space-y-1.5 max-h-40 overflow-y-auto">
+    `;
+    
+    character.equipment.forEach((slot, idx) => {
         if (slot.item) {
             combatHTML += `
-                <div class="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 text-sm">
-                    <p class="font-semibold text-yellow-700 dark:text-yellow-400">${slot.slotName}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400">${slot.item.name}</p>
+                <div class="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500">
+                    <p class="font-semibold text-yellow-700 dark:text-yellow-400 text-xs">${slot.slotName}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">${slot.item.name}</p>
+                    <button class="item-action-btn btn btn-danger w-full text-xs" onclick="unequipItem(${idx})">Desequipar</button>
                 </div>
             `;
         } else {
             combatHTML += `
-                <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm opacity-50">
-                    <p class="font-semibold text-gray-400">${slot.slotName}</p>
+                <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 border-l-4 border-gray-300 opacity-50">
+                    <p class="font-semibold text-gray-400 text-xs">${slot.slotName}</p>
+                    <p class="text-xs text-gray-500">Vacío</p>
                 </div>
             `;
         }
@@ -2971,10 +3087,38 @@ function openCombatMode() {
                     </div>
                 </div>
                 
-                <!-- ESTADOS ACTIVOS COMPACTO -->
+                <!-- OBJETOS -->
+                <div class="combat-section">
+                    <div class="combat-section-title">🎁 Objetos</div>
+                    <div class="space-y-1.5 max-h-40 overflow-y-auto">
+    `;
+    
+    if (character.inventory.items.length > 0) {
+        character.inventory.items.forEach(item => {
+            combatHTML += `
+                <div class="p-2 rounded-lg bg-cyan-50 dark:bg-cyan-900/20 border-l-4 border-cyan-500">
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-cyan-700 dark:text-cyan-400 text-xs">${item.name}</p>
+                            <p class="text-xs text-gray-600">x${item.quantity || 1}</p>
+                        </div>
+                        <button class="item-action-btn btn btn-primary text-xs whitespace-nowrap" onclick="showNotification('Objeto', '${item.name} usado!')">Usar</button>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        combatHTML += '<p class="text-xs text-gray-500 italic">Sin objetos</p>';
+    }
+    
+    combatHTML += `
+                    </div>
+                </div>
+                
+                <!-- ESTADOS ACTIVOS -->
                 <div class="combat-section">
                     <div class="combat-section-title">🔴 Estados</div>
-                    <div class="max-h-32 overflow-y-auto space-y-1.5">
+                    <div class="space-y-1.5 max-h-40 overflow-y-auto">
     `;
     
     if (character.statusEffects.length > 0) {
@@ -2983,7 +3127,7 @@ function openCombatMode() {
                             status.type === 'Debuff' ? 'bg-red-100 dark:bg-red-900/30 border-red-500' : 
                             'bg-gray-100 dark:bg-gray-800 border-gray-500';
             combatHTML += `
-                <div class="p-1.5 rounded-lg ${itemClass} border-l-4 text-xs">
+                <div class="p-2 rounded-lg ${itemClass} border-l-4 text-xs">
                     <p class="font-semibold">${status.name}</p>
                     <p class="text-xs opacity-75">${status.duration}${status.durationType.charAt(0)}</p>
                 </div>
@@ -2997,108 +3141,31 @@ function openCombatMode() {
                     </div>
                 </div>
             </div>
-            
-            <!-- FILA COMPLETA: HABILIDADES -->
-            <div class="combat-section combat-grid-full">
-                <div class="combat-section-title">🎯 Habilidades</div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
-    `;
-    
-    if (character.inventory.skills.length > 0) {
-        character.inventory.skills.forEach(skill => {
-            combatHTML += `
-                <div class="p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 text-center text-xs">
-                    <p class="font-bold text-green-700 dark:text-green-400">${skill.name}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">${skill.description || ''}</p>
-                </div>
-            `;
-        });
-    } else {
-        combatHTML += '<p class="text-xs text-gray-500 italic col-span-full text-center">Sin habilidades</p>';
-    }
-    
-    combatHTML += `
-                </div>
-            </div>
-            
-            <!-- FILA COMPLETA: TÉCNICAS/HECHIZOS -->
-            <div class="combat-section combat-grid-full">
-                <div class="combat-section-title">✨ Técnicas/Hechizos</div>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
-    `;
-    
-    if (character.inventory.techniques.length > 0) {
-        character.inventory.techniques.forEach(tech => {
-            combatHTML += `
-                <div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 text-center text-xs">
-                    <p class="font-bold text-purple-700 dark:text-purple-400">${tech.name}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">${tech.description || ''}</p>
-                </div>
-            `;
-        });
-    } else {
-        combatHTML += '<p class="text-xs text-gray-500 italic col-span-full text-center">Sin técnicas</p>';
-    }
-    
-    combatHTML += `
-                </div>
-            </div>
-            
-            <!-- FILA COMPLETA: OBJETOS Y MASCOTAS -->
-            <div class="combat-section combat-grid-full">
-                <div class="grid grid-cols-2 gap-4">
-                    <!-- OBJETOS -->
-                    <div>
-                        <div class="combat-section-title">🎁 Objetos</div>
-                        <div class="grid grid-cols-2 gap-2 max-h-24 overflow-y-auto">
-    `;
-    
-    if (character.inventory.items.length > 0) {
-        character.inventory.items.forEach(item => {
-            combatHTML += `
-                <div class="p-2 rounded-lg bg-cyan-50 dark:bg-cyan-900/20 border-l-4 border-cyan-500 text-center text-xs">
-                    <p class="font-bold text-cyan-700 dark:text-cyan-400">${item.name}</p>
-                    <p class="text-xs text-gray-600">x${item.quantity || 1}</p>
-                </div>
-            `;
-        });
-    } else {
-        combatHTML += '<p class="text-xs text-gray-500 italic col-span-full text-center">Sin objetos</p>';
-    }
-    
-    combatHTML += `
-                        </div>
-                    </div>
-                    
-                    <!-- MASCOTAS -->
-                    <div>
-                        <div class="combat-section-title">🐾 Mascotas</div>
-                        <div class="space-y-1.5 max-h-24 overflow-y-auto">
-    `;
-    
-    if (character.inventory.pets.length > 0) {
-        character.inventory.pets.forEach(pet => {
-            combatHTML += `
-                <div class="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 text-xs">
-                    <p class="font-bold text-orange-700 dark:text-orange-400">${pet.name}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">${pet.description || ''}</p>
-                </div>
-            `;
-        });
-    } else {
-        combatHTML += '<p class="text-xs text-gray-500 italic">Sin mascotas</p>';
-    }
-    
-    combatHTML += `
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     `;
     
     modalContent.innerHTML = combatHTML;
     modal.classList.add('active');
+}
+
+function unequipItem(slotIndex) {
+    if (character.equipment[slotIndex].item) {
+        // Agregar el item al inventario
+        const item = character.equipment[slotIndex].item;
+        const existingItem = character.inventory.items.find(i => i.name === item.name);
+        
+        if (existingItem) {
+            existingItem.quantity = (existingItem.quantity || 1) + 1;
+        } else {
+            character.inventory.items.push({ ...item, quantity: 1 });
+        }
+        
+        // Desequipar
+        character.equipment[slotIndex].item = null;
+        saveAndRefresh();
+        openCombatMode(); // Refrescar vista
+        showNotification('Desequipado', `${item.name} ha sido movido al inventario`);
+    }
 }
 
 function closeModalSecondary() {
