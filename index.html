@@ -69,6 +69,9 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             transform: translateY(-2px);
         }
+        .card p-7 {
+            padding: 1.75rem;
+        }
         .card-title {
             color: var(--title-color); font-weight: 700; font-size: 1.25rem;
             border-bottom: 2px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;
@@ -78,7 +81,7 @@
             width: 100%; padding: 0.75rem 1rem; border-radius: 0.625rem;
             border: 2px solid var(--border-color); background-color: var(--input-bg);
             color: var(--text-color); transition: all 0.2s ease;
-            font-size: 1rem; font-family: inherit; text-align: center;
+            font-size: 1rem; font-family: inherit;
         }
         .input-field:focus {
             outline: none; border-color: var(--accent-color);
@@ -86,6 +89,10 @@
         }
         .input-field:hover:not(:focus) {
             border-color: var(--text-secondary);
+        }
+        textarea.input-field {
+            resize: vertical;
+            min-height: 80px;
         }
         .btn {
             padding: 0.75rem 1.5rem; border-radius: 0.625rem; font-weight: 700; text-align: center;
@@ -113,10 +120,17 @@
         .space-y-3 > * + * { margin-top: 0.75rem; }
         .space-y-4 > * + * { margin-top: 1rem; }
         .space-y-6 > * + * { margin-top: 1.5rem; }
+        .space-y-8 > * + * { margin-top: 2rem; }
         
         /* Centrado de contenido en tarjetas específicas */
         .card > .space-y-4 { text-align: center; }
         .card > .text-center { margin: 0 auto; }
+        
+        /* Mejoras de consistencia visual */
+        .card-title + .space-y-4,
+        .card-title + .space-y-3 {
+            margin-top: 1.5rem;
+        }
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(0, 0, 0, 0.7); display: flex;
@@ -215,24 +229,35 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--text-secondary);
         }
+        
+        /* Grid layout mejorado */
+        @media (max-width: 1024px) {
+            .grid { gap: 1rem; }
+        }
+        
+        /* Responsivo mejorado */
+        @media (max-width: 768px) {
+            body { padding: 0.5rem; }
+            .card p-7 { padding: 1.25rem; }
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto">
         <!-- Header Section -->
-        <div class="mb-8 pb-6 border-b-2 border-gray-200 dark:border-gray-700">
+        <div class="mb-8 pb-6 border-b-2 border-gray-300 dark:border-gray-600">
             <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v4.5</h1>
             <p class="text-lg text-gray-600 dark:text-gray-400">Los cambios se guardan automáticamente en tu navegador</p>
         </div>
 
         <!-- Contenedor Principal con Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-max">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 auto-rows-max">
 
             <!-- Columna Izquierda -->
-            <div class="space-y-6">
+            <div class="space-y-8">
                 <!-- Identidad del Personaje -->
-                <div class="card p-7" draggable="true" ondragstart="drag(event)">
+                <div class="card p-7">
                     <h2 class="card-title">Identidad</h2>
                     <div class="space-y-4">
                         <div class="flex items-center space-x-4">
@@ -262,7 +287,7 @@
                 </div>
 
                 <!-- Atributos -->
-                <div class="card p-7" draggable="true" ondragstart="drag(event)">
+                <div class="card p-7">
                     <h2 class="card-title">Atributos</h2>
                     <div id="attributes-container" class="space-y-3">
                         <!-- Los atributos se generan dinámicamente aquí -->
@@ -270,7 +295,7 @@
                 </div>
 
                 <!-- Elementos -->
-                <div class="card p-7" draggable="true" ondragstart="drag(event)">
+                <div class="card p-7">
                     <h2 class="card-title">Afinidad Elemental</h2>
                     <div id="elements-container" class="grid grid-cols-1 gap-4"></div>
                     <div id="fusion-elements-container" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700"></div>
@@ -281,9 +306,9 @@
             </div>
 
             <!-- Columna Central -->
-            <div class="space-y-6">
+            <div class="space-y-8">
                 <!-- Experiencia y Nivel -->
-                <div class="card p-7" draggable="true" ondragstart="drag(event)">
+                <div class="card p-7">
                     <div class="flex justify-between items-center mb-4">
                          <h2 class="card-title m-0 p-0 border-none">Nivel y Experiencia</h2>
                          <div class="text-right">
@@ -313,7 +338,7 @@
                 </div>
 
                 <!-- Estadísticas Derivadas -->
-                <div class="card p-7" draggable="true" ondragstart="drag(event)">
+                <div class="card p-7">
                     <div class="flex justify-between items-center mb-4 gap-2">
                         <h2 class="card-title m-0 p-0 border-none">Estadísticas</h2>
                         <div class="flex gap-2">
@@ -325,7 +350,7 @@
                 </div>
 
                 <!-- Combate -->
-                <div class="card p-7" draggable="true" ondragstart="drag(event)">
+                <div class="card p-7">
                     <h2 class="card-title">Combate</h2>
                     <div class="space-y-4">
                         <div class="text-center">
@@ -346,7 +371,7 @@
                 </div>
 
                 <!-- Estados -->
-                <div class="card p-7" draggable="true" ondragstart="drag(event)">
+                <div class="card p-7">
                     <h2 class="card-title">Estados</h2>
                     <button id="add-status-effect-btn" class="btn btn-primary w-full mb-4">Añadir Estado</button>
                     <div id="status-effects-list" class="space-y-3"></div>
@@ -354,23 +379,23 @@
             </div>
 
             <!-- Columna Derecha -->
-            <div class="space-y-6">
+            <div class="space-y-8">
                 <!-- Equipamiento -->
-                <div class="card p-7" draggable="true" ondragstart="drag(event)">
+                <div class="card p-7">
                     <h2 class="card-title">Equipamiento</h2>
                     <div id="equipment-slots" class="space-y-3"></div>
                     <button id="manage-slots-btn" class="btn btn-secondary w-full mt-4 text-sm">Gestionar Slots</button>
                 </div>
 
                 <!-- NUEVO: Recursos -->
-                <div class="card p-7" draggable="true" ondragstart="drag(event)">
+                <div class="card p-7">
                     <h2 class="card-title">Recursos</h2>
                     <div id="resources-container" class="space-y-3 mb-4"></div>
                     <button id="add-resource-btn" class="btn btn-secondary w-full text-sm">Gestionar Recursos</button>
                 </div>
 
                 <!-- Inventario -->
-                <div class="card p-7" draggable="true" ondragstart="drag(event)">
+                <div class="card p-7">
                     <h2 class="card-title">Inventario y Habilidades</h2>
                     <div class="border-b border-gray-200 dark:border-gray-700 mb-4">
                         <nav class="-mb-px flex space-x-4" id="inventory-tabs">
@@ -402,7 +427,7 @@
                 </div>
 
                 <!-- Gestión -->
-                 <div class="card p-7" draggable="true" ondragstart="drag(event)">
+                 <div class="card p-7">
                     <h2 class="card-title">Gestión de Datos</h2>
                     <div class="grid grid-cols-2 gap-3">
                         <button id="theme-toggle-btn" class="btn btn-secondary">Cambiar Tema</button>
@@ -2937,7 +2962,7 @@ function initializeCharacter(isImport = false) {
 }
 
 function drag(ev) {
-    ev.dataTransfer.setData("text", ev.target.id);
+    // Función de drag removida - ya no se usa
 }
 
 window.onload = () => {
