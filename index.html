@@ -1382,6 +1382,138 @@ function useCombatAction(actionName, cost) {
     showNotification('Acción Usada', `${actionName} - Costo: ${cost} acciones`);
 }
 
+// Editar vitales en modo combate
+function editVitalCombat(vitalType) {
+    const vital = character.stats[vitalType];
+    const modalContent = document.getElementById('modal-content');
+    const modal = document.getElementById('modal');
+    
+    const vitalNames = {
+        'health': 'Vida',
+        'mana': 'Místyculas',
+        'armor': 'Armadura',
+        'actions': 'Acciones'
+    };
+    
+    modalContent.innerHTML = `
+        <h3 class="text-2xl font-bold mb-4">Editar ${vitalNames[vitalType]}</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Valor Actual</label>
+                <input type="number" id="vital-current" class="input-field text-center text-2xl font-bold h-16" value="${vital.current}" min="0">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Valor Máximo</label>
+                <input type="number" id="vital-max" class="input-field text-center text-2xl font-bold h-16" value="${vital.max || vital.current}" min="1">
+            </div>
+            <div class="flex gap-3">
+                <button class="btn btn-primary flex-1" onclick="saveVitalEdit('${vitalType}')">Guardar</button>
+                <button class="btn btn-secondary flex-1" onclick="closeModal()">Cancelar</button>
+            </div>
+        </div>
+    `;
+    modal.classList.add('active');
+}
+
+function saveVitalEdit(vitalType) {
+    const newCurrent = parseInt(document.getElementById('vital-current').value) || 0;
+    const newMax = parseInt(document.getElementById('vital-max').value) || 1;
+    
+    character.stats[vitalType].current = Math.min(newCurrent, newMax);
+    character.stats[vitalType].max = newMax;
+    
+    saveAndRefresh();
+    closeModal();
+    openCombatMode(); // Actualizar modo combate
+}
+
+// Añadir estado en modo combate
+function addStatusEffectCombat() {
+    const modalContent = document.getElementById('modal-content');
+    const modal = document.getElementById('modal');
+    
+    modalContent.innerHTML = `
+        <h3 class="text-2xl font-bold mb-4">Añadir Estado</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Nombre del Estado</label>
+                <input type="text" id="status-name" class="input-field" placeholder="Ej: Envenenado, Quemado...">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Tipo</label>
+                <select id="status-type" class="input-field">
+                    <option value="Buff">Buff (Positivo)</option>
+                    <option value="Debuff">Debuff (Negativo)</option>
+                    <option value="Neutral">Neutral</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Duración</label>
+                <input type="number" id="status-duration" class="input-field" placeholder="5" value="1" min="1">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Tipo de Duración</label>
+                <select id="status-duration-type" class="input-field">
+                    <option value="Ronda">Ronda(s)</option>
+                    <option value="Turno">Turno(s)</option>
+                    <option value="Minuto">Minuto(s)</option>
+                </select>
+            </div>
+            <div class="flex gap-3">
+                <button class="btn btn-primary flex-1" onclick="saveStatusEffect()">Añadir</button>
+                <button class="btn btn-secondary flex-1" onclick="closeModal()">Cancelar</button>
+            </div>
+        </div>
+    `;
+    modal.classList.add('active');
+}
+
+function saveStatusEffect() {
+    const name = document.getElementById('status-name').value.trim();
+    if (!name) {
+        showNotification('Error', 'El nombre del estado no puede estar vacío');
+        return;
+    }
+    
+    const newStatus = {
+        name: name,
+        type: document.getElementById('status-type').value,
+        duration: parseInt(document.getElementById('status-duration').value) || 1,
+        durationType: document.getElementById('status-duration-type').value,
+        trigger: 'manual'
+    };
+    
+    character.statusEffects.push(newStatus);
+    saveAndRefresh();
+    closeModal();
+    openCombatMode(); // Actualizar modo combate
+}
+
+// Equipar objeto desde inventario
+function equipItemFromInventory(itemIndex) {
+    const item = character.inventory.items[itemIndex];
+    if (!item) return;
+    
+    // Buscar un slot vacío o crear uno nuevo
+    let equipped = false;
+    for (let i = 0; i < character.equipment.length; i++) {
+        if (!character.equipment[i].item) {
+            character.equipment[i] = { slotName: `${item.name}`, item: item };
+            character.inventory.items.splice(itemIndex, 1);
+            equipped = true;
+            break;
+        }
+    }
+    
+    if (!equipped) {
+        showNotification('Espacio Lleno', 'No hay espacio en el equipo');
+        return;
+    }
+    
+    saveAndRefresh();
+    openCombatMode(); // Actualizar modo combate
+}
+
 // ===================================================================================
 // SISTEMA DE PUNTOS DE HABILIDAD (PH)
 // ===================================================================================
@@ -3008,19 +3140,19 @@ function openCombatMode() {
                 <div class="combat-section">
                     <div class="combat-section-title">⚡ Vitales</div>
                     <div class="space-y-2">
-                        <div class="combat-stat-item vital-health">
+                        <div class="combat-stat-item vital-health cursor-pointer hover:shadow-lg transition-all" onclick="editVitalCombat('health')" title="Click para editar">
                             <span class="combat-stat-label">Vida</span>
                             <span class="combat-stat-value">${character.stats.health.current}/${character.stats.health.max}</span>
                         </div>
-                        <div class="combat-stat-item vital-mana">
+                        <div class="combat-stat-item vital-mana cursor-pointer hover:shadow-lg transition-all" onclick="editVitalCombat('mana')" title="Click para editar">
                             <span class="combat-stat-label">Místyculas</span>
                             <span class="combat-stat-value">${character.stats.mana.current}/${character.stats.mana.max}</span>
                         </div>
-                        <div class="combat-stat-item vital-armor">
+                        <div class="combat-stat-item vital-armor cursor-pointer hover:shadow-lg transition-all" onclick="editVitalCombat('armor')" title="Click para editar">
                             <span class="combat-stat-label">Armadura</span>
                             <span class="combat-stat-value">${character.stats.armor.current}</span>
                         </div>
-                        <div class="combat-stat-item vital-actions">
+                        <div class="combat-stat-item vital-actions cursor-pointer hover:shadow-lg transition-all" onclick="editVitalCombat('actions')" title="Click para editar">
                             <span class="combat-stat-label">Acciones</span>
                             <span class="combat-stat-value">${character.stats.actions.current}</span>
                         </div>
@@ -3137,7 +3269,10 @@ function openCombatMode() {
                 <div class="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500">
                     <p class="font-semibold text-yellow-700 dark:text-yellow-400 text-xs">${slot.slotName}</p>
                     <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">${slot.item.name}</p>
-                    <button class="item-action-btn btn btn-danger w-full text-xs" onclick="unequipItem(${idx})">Desequipar</button>
+                    <div class="flex gap-1">
+                        <button class="item-action-btn btn btn-secondary flex-1 text-xs" onclick="useEquippedItem(${idx})">Usar</button>
+                        <button class="item-action-btn btn btn-danger flex-1 text-xs" onclick="unequipItem(${idx})">Desequipar</button>
+                    </div>
                 </div>
             `;
         } else {
@@ -3164,12 +3299,15 @@ function openCombatMode() {
         character.inventory.items.forEach((item, index) => {
             combatHTML += `
                 <div class="p-2 rounded-lg bg-cyan-50 dark:bg-cyan-900/20 border-l-4 border-cyan-500">
-                    <div class="flex justify-between items-start gap-2">
+                    <div class="flex items-start gap-2">
                         <div class="flex-1 min-w-0">
                             <p class="font-bold text-cyan-700 dark:text-cyan-400 text-xs">${item.name}</p>
                             <p class="text-xs text-gray-600">x${item.quantity || 1}</p>
                         </div>
-                        <button class="item-action-btn btn btn-primary text-xs whitespace-nowrap" onclick="useItemEffect(${index})">Usar</button>
+                        <div class="flex gap-1 flex-shrink-0">
+                            <button class="item-action-btn btn btn-primary text-xs whitespace-nowrap" onclick="equipItemFromInventory(${index})">Equipar</button>
+                            <button class="item-action-btn btn btn-secondary text-xs whitespace-nowrap" onclick="useItemEffect(${index})">Usar</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -3184,7 +3322,10 @@ function openCombatMode() {
                 
                 <!-- ESTADOS ACTIVOS -->
                 <div class="combat-section">
-                    <div class="combat-section-title">🔴 Estados</div>
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="combat-section-title">🔴 Estados</div>
+                        <button class="btn btn-primary text-xs px-2 py-1" onclick="addStatusEffectCombat()">+ Añadir</button>
+                    </div>
                     <div class="space-y-1.5 max-h-40 overflow-y-auto">
     `;
     
