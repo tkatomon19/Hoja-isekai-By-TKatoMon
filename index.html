@@ -81,7 +81,7 @@
             width: 100%; padding: 0.75rem 1rem; border-radius: 0.625rem;
             border: 2px solid var(--border-color); background-color: var(--input-bg);
             color: var(--text-color); transition: all 0.2s ease;
-            font-size: 1rem; font-family: inherit;
+            font-size: 1rem; font-family: inherit; font-weight: 500;
         }
         .input-field:focus {
             outline: none; border-color: var(--accent-color);
@@ -203,7 +203,12 @@
         .theme-dark .item-card[data-rarity="Raro"] .rarity-text,
         .theme-dark .item-card[data-rarity="Épico"] .rarity-text,
         .theme-dark .item-card[data-rarity="Legendario"] .rarity-text { color: #f9fafb; }
-        .stat-block { background-color: var(--stat-bg); transition: background-color 0.3s; }
+        .stat-block { background-color: var(--stat-bg); transition: background-color 0.3s; border-radius: 0.75rem; }
+        
+        /* Mejoras responsive para números grandes */
+        @media (max-width: 768px) {
+            .grid.grid-cols-12 { grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); }
+        }
 
         /* Estilos para Estados */
         .status-card { border-left-width: 4px; border-radius: 0.75rem; transition: all 0.3s ease; }
@@ -289,7 +294,7 @@
                 <!-- Atributos -->
                 <div class="card p-7">
                     <h2 class="card-title">Atributos</h2>
-                    <div id="attributes-container" class="space-y-3">
+                    <div id="attributes-container" class="space-y-4">
                         <!-- Los atributos se generan dinámicamente aquí -->
                     </div>
                 </div>
@@ -346,7 +351,7 @@
                            <button id="edit-base-stats-btn" class="btn btn-secondary text-sm">Editar Base</button>
                         </div>
                     </div>
-                    <div id="stats-container" class="grid grid-cols-1 gap-y-3"></div>
+                    <div id="stats-container" class="grid grid-cols-1 gap-y-4"></div>
                 </div>
 
                 <!-- Combate -->
@@ -900,13 +905,13 @@ function updateUI() {
         const bonus = Math.round(finalAttr.value - baseAttr.value);
         const mod = getModifier(finalAttr.value);
         const div = document.createElement('div');
-        div.className = 'grid grid-cols-6 items-center gap-2';
+        div.className = 'grid grid-cols-12 items-center gap-3 p-3 rounded-lg stat-block';
         div.innerHTML = `
-            <label for="attr-${key}" class="font-semibold col-span-2">${baseAttr.name}</label>
-            <input type="number" id="attr-${key}" class="input-field text-center" value="${baseAttr.value}">
-            <span class="text-green-600 font-medium text-center">(+${bonus})</span>
-            <div class="bg-gray-200 dark:bg-gray-600 text-center font-bold rounded-md py-2">${mod >= 0 ? '+' : ''}${mod}</div>
-            <button class="btn btn-primary" onclick="rollAttributeCheck('${key}')" title="Lanzar 1d20 + Modificador">🎲</button>
+            <label for="attr-${key}" class="font-semibold col-span-4">${baseAttr.name}</label>
+            <input type="number" id="attr-${key}" class="input-field col-span-2 text-center" value="${baseAttr.value}">
+            <span class="text-green-600 font-medium text-center col-span-2">(+${bonus})</span>
+            <div class="bg-gray-200 dark:bg-gray-600 text-center font-bold rounded-md py-2 col-span-2">${mod >= 0 ? '+' : ''}${mod}</div>
+            <button class="btn btn-primary col-span-2" onclick="rollAttributeCheck('${key}')" title="Lanzar 1d20 + Modificador">🎲</button>
         `;
         attributesContainer.appendChild(div);
     }
@@ -939,30 +944,30 @@ function updateUI() {
     for (const key in statsToDisplay) {
         const stat = statsToDisplay[key];
         const div = document.createElement('div');
-        div.className = 'flex justify-between items-center stat-block p-2 rounded-md';
+        div.className = 'flex justify-between items-center stat-block p-4 rounded-lg border border-gray-200 dark:border-gray-700';
         if (key === 'health' || key === 'mana') {
              div.innerHTML = `
-                <span class="font-medium">${stat.name}</span>
-                <div class="flex items-center gap-1">
-                    <input type="number" id="stat-${key}-current" value="${stat.current}" class="input-field w-16 text-center">
-                    <span>/</span>
-                    <span class="font-bold">${stat.base}</span>
+                <span class="font-bold text-lg">${stat.name}</span>
+                <div class="flex items-center gap-3">
+                    <input type="number" id="stat-${key}-current" value="${stat.current}" class="input-field w-20 text-center font-bold">
+                    <span class="text-lg font-bold">/</span>
+                    <span class="font-bold text-lg">${stat.base}</span>
                 </div>
             `;
             statsContainer.appendChild(div);
         } else if (['resistance', 'wisdom', 'magicSave'].includes(key)) {
             div.innerHTML = `
-                <span class="font-medium">${stat.name}</span>
-                <div class="flex items-center gap-2">
-                    <span class="font-bold">${stat.current}</span>
+                <span class="font-bold text-lg">${stat.name}</span>
+                <div class="flex items-center gap-3">
+                    <span class="font-bold text-xl">${stat.current}</span>
                     <button class="btn btn-primary" onclick="rollStatCheck('${key}')" title="Lanzar 1d20 + Valor">🎲</button>
                 </div>
             `;
             statsContainer.appendChild(div);
         } else {
             div.innerHTML = `
-                <span class="font-medium">${stat.name}</span>
-                <span class="font-bold">${stat.current}</span>
+                <span class="font-bold text-lg">${stat.name}</span>
+                <span class="font-bold text-xl">${stat.current}</span>
             `;
             statsContainer.appendChild(div);
         }
