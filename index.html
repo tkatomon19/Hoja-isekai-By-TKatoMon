@@ -236,6 +236,34 @@
         .theme-dark .status-card[data-type="Debuff"] { background-color: #7f1d1d; border-left-color: #ef4444;}
         .theme-dark .status-card[data-type="Neutral"] { background-color: #374151; border-left-color: #6b7280;}
         
+        /* Estilos para modal de combate */
+        .combat-modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 95vw;
+            max-width: 1200px;
+        }
+        .combat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .combat-section {
+            background-color: var(--card-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .combat-section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+        }
+        
         /* Animación de scroll suave */
         ::-webkit-scrollbar {
             width: 8px;
@@ -268,9 +296,14 @@
 
     <div class="max-w-7xl mx-auto">
         <!-- Header Section -->
-        <div class="mb-8 pb-6 border-b-2 border-gray-300 dark:border-gray-600">
-            <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v4.5</h1>
-            <p class="text-lg text-gray-600 dark:text-gray-400">Los cambios se guardan automáticamente en tu navegador</p>
+        <div class="mb-8 pb-6 border-b-2 border-gray-300 dark:border-gray-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex-1">
+                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v4.5</h1>
+                <p class="text-lg text-gray-600 dark:text-gray-400">Los cambios se guardan automáticamente en tu navegador</p>
+            </div>
+            <button id="combat-mode-btn" class="btn btn-primary h-14 px-6 whitespace-nowrap text-lg font-bold shadow-lg hover:shadow-xl" onclick="openCombatMode()">
+                ⚔️ Modo Combate
+            </button>
         </div>
 
         <!-- Contenedor Principal con Grid -->
@@ -2727,6 +2760,230 @@ function saveAttributeEdit(key) {
     
     saveAndRefresh();
     closeModal();
+}
+
+function openCombatMode() {
+    const modal = document.getElementById('modal-secondary');
+    const modalContent = document.getElementById('modal-secondary-content');
+    
+    // Generar HTML del modo combate
+    let combatHTML = `
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-bold">⚔️ MODO DE COMBATE</h2>
+            <button class="btn btn-secondary w-12 h-12 flex items-center justify-center text-2xl" onclick="closeModalSecondary()">✕</button>
+        </div>
+        
+        <div class="combat-grid">
+            <!-- SECCIÓN 1: ESTADÍSTICAS VITALES -->
+            <div class="combat-section">
+                <div class="combat-section-title">⚡ Estadísticas Vitales</div>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
+                        <span class="font-bold">Vida:</span>
+                        <span class="text-2xl font-bold text-red-600">${character.stats.health.current} / ${character.stats.health.max}</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
+                        <span class="font-bold">Místyculas:</span>
+                        <span class="text-2xl font-bold text-blue-600">${character.stats.mana.current} / ${character.stats.mana.max}</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                        <span class="font-bold">Armadura:</span>
+                        <span class="text-2xl font-bold">${character.stats.armor.current}</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-purple-50 dark:bg-purple-900/30 p-3 rounded-lg">
+                        <span class="font-bold">Acciones:</span>
+                        <span class="text-2xl font-bold text-purple-600">${character.stats.actions.current}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SECCIÓN 2: ATRIBUTOS PRINCIPALES -->
+            <div class="combat-section">
+                <div class="combat-section-title">💪 Atributos</div>
+                <div class="space-y-2">
+    `;
+    
+    // Agregar atributos
+    for (const key in character.attributes) {
+        const attr = character.attributes[key];
+        const mod = getModifier(attr.value);
+        combatHTML += `
+            <div class="flex justify-between items-center p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                <span class="font-semibold">${attr.name}:</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-lg font-bold">${attr.value}</span>
+                    <span class="text-sm bg-blue-500 text-white px-2 py-1 rounded">${mod >= 0 ? '+' : ''}${mod}</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    combatHTML += `
+                </div>
+            </div>
+            
+            <!-- SECCIÓN 3: HABILIDADES -->
+            <div class="combat-section">
+                <div class="combat-section-title">🎯 Habilidades</div>
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+    `;
+    
+    // Agregar habilidades
+    if (character.inventory.skills.length > 0) {
+        character.inventory.skills.forEach(skill => {
+            combatHTML += `
+                <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 border-l-4 border-green-500">
+                    <p class="font-semibold text-sm">${skill.name}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">${skill.description || 'Sin descripción'}</p>
+                </div>
+            `;
+        });
+    } else {
+        combatHTML += '<p class="text-gray-500 text-sm italic">Sin habilidades</p>';
+    }
+    
+    combatHTML += `
+                </div>
+            </div>
+            
+            <!-- SECCIÓN 4: TÉCNICAS/HECHIZOS -->
+            <div class="combat-section">
+                <div class="combat-section-title">✨ Técnicas/Hechizos</div>
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+    `;
+    
+    // Agregar técnicas
+    if (character.inventory.techniques.length > 0) {
+        character.inventory.techniques.forEach(tech => {
+            combatHTML += `
+                <div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/30 border-l-4 border-purple-500">
+                    <p class="font-semibold text-sm">${tech.name}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">${tech.description || 'Sin descripción'}</p>
+                </div>
+            `;
+        });
+    } else {
+        combatHTML += '<p class="text-gray-500 text-sm italic">Sin técnicas</p>';
+    }
+    
+    combatHTML += `
+                </div>
+            </div>
+            
+            <!-- SECCIÓN 5: EQUIPAMIENTO -->
+            <div class="combat-section">
+                <div class="combat-section-title">🛡️ Equipamiento</div>
+                <div class="space-y-2">
+    `;
+    
+    // Agregar equipamiento
+    character.equipment.forEach(slot => {
+        if (slot.item) {
+            combatHTML += `
+                <div class="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-500">
+                    <p class="font-semibold text-sm">${slot.slotName}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">${slot.item.name}</p>
+                </div>
+            `;
+        } else {
+            combatHTML += `
+                <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
+                    <p class="font-semibold text-sm text-gray-400">${slot.slotName}</p>
+                    <p class="text-xs text-gray-500">Vacío</p>
+                </div>
+            `;
+        }
+    });
+    
+    combatHTML += `
+                </div>
+            </div>
+            
+            <!-- SECCIÓN 6: OBJETOS -->
+            <div class="combat-section">
+                <div class="combat-section-title">🎁 Objetos</div>
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+    `;
+    
+    // Agregar objetos
+    if (character.inventory.items.length > 0) {
+        character.inventory.items.forEach(item => {
+            combatHTML += `
+                <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 border-l-4 border-blue-500">
+                    <p class="font-semibold text-sm">${item.name} <span class="text-xs text-gray-500">x${item.quantity || 1}</span></p>
+                </div>
+            `;
+        });
+    } else {
+        combatHTML += '<p class="text-gray-500 text-sm italic">Sin objetos</p>';
+    }
+    
+    combatHTML += `
+                </div>
+            </div>
+            
+            <!-- SECCIÓN 7: MASCOTAS -->
+            <div class="combat-section">
+                <div class="combat-section-title">🐾 Mascotas</div>
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+    `;
+    
+    // Agregar mascotas
+    if (character.inventory.pets.length > 0) {
+        character.inventory.pets.forEach(pet => {
+            combatHTML += `
+                <div class="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/30 border-l-4 border-orange-500">
+                    <p class="font-semibold text-sm">${pet.name}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">${pet.description || 'Sin descripción'}</p>
+                </div>
+            `;
+        });
+    } else {
+        combatHTML += '<p class="text-gray-500 text-sm italic">Sin mascotas</p>';
+    }
+    
+    combatHTML += `
+                </div>
+            </div>
+            
+            <!-- SECCIÓN 8: ESTADOS ACTIVOS -->
+            <div class="combat-section">
+                <div class="combat-section-title">🔴 Estados Activos</div>
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+    `;
+    
+    // Agregar estados
+    if (character.statusEffects.length > 0) {
+        character.statusEffects.forEach(status => {
+            const typeColors = {
+                'Buff': 'bg-green-50 dark:bg-green-900/30 border-green-500',
+                'Debuff': 'bg-red-50 dark:bg-red-900/30 border-red-500',
+                'Neutral': 'bg-gray-50 dark:bg-gray-800 border-gray-500'
+            };
+            const colorClass = typeColors[status.type] || typeColors['Neutral'];
+            combatHTML += `
+                <div class="p-2 rounded-lg ${colorClass} border-l-4">
+                    <p class="font-semibold text-sm">${status.name}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">Duración: ${status.duration} ${status.durationType}</p>
+                </div>
+            `;
+        });
+    } else {
+        combatHTML += '<p class="text-gray-500 text-sm italic">Sin estados activos</p>';
+    }
+    
+    combatHTML += `
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modalContent.innerHTML = combatHTML;
+    modal.classList.add('active');
+}
+
+function closeModalSecondary() {
+    document.getElementById('modal-secondary').classList.remove('active');
 }
 
 function openStatusEffectForm(status = null, index = -1) {
