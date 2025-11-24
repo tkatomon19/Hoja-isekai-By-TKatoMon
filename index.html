@@ -259,6 +259,23 @@
             gap: 2rem;
             padding: 1rem;
         }
+        
+        /* Nuevo layout más compacto */
+        .combat-grid-compact {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            padding: 1rem;
+        }
+        .combat-grid-full {
+            grid-column: 1 / -1;
+        }
+        
+        @media (max-width: 1200px) {
+            .combat-grid-compact {
+                grid-template-columns: 1fr;
+            }
+        }
         .combat-section {
             background: linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg) 100%);
             border: 2px solid var(--accent-color);
@@ -2868,208 +2885,213 @@ function openCombatMode() {
     const modal = document.getElementById('modal-secondary');
     const modalContent = document.getElementById('modal-secondary-content');
     
-    // Generar HTML del modo combate
+    // Generar HTML del modo combate - Layout compacto y organizado
     let combatHTML = `
         <div class="combat-header">
             <h2>⚔️ MODO DE COMBATE</h2>
             <button class="btn btn-secondary w-14 h-14 flex items-center justify-center text-2xl" onclick="closeModalSecondary()">✕</button>
         </div>
         
-        <div class="combat-grid">
-            <!-- SECCIÓN 1: ESTADÍSTICAS VITALES -->
-            <div class="combat-section">
-                <div class="combat-section-title">⚡ Estadísticas Vitales</div>
-                <div class="space-y-2">
-                    <div class="combat-stat-item vital-health">
-                        <span class="combat-stat-label">Vida</span>
-                        <span class="combat-stat-value">${character.stats.health.current}/${character.stats.health.max}</span>
-                    </div>
-                    <div class="combat-stat-item vital-mana">
-                        <span class="combat-stat-label">Místyculas</span>
-                        <span class="combat-stat-value">${character.stats.mana.current}/${character.stats.mana.max}</span>
-                    </div>
-                    <div class="combat-stat-item vital-armor">
-                        <span class="combat-stat-label">Armadura</span>
-                        <span class="combat-stat-value">${character.stats.armor.current}</span>
-                    </div>
-                    <div class="combat-stat-item vital-actions">
-                        <span class="combat-stat-label">Acciones</span>
-                        <span class="combat-stat-value">${character.stats.actions.current}</span>
+        <div class="combat-grid-compact">
+            <!-- COLUMNA IZQUIERDA TOP: ESTADÍSTICAS VITALES Y ATRIBUTOS -->
+            <div class="space-y-4">
+                <!-- ESTADÍSTICAS VITALES -->
+                <div class="combat-section">
+                    <div class="combat-section-title">⚡ Vitales</div>
+                    <div class="space-y-2">
+                        <div class="combat-stat-item vital-health">
+                            <span class="combat-stat-label">Vida</span>
+                            <span class="combat-stat-value">${character.stats.health.current}/${character.stats.health.max}</span>
+                        </div>
+                        <div class="combat-stat-item vital-mana">
+                            <span class="combat-stat-label">Místyculas</span>
+                            <span class="combat-stat-value">${character.stats.mana.current}/${character.stats.mana.max}</span>
+                        </div>
+                        <div class="combat-stat-item vital-armor">
+                            <span class="combat-stat-label">Armadura</span>
+                            <span class="combat-stat-value">${character.stats.armor.current}</span>
+                        </div>
+                        <div class="combat-stat-item vital-actions">
+                            <span class="combat-stat-label">Acciones</span>
+                            <span class="combat-stat-value">${character.stats.actions.current}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- SECCIÓN 2: ATRIBUTOS PRINCIPALES -->
-            <div class="combat-section">
-                <div class="combat-section-title">💪 Atributos</div>
-                <div class="space-y-2">
+                
+                <!-- ATRIBUTOS PRINCIPALES -->
+                <div class="combat-section">
+                    <div class="combat-section-title">💪 Atributos</div>
+                    <div class="grid grid-cols-2 gap-2">
     `;
     
-    // Agregar atributos
+    // Agregar atributos en grid 2x3
     for (const key in character.attributes) {
         const attr = character.attributes[key];
         const mod = getModifier(attr.value);
         combatHTML += `
-            <div class="combat-stat-item">
-                <span class="combat-stat-label">${attr.name}</span>
-                <div class="flex items-center gap-2">
-                    <span class="font-bold text-lg">${attr.value}</span>
-                    <span class="text-xs bg-blue-500 text-white px-2.5 py-1 rounded font-bold">${mod >= 0 ? '+' : ''}${mod}</span>
-                </div>
+            <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border-l-4 border-blue-500 text-center">
+                <p class="text-xs font-bold text-gray-600 dark:text-gray-400">${attr.name}</p>
+                <p class="text-2xl font-bold text-blue-600">${attr.value}</p>
+                <p class="text-xs text-blue-500 font-bold">${mod >= 0 ? '+' : ''}${mod}</p>
             </div>
         `;
     }
     
     combatHTML += `
+                    </div>
                 </div>
             </div>
             
-            <!-- SECCIÓN 3: HABILIDADES -->
-            <div class="combat-section">
-                <div class="combat-section-title">🎯 Habilidades</div>
-                <div class="space-y-2 max-h-96 overflow-y-auto">
+            <!-- COLUMNA DERECHA TOP: RESUMEN RÁPIDO -->
+            <div class="space-y-4">
+                <!-- EQUIPAMIENTO RÁPIDO -->
+                <div class="combat-section">
+                    <div class="combat-section-title">🛡️ Equipamiento</div>
+                    <div class="space-y-1.5">
     `;
     
-    // Agregar habilidades
-    if (character.inventory.skills.length > 0) {
-        character.inventory.skills.forEach(skill => {
-            combatHTML += `
-                <div class="combat-item skill-item">
-                    <div class="combat-item-name">${skill.name}</div>
-                    <div class="combat-item-desc">${skill.description || 'Sin descripción'}</div>
-                </div>
-            `;
-        });
-    } else {
-        combatHTML += '<p class="text-gray-500 text-sm italic py-2">Sin habilidades</p>';
-    }
-    
-    combatHTML += `
-                </div>
-            </div>
-            
-            <!-- SECCIÓN 4: TÉCNICAS/HECHIZOS -->
-            <div class="combat-section">
-                <div class="combat-section-title">✨ Técnicas/Hechizos</div>
-                <div class="space-y-2 max-h-96 overflow-y-auto">
-    `;
-    
-    // Agregar técnicas
-    if (character.inventory.techniques.length > 0) {
-        character.inventory.techniques.forEach(tech => {
-            combatHTML += `
-                <div class="combat-item tech-item">
-                    <div class="combat-item-name">${tech.name}</div>
-                    <div class="combat-item-desc">${tech.description || 'Sin descripción'}</div>
-                </div>
-            `;
-        });
-    } else {
-        combatHTML += '<p class="text-gray-500 text-sm italic py-2">Sin técnicas</p>';
-    }
-    
-    combatHTML += `
-                </div>
-            </div>
-            
-            <!-- SECCIÓN 5: EQUIPAMIENTO -->
-            <div class="combat-section">
-                <div class="combat-section-title">🛡️ Equipamiento</div>
-                <div class="space-y-2">
-    `;
-    
-    // Agregar equipamiento
     character.equipment.forEach(slot => {
         if (slot.item) {
             combatHTML += `
-                <div class="combat-item equip-item">
-                    <div class="combat-item-name">${slot.slotName}</div>
-                    <div class="combat-item-desc">${slot.item.name}</div>
+                <div class="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 text-sm">
+                    <p class="font-semibold text-yellow-700 dark:text-yellow-400">${slot.slotName}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">${slot.item.name}</p>
                 </div>
             `;
         } else {
             combatHTML += `
-                <div class="combat-item" style="opacity: 0.6;">
-                    <div class="combat-item-name text-gray-400">${slot.slotName}</div>
-                    <div class="combat-item-desc">Vacío</div>
+                <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm opacity-50">
+                    <p class="font-semibold text-gray-400">${slot.slotName}</p>
                 </div>
             `;
         }
     });
     
     combatHTML += `
+                    </div>
+                </div>
+                
+                <!-- ESTADOS ACTIVOS COMPACTO -->
+                <div class="combat-section">
+                    <div class="combat-section-title">🔴 Estados</div>
+                    <div class="max-h-32 overflow-y-auto space-y-1.5">
+    `;
+    
+    if (character.statusEffects.length > 0) {
+        character.statusEffects.forEach(status => {
+            const itemClass = status.type === 'Buff' ? 'bg-green-100 dark:bg-green-900/30 border-green-500' : 
+                            status.type === 'Debuff' ? 'bg-red-100 dark:bg-red-900/30 border-red-500' : 
+                            'bg-gray-100 dark:bg-gray-800 border-gray-500';
+            combatHTML += `
+                <div class="p-1.5 rounded-lg ${itemClass} border-l-4 text-xs">
+                    <p class="font-semibold">${status.name}</p>
+                    <p class="text-xs opacity-75">${status.duration}${status.durationType.charAt(0)}</p>
+                </div>
+            `;
+        });
+    } else {
+        combatHTML += '<p class="text-xs text-gray-500 italic">Sin estados</p>';
+    }
+    
+    combatHTML += `
+                    </div>
                 </div>
             </div>
             
-            <!-- SECCIÓN 6: OBJETOS -->
-            <div class="combat-section">
-                <div class="combat-section-title">🎁 Objetos</div>
-                <div class="space-y-2 max-h-96 overflow-y-auto">
+            <!-- FILA COMPLETA: HABILIDADES -->
+            <div class="combat-section combat-grid-full">
+                <div class="combat-section-title">🎯 Habilidades</div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
     `;
     
-    // Agregar objetos
+    if (character.inventory.skills.length > 0) {
+        character.inventory.skills.forEach(skill => {
+            combatHTML += `
+                <div class="p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 text-center text-xs">
+                    <p class="font-bold text-green-700 dark:text-green-400">${skill.name}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">${skill.description || ''}</p>
+                </div>
+            `;
+        });
+    } else {
+        combatHTML += '<p class="text-xs text-gray-500 italic col-span-full text-center">Sin habilidades</p>';
+    }
+    
+    combatHTML += `
+                </div>
+            </div>
+            
+            <!-- FILA COMPLETA: TÉCNICAS/HECHIZOS -->
+            <div class="combat-section combat-grid-full">
+                <div class="combat-section-title">✨ Técnicas/Hechizos</div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
+    `;
+    
+    if (character.inventory.techniques.length > 0) {
+        character.inventory.techniques.forEach(tech => {
+            combatHTML += `
+                <div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500 text-center text-xs">
+                    <p class="font-bold text-purple-700 dark:text-purple-400">${tech.name}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">${tech.description || ''}</p>
+                </div>
+            `;
+        });
+    } else {
+        combatHTML += '<p class="text-xs text-gray-500 italic col-span-full text-center">Sin técnicas</p>';
+    }
+    
+    combatHTML += `
+                </div>
+            </div>
+            
+            <!-- FILA COMPLETA: OBJETOS Y MASCOTAS -->
+            <div class="combat-section combat-grid-full">
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- OBJETOS -->
+                    <div>
+                        <div class="combat-section-title">🎁 Objetos</div>
+                        <div class="grid grid-cols-2 gap-2 max-h-24 overflow-y-auto">
+    `;
+    
     if (character.inventory.items.length > 0) {
         character.inventory.items.forEach(item => {
             combatHTML += `
-                <div class="combat-item item-item">
-                    <div class="combat-item-name">${item.name} <span class="text-xs text-gray-500 font-normal">x${item.quantity || 1}</span></div>
+                <div class="p-2 rounded-lg bg-cyan-50 dark:bg-cyan-900/20 border-l-4 border-cyan-500 text-center text-xs">
+                    <p class="font-bold text-cyan-700 dark:text-cyan-400">${item.name}</p>
+                    <p class="text-xs text-gray-600">x${item.quantity || 1}</p>
                 </div>
             `;
         });
     } else {
-        combatHTML += '<p class="text-gray-500 text-sm italic py-2">Sin objetos</p>';
+        combatHTML += '<p class="text-xs text-gray-500 italic col-span-full text-center">Sin objetos</p>';
     }
     
     combatHTML += `
-                </div>
-            </div>
-            
-            <!-- SECCIÓN 7: MASCOTAS -->
-            <div class="combat-section">
-                <div class="combat-section-title">🐾 Mascotas</div>
-                <div class="space-y-2 max-h-96 overflow-y-auto">
+                        </div>
+                    </div>
+                    
+                    <!-- MASCOTAS -->
+                    <div>
+                        <div class="combat-section-title">🐾 Mascotas</div>
+                        <div class="space-y-1.5 max-h-24 overflow-y-auto">
     `;
     
-    // Agregar mascotas
     if (character.inventory.pets.length > 0) {
         character.inventory.pets.forEach(pet => {
             combatHTML += `
-                <div class="combat-item pet-item">
-                    <div class="combat-item-name">${pet.name}</div>
-                    <div class="combat-item-desc">${pet.description || 'Sin descripción'}</div>
+                <div class="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 text-xs">
+                    <p class="font-bold text-orange-700 dark:text-orange-400">${pet.name}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">${pet.description || ''}</p>
                 </div>
             `;
         });
     } else {
-        combatHTML += '<p class="text-gray-500 text-sm italic py-2">Sin mascotas</p>';
+        combatHTML += '<p class="text-xs text-gray-500 italic">Sin mascotas</p>';
     }
     
     combatHTML += `
-                </div>
-            </div>
-            
-            <!-- SECCIÓN 8: ESTADOS ACTIVOS -->
-            <div class="combat-section">
-                <div class="combat-section-title">🔴 Estados Activos</div>
-                <div class="space-y-2 max-h-96 overflow-y-auto">
-    `;
-    
-    // Agregar estados
-    if (character.statusEffects.length > 0) {
-        character.statusEffects.forEach(status => {
-            const itemClass = status.type === 'Buff' ? 'buff-item' : status.type === 'Debuff' ? 'debuff-item' : 'combat-item';
-            combatHTML += `
-                <div class="combat-item ${itemClass}">
-                    <div class="combat-item-name">${status.name}</div>
-                    <div class="combat-item-desc">Duración: ${status.duration} ${status.durationType}</div>
-                </div>
-            `;
-        });
-    } else {
-        combatHTML += '<p class="text-gray-500 text-sm italic py-2">Sin estados activos</p>';
-    }
-    
-    combatHTML += `
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
