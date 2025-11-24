@@ -156,13 +156,24 @@
             backdrop-filter: blur(4px);
         }
         .modal-overlay.active { opacity: 1; visibility: visible; }
+        
+        #modal-secondary {
+            z-index: 70 !important;
+        }
+        
         .modal-content {
             background: var(--card-bg); color: var(--text-color); padding: 2rem; border-radius: 1rem;
             width: 90%; max-width: 600px; transform: scale(0.95);
             transition: transform 0.3s, background-color 0.3s; display: flex; flex-direction: column;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
         }
-        .modal-overlay.active .modal-content { transform: scale(1); }
+        
+        #modal-secondary-content.modal-content {
+            max-width: 90vw;
+            width: 95vw;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
         .modal-scrollable-content { max-height: 70vh; overflow-y: auto; padding-right: 1rem; margin-right: -1rem; }
         .tab-button.active { border-color: var(--accent-color); color: var(--accent-color); font-weight: 700; }
         .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
@@ -1330,6 +1341,36 @@ function showNotification(title, message) {
     document.getElementById('notification-title').textContent = title;
     document.getElementById('notification-message').textContent = message;
     document.getElementById('notification-modal').classList.add('active');
+}
+
+// Tirada de atributo en modo combate con dice roll
+function rollAttributeCheckCombat(key) {
+    const attr = character.attributes[key];
+    if (!attr) return;
+    
+    const d20 = Math.floor(Math.random() * 20) + 1;
+    const mod = getModifier(attr.value);
+    const total = d20 + mod;
+    
+    const message = `<strong>${attr.name}:</strong><br>
+        🎲 D20: ${d20}<br>
+        Modificador: ${mod >= 0 ? '+' : ''}${mod}<br>
+        <strong>Total: ${total}</strong>`;
+    
+    showNotification(`Tirada de ${attr.name}`, message);
+}
+
+// Usar acción de combate con costo
+function useCombatAction(actionName, cost) {
+    if (character.combat.currentActions < cost) {
+        showNotification('Acción No Disponible', `No tienes suficientes acciones. Necesitas ${cost}, tienes ${character.combat.currentActions}`);
+        return;
+    }
+    
+    character.combat.currentActions -= cost;
+    character.stats.actions.current = character.combat.currentActions; // Sincronizar
+    saveAndRefresh();
+    showNotification('Acción Usada', `${actionName} - Costo: ${cost} acciones`);
 }
 
 // ===================================================================================
@@ -2987,15 +3028,30 @@ function openCombatMode() {
         const attr = character.attributes[key];
         const mod = getModifier(attr.value);
         combatHTML += `
-            <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border-l-4 border-blue-500 text-center">
+            <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border-l-4 border-blue-500 text-center cursor-pointer hover:shadow-lg transition-all" onclick="rollAttributeCheckCombat('${key}')">
                 <p class="text-xs font-bold text-gray-600 dark:text-gray-400">${attr.name}</p>
                 <p class="text-2xl font-bold text-blue-600">${attr.value}</p>
                 <p class="text-xs text-blue-500 font-bold">${mod >= 0 ? '+' : ''}${mod}</p>
+                <p class="text-xs text-gray-500 mt-1">🎲 Click para tirada</p>
             </div>
         `;
     }
     
     combatHTML += `
+                    </div>
+                </div>
+                
+                <!-- ACCIONES DE COMBATE -->
+                <div class="combat-section">
+                    <div class="combat-section-title">⚔️ Acciones</div>
+                    <div class="space-y-2">
+                        <button class="w-full p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold transition-all" onclick="useCombatAction('Menor', 1)">A. Menor (1)</button>
+                        <button class="w-full p-2 rounded-lg bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold transition-all" onclick="useCombatAction('Objeto', 1)">A. Objeto (1)</button>
+                        <button class="w-full p-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition-all" onclick="useCombatAction('Compleja', 2)">A. Compleja (2)</button>
+                        <button class="w-full p-2 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-bold transition-all" onclick="useCombatAction('Reacción', 3)">Reacción (3)</button>
+                        <button class="w-full p-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-bold transition-all" onclick="useCombatAction('Bonus', 1)">A. Bonus (+1)</button>
+                        <button class="w-full p-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold transition-all" onclick="useCombatAction('Legendaria', 20)">Acción Legendaria (20)</button>
+                        <button class="w-full p-2 rounded-lg bg-gray-600 hover:bg-gray-700 text-white text-sm font-bold transition-all" onclick="endTurn()">Finalizar Turno</button>
                     </div>
                 </div>
                 
@@ -3006,15 +3062,16 @@ function openCombatMode() {
     `;
     
     if (character.inventory.skills.length > 0) {
-        character.inventory.skills.forEach(skill => {
+        character.inventory.skills.forEach((skill, index) => {
             combatHTML += `
                 <div class="p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500">
                     <div class="flex justify-between items-start gap-2">
                         <div class="flex-1 min-w-0">
                             <p class="font-bold text-green-700 dark:text-green-400 text-sm">${skill.name}</p>
                             <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">${skill.description || ''}</p>
+                            <p class="text-xs text-green-600 dark:text-green-300 mt-1">💚 PA: ${skill.costPA} | 💙 MP: ${skill.costMP}</p>
                         </div>
-                        <button class="item-action-btn btn btn-primary whitespace-nowrap" onclick="showNotification('Habilidad', 'Usando ${skill.name}!')">Usar</button>
+                        <button class="item-action-btn btn btn-primary whitespace-nowrap text-xs" onclick="useAbility('skills', ${index})">Usar</button>
                     </div>
                 </div>
             `;
@@ -3037,15 +3094,16 @@ function openCombatMode() {
     `;
     
     if (character.inventory.techniques.length > 0) {
-        character.inventory.techniques.forEach(tech => {
+        character.inventory.techniques.forEach((tech, index) => {
             combatHTML += `
                 <div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500">
                     <div class="flex justify-between items-start gap-2">
                         <div class="flex-1 min-w-0">
                             <p class="font-bold text-purple-700 dark:text-purple-400 text-sm">${tech.name}</p>
                             <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">${tech.description || ''}</p>
+                            <p class="text-xs text-purple-600 dark:text-purple-300 mt-1">💚 PA: ${tech.costPA} | 💙 MP: ${tech.costMP}</p>
                         </div>
-                        <button class="item-action-btn btn btn-primary whitespace-nowrap" onclick="showNotification('Técnica', 'Usando ${tech.name}!')">Usar</button>
+                        <button class="item-action-btn btn btn-primary whitespace-nowrap text-xs" onclick="useAbility('techniques', ${index})">Usar</button>
                     </div>
                 </div>
             `;
@@ -3094,7 +3152,7 @@ function openCombatMode() {
     `;
     
     if (character.inventory.items.length > 0) {
-        character.inventory.items.forEach(item => {
+        character.inventory.items.forEach((item, index) => {
             combatHTML += `
                 <div class="p-2 rounded-lg bg-cyan-50 dark:bg-cyan-900/20 border-l-4 border-cyan-500">
                     <div class="flex justify-between items-start gap-2">
@@ -3102,7 +3160,7 @@ function openCombatMode() {
                             <p class="font-bold text-cyan-700 dark:text-cyan-400 text-xs">${item.name}</p>
                             <p class="text-xs text-gray-600">x${item.quantity || 1}</p>
                         </div>
-                        <button class="item-action-btn btn btn-primary text-xs whitespace-nowrap" onclick="showNotification('Objeto', '${item.name} usado!')">Usar</button>
+                        <button class="item-action-btn btn btn-primary text-xs whitespace-nowrap" onclick="useItemEffect(${index})">Usar</button>
                     </div>
                 </div>
             `;
