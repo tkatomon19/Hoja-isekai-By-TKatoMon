@@ -241,28 +241,130 @@
             max-height: 90vh;
             overflow-y: auto;
             width: 95vw;
-            max-width: 1200px;
+            max-width: 1400px;
+        }
+        .combat-modal-content::-webkit-scrollbar {
+            width: 10px;
+        }
+        .combat-modal-content::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        .combat-modal-content::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 5px;
         }
         .combat-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            padding: 1rem;
         }
         .combat-section {
-            background-color: var(--card-bg);
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--card-bg) 100%);
             border: 2px solid var(--accent-color);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .combat-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-color), transparent);
+        }
+        .combat-section:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            transform: translateY(-4px);
+            border-color: #60a5fa;
         }
         .combat-section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin-bottom: 1.25rem;
             color: var(--accent-color);
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 0.5rem;
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
+        .combat-stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            border-left: 4px solid var(--accent-color);
+            transition: all 0.2s ease;
+        }
+        .combat-stat-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .combat-stat-label {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+        .combat-stat-value {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--accent-color);
+        }
+        .combat-item {
+            padding: 1rem;
+            border-radius: 0.875rem;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid transparent;
+            background-color: var(--stat-bg);
+            transition: all 0.2s ease;
+        }
+        .combat-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .combat-item-name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+        .combat-item-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .combat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 3px solid var(--accent-color);
+        }
+        .combat-header h2 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--accent-color);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .vital-health { border-left-color: #ef4444 !important; background-color: rgba(239, 68, 68, 0.1) !important; }
+        .vital-mana { border-left-color: #3b82f6 !important; background-color: rgba(59, 130, 246, 0.1) !important; }
+        .vital-armor { border-left-color: #8b5cf6 !important; background-color: rgba(139, 92, 246, 0.1) !important; }
+        .vital-actions { border-left-color: #f59e0b !important; background-color: rgba(245, 158, 11, 0.1) !important; }
+        
+        .skill-item { border-left-color: #22c55e !important; }
+        .tech-item { border-left-color: #a855f7 !important; }
+        .equip-item { border-left-color: #f59e0b !important; }
+        .item-item { border-left-color: #06b6d4 !important; }
+        .pet-item { border-left-color: #ec4899 !important; }
+        .buff-item { border-left-color: #22c55e !important; background-color: rgba(34, 197, 94, 0.1) !important; }
+        .debuff-item { border-left-color: #ef4444 !important; background-color: rgba(239, 68, 68, 0.1) !important; }
         
         /* Animación de scroll suave */
         ::-webkit-scrollbar {
@@ -2768,31 +2870,31 @@ function openCombatMode() {
     
     // Generar HTML del modo combate
     let combatHTML = `
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-3xl font-bold">⚔️ MODO DE COMBATE</h2>
-            <button class="btn btn-secondary w-12 h-12 flex items-center justify-center text-2xl" onclick="closeModalSecondary()">✕</button>
+        <div class="combat-header">
+            <h2>⚔️ MODO DE COMBATE</h2>
+            <button class="btn btn-secondary w-14 h-14 flex items-center justify-center text-2xl" onclick="closeModalSecondary()">✕</button>
         </div>
         
         <div class="combat-grid">
             <!-- SECCIÓN 1: ESTADÍSTICAS VITALES -->
             <div class="combat-section">
                 <div class="combat-section-title">⚡ Estadísticas Vitales</div>
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center bg-red-50 dark:bg-red-900/30 p-3 rounded-lg">
-                        <span class="font-bold">Vida:</span>
-                        <span class="text-2xl font-bold text-red-600">${character.stats.health.current} / ${character.stats.health.max}</span>
+                <div class="space-y-2">
+                    <div class="combat-stat-item vital-health">
+                        <span class="combat-stat-label">Vida</span>
+                        <span class="combat-stat-value">${character.stats.health.current}/${character.stats.health.max}</span>
                     </div>
-                    <div class="flex justify-between items-center bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
-                        <span class="font-bold">Místyculas:</span>
-                        <span class="text-2xl font-bold text-blue-600">${character.stats.mana.current} / ${character.stats.mana.max}</span>
+                    <div class="combat-stat-item vital-mana">
+                        <span class="combat-stat-label">Místyculas</span>
+                        <span class="combat-stat-value">${character.stats.mana.current}/${character.stats.mana.max}</span>
                     </div>
-                    <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                        <span class="font-bold">Armadura:</span>
-                        <span class="text-2xl font-bold">${character.stats.armor.current}</span>
+                    <div class="combat-stat-item vital-armor">
+                        <span class="combat-stat-label">Armadura</span>
+                        <span class="combat-stat-value">${character.stats.armor.current}</span>
                     </div>
-                    <div class="flex justify-between items-center bg-purple-50 dark:bg-purple-900/30 p-3 rounded-lg">
-                        <span class="font-bold">Acciones:</span>
-                        <span class="text-2xl font-bold text-purple-600">${character.stats.actions.current}</span>
+                    <div class="combat-stat-item vital-actions">
+                        <span class="combat-stat-label">Acciones</span>
+                        <span class="combat-stat-value">${character.stats.actions.current}</span>
                     </div>
                 </div>
             </div>
@@ -2808,11 +2910,11 @@ function openCombatMode() {
         const attr = character.attributes[key];
         const mod = getModifier(attr.value);
         combatHTML += `
-            <div class="flex justify-between items-center p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                <span class="font-semibold">${attr.name}:</span>
+            <div class="combat-stat-item">
+                <span class="combat-stat-label">${attr.name}</span>
                 <div class="flex items-center gap-2">
-                    <span class="text-lg font-bold">${attr.value}</span>
-                    <span class="text-sm bg-blue-500 text-white px-2 py-1 rounded">${mod >= 0 ? '+' : ''}${mod}</span>
+                    <span class="font-bold text-lg">${attr.value}</span>
+                    <span class="text-xs bg-blue-500 text-white px-2.5 py-1 rounded font-bold">${mod >= 0 ? '+' : ''}${mod}</span>
                 </div>
             </div>
         `;
@@ -2832,14 +2934,14 @@ function openCombatMode() {
     if (character.inventory.skills.length > 0) {
         character.inventory.skills.forEach(skill => {
             combatHTML += `
-                <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 border-l-4 border-green-500">
-                    <p class="font-semibold text-sm">${skill.name}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400">${skill.description || 'Sin descripción'}</p>
+                <div class="combat-item skill-item">
+                    <div class="combat-item-name">${skill.name}</div>
+                    <div class="combat-item-desc">${skill.description || 'Sin descripción'}</div>
                 </div>
             `;
         });
     } else {
-        combatHTML += '<p class="text-gray-500 text-sm italic">Sin habilidades</p>';
+        combatHTML += '<p class="text-gray-500 text-sm italic py-2">Sin habilidades</p>';
     }
     
     combatHTML += `
@@ -2856,14 +2958,14 @@ function openCombatMode() {
     if (character.inventory.techniques.length > 0) {
         character.inventory.techniques.forEach(tech => {
             combatHTML += `
-                <div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/30 border-l-4 border-purple-500">
-                    <p class="font-semibold text-sm">${tech.name}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400">${tech.description || 'Sin descripción'}</p>
+                <div class="combat-item tech-item">
+                    <div class="combat-item-name">${tech.name}</div>
+                    <div class="combat-item-desc">${tech.description || 'Sin descripción'}</div>
                 </div>
             `;
         });
     } else {
-        combatHTML += '<p class="text-gray-500 text-sm italic">Sin técnicas</p>';
+        combatHTML += '<p class="text-gray-500 text-sm italic py-2">Sin técnicas</p>';
     }
     
     combatHTML += `
@@ -2880,16 +2982,16 @@ function openCombatMode() {
     character.equipment.forEach(slot => {
         if (slot.item) {
             combatHTML += `
-                <div class="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-500">
-                    <p class="font-semibold text-sm">${slot.slotName}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400">${slot.item.name}</p>
+                <div class="combat-item equip-item">
+                    <div class="combat-item-name">${slot.slotName}</div>
+                    <div class="combat-item-desc">${slot.item.name}</div>
                 </div>
             `;
         } else {
             combatHTML += `
-                <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800">
-                    <p class="font-semibold text-sm text-gray-400">${slot.slotName}</p>
-                    <p class="text-xs text-gray-500">Vacío</p>
+                <div class="combat-item" style="opacity: 0.6;">
+                    <div class="combat-item-name text-gray-400">${slot.slotName}</div>
+                    <div class="combat-item-desc">Vacío</div>
                 </div>
             `;
         }
@@ -2909,13 +3011,13 @@ function openCombatMode() {
     if (character.inventory.items.length > 0) {
         character.inventory.items.forEach(item => {
             combatHTML += `
-                <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 border-l-4 border-blue-500">
-                    <p class="font-semibold text-sm">${item.name} <span class="text-xs text-gray-500">x${item.quantity || 1}</span></p>
+                <div class="combat-item item-item">
+                    <div class="combat-item-name">${item.name} <span class="text-xs text-gray-500 font-normal">x${item.quantity || 1}</span></div>
                 </div>
             `;
         });
     } else {
-        combatHTML += '<p class="text-gray-500 text-sm italic">Sin objetos</p>';
+        combatHTML += '<p class="text-gray-500 text-sm italic py-2">Sin objetos</p>';
     }
     
     combatHTML += `
@@ -2932,14 +3034,14 @@ function openCombatMode() {
     if (character.inventory.pets.length > 0) {
         character.inventory.pets.forEach(pet => {
             combatHTML += `
-                <div class="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/30 border-l-4 border-orange-500">
-                    <p class="font-semibold text-sm">${pet.name}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400">${pet.description || 'Sin descripción'}</p>
+                <div class="combat-item pet-item">
+                    <div class="combat-item-name">${pet.name}</div>
+                    <div class="combat-item-desc">${pet.description || 'Sin descripción'}</div>
                 </div>
             `;
         });
     } else {
-        combatHTML += '<p class="text-gray-500 text-sm italic">Sin mascotas</p>';
+        combatHTML += '<p class="text-gray-500 text-sm italic py-2">Sin mascotas</p>';
     }
     
     combatHTML += `
@@ -2955,21 +3057,16 @@ function openCombatMode() {
     // Agregar estados
     if (character.statusEffects.length > 0) {
         character.statusEffects.forEach(status => {
-            const typeColors = {
-                'Buff': 'bg-green-50 dark:bg-green-900/30 border-green-500',
-                'Debuff': 'bg-red-50 dark:bg-red-900/30 border-red-500',
-                'Neutral': 'bg-gray-50 dark:bg-gray-800 border-gray-500'
-            };
-            const colorClass = typeColors[status.type] || typeColors['Neutral'];
+            const itemClass = status.type === 'Buff' ? 'buff-item' : status.type === 'Debuff' ? 'debuff-item' : 'combat-item';
             combatHTML += `
-                <div class="p-2 rounded-lg ${colorClass} border-l-4">
-                    <p class="font-semibold text-sm">${status.name}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400">Duración: ${status.duration} ${status.durationType}</p>
+                <div class="combat-item ${itemClass}">
+                    <div class="combat-item-name">${status.name}</div>
+                    <div class="combat-item-desc">Duración: ${status.duration} ${status.durationType}</div>
                 </div>
             `;
         });
     } else {
-        combatHTML += '<p class="text-gray-500 text-sm italic">Sin estados activos</p>';
+        combatHTML += '<p class="text-gray-500 text-sm italic py-2">Sin estados activos</p>';
     }
     
     combatHTML += `
