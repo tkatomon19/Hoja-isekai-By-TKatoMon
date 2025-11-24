@@ -166,7 +166,7 @@
         }
         
         #modal {
-            z-index: 50;
+            z-index: 110 !important;
         }
         
         .modal-content {
@@ -1380,9 +1380,122 @@ function useCombatAction(actionName, cost) {
     character.stats.actions.current = character.combat.currentActions; // Sincronizar
     saveAndRefresh();
     showNotification('Acción Usada', `${actionName} - Costo: ${cost} acciones`);
+    refreshCombatVitals();
 }
 
-// Editar vitales en modo combate
+// Actualizar solo los vitales en el modo combate sin reabrirlo
+function refreshCombatVitals() {
+    // Actualizar Vida
+    const healthValue = document.querySelector('.vital-health .combat-stat-value');
+    if (healthValue) {
+        healthValue.textContent = `${character.stats.health.current}/${character.stats.health.max}`;
+    }
+    
+    // Actualizar Místyculas
+    const manaValue = document.querySelector('.vital-mana .combat-stat-value');
+    if (manaValue) {
+        manaValue.textContent = `${character.stats.mana.current}/${character.stats.mana.max}`;
+    }
+    
+    // Actualizar Armadura
+    const armorValue = document.querySelector('.vital-armor .combat-stat-value');
+    if (armorValue) {
+        armorValue.textContent = `${character.stats.armor.current}`;
+    }
+    
+    // Actualizar Acciones
+    const actionsValue = document.querySelector('.vital-actions .combat-stat-value');
+    if (actionsValue) {
+        actionsValue.textContent = `${character.stats.actions.current}`;
+    }
+}
+
+// Actualizar equipamiento en el modo combate
+function refreshCombatEquipment() {
+    const equipmentContainer = document.querySelector('.combat-col-right');
+    if (!equipmentContainer) return;
+    
+    // Encontrar la sección de equipo
+    const equipmentSections = equipmentContainer.querySelectorAll('.combat-section');
+    const equipmentSection = Array.from(equipmentSections).find(section => 
+        section.querySelector('.combat-section-title')?.textContent.includes('Equipo')
+    );
+    
+    if (!equipmentSection) return;
+    
+    // Reconstruir el equipo
+    let equipHTML = '<div class="space-y-1.5 max-h-40 overflow-y-auto">';
+    
+    character.equipment.forEach((slot, idx) => {
+        if (slot.item) {
+            equipHTML += `
+                <div class="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500">
+                    <p class="font-semibold text-yellow-700 dark:text-yellow-400 text-xs">${slot.slotName}</p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">${slot.item.name}</p>
+                    <div class="flex gap-1">
+                        <button class="item-action-btn btn btn-secondary flex-1 text-xs" onclick="useEquippedItem(${idx})">Usar</button>
+                        <button class="item-action-btn btn btn-danger flex-1 text-xs" onclick="unequipItem(${idx})">Desequipar</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            equipHTML += `
+                <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 border-l-4 border-gray-300 opacity-50">
+                    <p class="font-semibold text-gray-400 text-xs">${slot.slotName}</p>
+                    <p class="text-xs text-gray-500">Vacío</p>
+                </div>
+            `;
+        }
+    });
+    
+    equipHTML += '</div>';
+    
+    // Reemplazar el contenido
+    const equipContentDiv = equipmentSection.querySelector('.space-y-1\\.5');
+    if (equipContentDiv) {
+        equipContentDiv.outerHTML = equipHTML;
+    }
+}
+
+// Actualizar estados en el modo combate
+function refreshCombatStates() {
+    const statesContainer = document.querySelector('.combat-col-right');
+    if (!statesContainer) return;
+    
+    const stateSections = statesContainer.querySelectorAll('.combat-section');
+    const statesSection = Array.from(stateSections).find(section => 
+        section.querySelector('.combat-section-title')?.textContent.includes('Estados')
+    );
+    
+    if (!statesSection) return;
+    
+    let statesHTML = '<div class="space-y-1.5 max-h-40 overflow-y-auto">';
+    
+    if (character.statusEffects.length > 0) {
+        character.statusEffects.forEach(status => {
+            const itemClass = status.type === 'Buff' ? 'bg-green-100 dark:bg-green-900/30 border-green-500' : 
+                            status.type === 'Debuff' ? 'bg-red-100 dark:bg-red-900/30 border-red-500' : 
+                            'bg-gray-100 dark:bg-gray-800 border-gray-500';
+            statesHTML += `
+                <div class="p-2 rounded-lg ${itemClass} border-l-4 text-xs">
+                    <p class="font-semibold">${status.name}</p>
+                    <p class="text-xs opacity-75">${status.duration}${status.durationType.charAt(0)}</p>
+                </div>
+            `;
+        });
+    } else {
+        statesHTML += '<p class="text-xs text-gray-500 italic">Sin estados</p>';
+    }
+    
+    statesHTML += '</div>';
+    
+    const statesContentDiv = statesSection.querySelector('.space-y-1\\.5');
+    if (statesContentDiv) {
+        statesContentDiv.outerHTML = statesHTML;
+    }
+}
+
+
 function editVitalCombat(vitalType) {
     const vital = character.stats[vitalType];
     const modalContent = document.getElementById('modal-content');
@@ -1424,7 +1537,9 @@ function saveVitalEdit(vitalType) {
     
     saveAndRefresh();
     closeModal();
-    openCombatMode(); // Actualizar modo combate
+    
+    // Actualizar solo los vitales en el HTML del modo combate sin cerrar la ventana
+    refreshCombatVitals();
 }
 
 // Añadir estado en modo combate
@@ -1486,7 +1601,7 @@ function saveStatusEffect() {
     character.statusEffects.push(newStatus);
     saveAndRefresh();
     closeModal();
-    openCombatMode(); // Actualizar modo combate
+    refreshCombatStates();
 }
 
 // Equipar objeto desde inventario
@@ -1511,7 +1626,7 @@ function equipItemFromInventory(itemIndex) {
     }
     
     saveAndRefresh();
-    openCombatMode(); // Actualizar modo combate
+    refreshCombatEquipment();
 }
 
 // ===================================================================================
@@ -2445,15 +2560,6 @@ function confirmEquip(itemIndex, slotName) {
     }
 }
 
-function unequipItem(slotIndex) {
-    const slot = character.equipment[slotIndex];
-    if (slot && slot.item) {
-        character.inventory.items.push(slot.item);
-        slot.item = null;
-        slot.isDamageFormulaActive = false;
-        saveAndRefresh();
-    }
-}
 
 
 // ===================================================================================
@@ -2624,6 +2730,8 @@ function useAbility(type, index) {
         character.stats.mana.current -= ability.costMP;
         useAction(ability.costPA, ability.name); // Usar la función centralizada
         showNotification(`Resultado de ${ability.name}`, `Total: ${result.total}\nDetalle: ${result.rolls}`);
+        // Actualizar vitales en el modo combate
+        refreshCombatVitals();
     }
     saveAndRefresh();
 }
@@ -3371,7 +3479,7 @@ function unequipItem(slotIndex) {
         // Desequipar
         character.equipment[slotIndex].item = null;
         saveAndRefresh();
-        openCombatMode(); // Refrescar vista
+        refreshCombatEquipment();
         showNotification('Desequipado', `${item.name} ha sido movido al inventario`);
     }
 }
