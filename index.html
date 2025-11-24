@@ -927,7 +927,7 @@ function updateUI() {
             <div class="flex-1 min-w-0">
                 <p class="font-bold text-sm text-gray-600 dark:text-gray-400 mb-1">${baseAttr.name}</p>
                 <div class="flex items-center gap-2">
-                    <button class="btn btn-primary flex-1 h-20 text-4xl font-bold" onclick="document.getElementById('attr-${key}').focus(); document.getElementById('attr-${key}').select();" title="Click para editar">
+                    <button class="btn btn-primary flex-1 h-20 text-4xl font-bold hover:ring-4 hover:ring-blue-300 dark:hover:ring-blue-600 transition-all" onclick="editAttribute('${key}')" title="Click para editar">
                         ${baseAttr.value}
                     </button>
                     <input type="number" id="attr-${key}" class="input-field hidden" value="${baseAttr.value}" onchange="saveAndRefresh()">
@@ -2680,6 +2680,53 @@ function renderStatusEffects() {
         `;
         container.appendChild(card);
     });
+}
+
+function editAttribute(key) {
+    const attribute = character.attributes[key];
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modal-content');
+    
+    modalContent.innerHTML = `
+        <h3 class="text-2xl font-bold mb-4">Editar ${attribute.name}</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Valor Base</label>
+                <input type="number" id="edit-attr-value" class="input-field text-center text-2xl font-bold h-16" value="${attribute.value}" min="1" max="20">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Mejoras (Upgrades)</label>
+                <input type="number" id="edit-attr-upgrades" class="input-field text-center text-xl" value="${attribute.upgrades}" min="0">
+            </div>
+            <div class="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Modificador:</p>
+                <p id="edit-attr-mod-preview" class="text-3xl font-bold text-blue-600">+0</p>
+            </div>
+            <div class="flex gap-3">
+                <button class="btn btn-primary flex-1" onclick="saveAttributeEdit('${key}')">Guardar</button>
+                <button class="btn btn-secondary flex-1" onclick="closeModal()">Cancelar</button>
+            </div>
+        </div>
+    `;
+    
+    // Vista previa del modificador
+    document.getElementById('edit-attr-value').addEventListener('input', (e) => {
+        const mod = getModifier(parseInt(e.target.value) || 10);
+        document.getElementById('edit-attr-mod-preview').textContent = `${mod >= 0 ? '+' : ''}${mod}`;
+    });
+    
+    modal.classList.add('active');
+}
+
+function saveAttributeEdit(key) {
+    const newValue = parseInt(document.getElementById('edit-attr-value').value) || 10;
+    const newUpgrades = parseInt(document.getElementById('edit-attr-upgrades').value) || 0;
+    
+    character.attributes[key].value = newValue;
+    character.attributes[key].upgrades = newUpgrades;
+    
+    saveAndRefresh();
+    closeModal();
 }
 
 function openStatusEffectForm(status = null, index = -1) {
