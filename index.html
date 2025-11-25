@@ -1584,69 +1584,6 @@ function saveVitalEdit(vitalType) {
 }
 
 // Añadir estado en modo combate
-function addStatusEffectCombat() {
-    const modalContent = document.getElementById('modal-content');
-    const modal = document.getElementById('modal');
-    
-    const predefinedButtons = predefinedStatusEffects.map(effect => `<button class="btn btn-secondary w-full mb-2 text-xs" onclick="loadPredefinedStatusCombat('${effect.name}')">${effect.name}</button>`).join('');
-    
-    modalContent.innerHTML = `
-        <h3 class="text-2xl font-bold mb-4">Añadir Estado</h3>
-        <div class="modal-scrollable-content space-y-4">
-            <div class="pt-2 border-t dark:border-gray-600">
-                <h4 class="font-semibold mb-2 text-sm">Estados Predefinidos</h4>
-                <div class="grid grid-cols-2 gap-2 text-xs">${predefinedButtons}</div>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-2">Nombre del Estado</label>
-                <input type="text" id="status-name" class="input-field" placeholder="Ej: Envenenado, Quemado...">
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-2">Descripción</label>
-                <textarea id="status-description" class="input-field" placeholder="¿Qué hace este estado?" rows="2"></textarea>
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-2">Tipo</label>
-                <select id="status-type" class="input-field">
-                    <option value="Buff">Buff (Positivo)</option>
-                    <option value="Debuff">Debuff (Negativo)</option>
-                    <option value="Neutral">Neutral</option>
-                </select>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-sm font-medium mb-2">Duración</label>
-                    <input type="number" id="status-duration" class="input-field" placeholder="5" value="1" min="1">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2">Tipo de Duración</label>
-                    <select id="status-duration-type" class="input-field">
-                        <option value="Ronda">Ronda(s)</option>
-                        <option value="Turno">Turno(s)</option>
-                        <option value="Minuto">Minuto(s)</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="flex gap-3 mt-6 pt-4 border-t dark:border-gray-600">
-            <button class="btn btn-primary flex-1" onclick="saveStatusEffect()">Añadir</button>
-            <button class="btn btn-secondary flex-1" onclick="closeModal(1)">Cancelar</button>
-        </div>
-    `;
-    modal.classList.add('active');
-}
-
-function loadPredefinedStatusCombat(name) {
-    const predefined = predefinedStatusEffects.find(effect => effect.name === name);
-    if (predefined) {
-        document.getElementById('status-name').value = predefined.name;
-        document.getElementById('status-description').value = predefined.description;
-        document.getElementById('status-type').value = predefined.type;
-        document.getElementById('status-duration-type').value = predefined.durationType === 'Permanente' ? 'Ronda' : predefined.durationType;
-        document.getElementById('status-duration').value = predefined.durationType === 'Permanente' ? 1 : predefined.duration;
-    }
-}
-
 function saveStatusEffect() {
     const name = document.getElementById('status-name').value.trim();
     if (!name) {
@@ -3503,7 +3440,7 @@ function openCombatMode() {
                 <div class="combat-section">
                     <div class="flex justify-between items-center mb-3">
                         <div class="combat-section-title">🔴 Estados</div>
-                        <button class="btn btn-primary text-xs px-2 py-1" onclick="addStatusEffectCombat()">+ Añadir</button>
+                        <button class="btn btn-primary text-xs px-2 py-1" onclick="openStatusEffectForm()">+ Añadir</button>
                     </div>
                     <div class="space-y-1.5 max-h-40 overflow-y-auto">
     `;
