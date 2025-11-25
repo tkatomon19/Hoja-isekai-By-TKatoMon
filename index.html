@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Personaje - Isekai Delivery Service v4.5</title>
+    <title>Hoja de Personaje - Isekai Delivery Service v5.0 Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1335,12 +1335,18 @@ function openModal(content, level = 1) {
     targetModal.classList.add('active');
 }
 
-function closeModal(level = 'all') {
-    if (level === 1 || level === 'all') {
+function closeModal(level = 1) {
+    if (level === 1) {
         modal.classList.remove('active');
         modalContent.innerHTML = '';
     }
-    if (level === 2 || level === 'all') {
+    if (level === 2) {
+        modalSecondary.classList.remove('active');
+        modalSecondaryContent.innerHTML = '';
+    }
+    if (level === 'all') {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
         modalSecondary.classList.remove('active');
         modalSecondaryContent.innerHTML = '';
     }
@@ -1521,7 +1527,7 @@ function editVitalCombat(vitalType) {
             </div>
             <div class="flex gap-3">
                 <button class="btn btn-primary flex-1" onclick="saveVitalEdit('${vitalType}')">Guardar</button>
-                <button class="btn btn-secondary flex-1" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-secondary flex-1" onclick="closeModal(1)">Cancelar</button>
             </div>
         </div>
     `;
@@ -1535,8 +1541,13 @@ function saveVitalEdit(vitalType) {
     character.stats[vitalType].current = Math.min(newCurrent, newMax);
     character.stats[vitalType].max = newMax;
     
+    // Sincronizar en combat mode también
+    if (vitalType === 'actions') {
+        character.combat.currentActions = character.stats.actions.current;
+    }
+    
     saveAndRefresh();
-    closeModal();
+    closeModal(1); // Solo cerrar modal de edición, NO el modo combate
     
     // Actualizar solo los vitales en el HTML del modo combate sin cerrar la ventana
     refreshCombatVitals();
@@ -1545,7 +1556,7 @@ function saveVitalEdit(vitalType) {
 // Añadir estado en modo combate
 function addStatusEffectCombat() {
     const modalContent = document.getElementById('modal-content');
-    const modal = document.getElementById('modal');
+    const modal = document.getElementById('modal'); // Usar modal primario, no el secundario
     
     modalContent.innerHTML = `
         <h3 class="text-2xl font-bold mb-4">Añadir Estado</h3>
@@ -1576,7 +1587,7 @@ function addStatusEffectCombat() {
             </div>
             <div class="flex gap-3">
                 <button class="btn btn-primary flex-1" onclick="saveStatusEffect()">Añadir</button>
-                <button class="btn btn-secondary flex-1" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-secondary flex-1" onclick="closeModal(1)">Cancelar</button>
             </div>
         </div>
     `;
@@ -1600,7 +1611,7 @@ function saveStatusEffect() {
     
     character.statusEffects.push(newStatus);
     saveAndRefresh();
-    closeModal();
+    closeModal(1); // Solo cerrar el modal de edición
     refreshCombatStates();
 }
 
@@ -2729,7 +2740,12 @@ function useAbility(type, index) {
     } else {
         character.stats.mana.current -= ability.costMP;
         useAction(ability.costPA, ability.name); // Usar la función centralizada
+        
+        // Sincronizar acciones después de usar la habilidad
+        character.stats.actions.current = character.combat.currentActions;
+        
         showNotification(`Resultado de ${ability.name}`, `Total: ${result.total}\nDetalle: ${result.rolls}`);
+        
         // Actualizar vitales en el modo combate
         refreshCombatVitals();
     }
@@ -2773,6 +2789,8 @@ function useAction(cost, type) {
         message = `Has ganado ${-cost} PA. Total: ${character.combat.currentActions} PA.`;
     } else if (character.combat.currentActions >= cost) {
         character.combat.currentActions -= cost;
+        // Sincronizar con stats
+        character.stats.actions.current = character.combat.currentActions;
         message = `Usaste una Acción ${type}. Te quedan ${character.combat.currentActions} PA.`;
 
         // Procesar efectos de estado que se activan con acciones
