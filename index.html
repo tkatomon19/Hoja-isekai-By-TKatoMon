@@ -169,6 +169,10 @@
             z-index: 110 !important;
         }
         
+        #modal-tertiary {
+            z-index: 120 !important;
+        }
+        
         .modal-content {
             background: var(--card-bg); color: var(--text-color); padding: 2rem; border-radius: 1rem;
             width: 90%; max-width: 600px; transform: scale(0.95);
@@ -672,6 +676,7 @@
     <!-- Modales -->
     <div id="modal" class="modal-overlay"><div id="modal-content" class="modal-content"></div></div>
     <div id="modal-secondary" class="modal-overlay"><div id="modal-secondary-content" class="modal-content"></div></div>
+    <div id="modal-tertiary" class="modal-overlay"><div id="modal-tertiary-content" class="modal-content"></div></div>
     <div id="notification-modal" class="modal-overlay" onclick="this.classList.remove('active')">
         <div class="modal-content max-w-sm text-center" onclick="event.stopPropagation()">
             <h3 id="notification-title" class="text-xl font-bold mb-4"></h3>
@@ -1329,10 +1334,25 @@ const modalSecondary = document.getElementById('modal-secondary');
 const modalSecondaryContent = document.getElementById('modal-secondary-content');
 
 function openModal(content, level = 1) {
-    const targetModal = level === 1 ? modal : modalSecondary;
-    const targetContent = level === 1 ? modalContent : modalSecondaryContent;
-    targetContent.innerHTML = content;
-    targetModal.classList.add('active');
+    let targetModal, targetContent;
+    
+    if (level === 1) {
+        targetModal = modal;
+        targetContent = modalContent;
+    } else if (level === 2) {
+        targetModal = modalSecondary;
+        targetContent = modalSecondaryContent;
+    } else if (level === 3) {
+        targetModal = document.getElementById('modal-tertiary');
+        targetContent = document.getElementById('modal-tertiary-content');
+    }
+    
+    if (targetContent) {
+        targetContent.innerHTML = content;
+    }
+    if (targetModal) {
+        targetModal.classList.add('active');
+    }
 }
 
 function closeModal(level = 1) {
@@ -1344,11 +1364,21 @@ function closeModal(level = 1) {
         modalSecondary.classList.remove('active');
         modalSecondaryContent.innerHTML = '';
     }
+    if (level === 3) {
+        const modalTertiary = document.getElementById('modal-tertiary');
+        const modalTertiaryContent = document.getElementById('modal-tertiary-content');
+        if (modalTertiary) modalTertiary.classList.remove('active');
+        if (modalTertiaryContent) modalTertiaryContent.innerHTML = '';
+    }
     if (level === 'all') {
         modal.classList.remove('active');
         modalContent.innerHTML = '';
         modalSecondary.classList.remove('active');
         modalSecondaryContent.innerHTML = '';
+        const modalTertiary = document.getElementById('modal-tertiary');
+        const modalTertiaryContent = document.getElementById('modal-tertiary-content');
+        if (modalTertiary) modalTertiary.classList.remove('active');
+        if (modalTertiaryContent) modalTertiaryContent.innerHTML = '';
     }
 }
 
@@ -1556,14 +1586,24 @@ function saveVitalEdit(vitalType) {
 // Añadir estado en modo combate
 function addStatusEffectCombat() {
     const modalContent = document.getElementById('modal-content');
-    const modal = document.getElementById('modal'); // Usar modal primario, no el secundario
+    const modal = document.getElementById('modal');
+    
+    const predefinedButtons = predefinedStatusEffects.map(effect => `<button class="btn btn-secondary w-full mb-2 text-xs" onclick="loadPredefinedStatusCombat('${effect.name}')">${effect.name}</button>`).join('');
     
     modalContent.innerHTML = `
         <h3 class="text-2xl font-bold mb-4">Añadir Estado</h3>
-        <div class="space-y-4">
+        <div class="modal-scrollable-content space-y-4">
+            <div class="pt-2 border-t dark:border-gray-600">
+                <h4 class="font-semibold mb-2 text-sm">Estados Predefinidos</h4>
+                <div class="grid grid-cols-2 gap-2 text-xs">${predefinedButtons}</div>
+            </div>
             <div>
                 <label class="block text-sm font-medium mb-2">Nombre del Estado</label>
                 <input type="text" id="status-name" class="input-field" placeholder="Ej: Envenenado, Quemado...">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Descripción</label>
+                <textarea id="status-description" class="input-field" placeholder="¿Qué hace este estado?" rows="2"></textarea>
             </div>
             <div>
                 <label class="block text-sm font-medium mb-2">Tipo</label>
@@ -1573,25 +1613,38 @@ function addStatusEffectCombat() {
                     <option value="Neutral">Neutral</option>
                 </select>
             </div>
-            <div>
-                <label class="block text-sm font-medium mb-2">Duración</label>
-                <input type="number" id="status-duration" class="input-field" placeholder="5" value="1" min="1">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Duración</label>
+                    <input type="number" id="status-duration" class="input-field" placeholder="5" value="1" min="1">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Tipo de Duración</label>
+                    <select id="status-duration-type" class="input-field">
+                        <option value="Ronda">Ronda(s)</option>
+                        <option value="Turno">Turno(s)</option>
+                        <option value="Minuto">Minuto(s)</option>
+                    </select>
+                </div>
             </div>
-            <div>
-                <label class="block text-sm font-medium mb-2">Tipo de Duración</label>
-                <select id="status-duration-type" class="input-field">
-                    <option value="Ronda">Ronda(s)</option>
-                    <option value="Turno">Turno(s)</option>
-                    <option value="Minuto">Minuto(s)</option>
-                </select>
-            </div>
-            <div class="flex gap-3">
-                <button class="btn btn-primary flex-1" onclick="saveStatusEffect()">Añadir</button>
-                <button class="btn btn-secondary flex-1" onclick="closeModal(1)">Cancelar</button>
-            </div>
+        </div>
+        <div class="flex gap-3 mt-6 pt-4 border-t dark:border-gray-600">
+            <button class="btn btn-primary flex-1" onclick="saveStatusEffect()">Añadir</button>
+            <button class="btn btn-secondary flex-1" onclick="closeModal(1)">Cancelar</button>
         </div>
     `;
     modal.classList.add('active');
+}
+
+function loadPredefinedStatusCombat(name) {
+    const predefined = predefinedStatusEffects.find(effect => effect.name === name);
+    if (predefined) {
+        document.getElementById('status-name').value = predefined.name;
+        document.getElementById('status-description').value = predefined.description;
+        document.getElementById('status-type').value = predefined.type;
+        document.getElementById('status-duration-type').value = predefined.durationType === 'Permanente' ? 'Ronda' : predefined.durationType;
+        document.getElementById('status-duration').value = predefined.durationType === 'Permanente' ? 1 : predefined.duration;
+    }
 }
 
 function saveStatusEffect() {
@@ -3638,11 +3691,11 @@ function openLinkedEffectForm() {
             <div><label class="block text-sm font-medium">Cuándo se aplica</label><select id="effect-applyOn" class="input-field"><option value="continuo">Continuo</option><option value="ciclo">Por Ronda</option><option value="accion">Por Gasto de Acción</option></select></div>
         </div>
         <div class="flex justify-end mt-6 pt-4 border-t dark:border-gray-600">
-            <button class="btn btn-secondary" onclick="closeModal(2)">Cancelar</button>
+            <button class="btn btn-secondary" onclick="closeModal(3)">Cancelar</button>
             <button class="btn btn-primary" onclick="addLinkedEffect()">Añadir</button>
         </div>
     `;
-    openModal(content, 2);
+    openModal(content, 3);
 }
 
 function addLinkedEffect() {
