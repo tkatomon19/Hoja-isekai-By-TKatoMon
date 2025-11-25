@@ -466,7 +466,7 @@
         <!-- Header Section -->
         <div class="mb-8 pb-6 border-b-2 border-gray-300 dark:border-gray-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex-1">
-                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v4.5</h1>
+                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v5.0 Premium</h1>
                 <p class="text-lg text-gray-600 dark:text-gray-400">Los cambios se guardan automáticamente en tu navegador</p>
             </div>
             <button id="combat-mode-btn" class="btn btn-primary h-14 px-6 whitespace-nowrap text-lg font-bold shadow-lg hover:shadow-xl" onclick="openCombatMode()">
@@ -694,8 +694,8 @@ const SKILL_POINTS_PER_LEVEL = {
 };
 const EVOLUTION_LEVELS = [5, 10, 15, 20];
 const RARITIES = ['Intrínseco', 'Común', 'Raro', 'Épico', 'Legendario', 'Mítico / Único', 'Genesis'];
-const LOCAL_STORAGE_KEY = 'characterSheetData_v4.5'; // Updated version key
-const THEME_STORAGE_KEY = 'characterSheetTheme_v4.5'; // Updated version key
+const LOCAL_STORAGE_KEY = 'characterSheetData_v5.0'; // Updated version key
+const THEME_STORAGE_KEY = 'characterSheetTheme_v5.0'; // Updated version key
 
 const ELEMENTS_CONFIG = {
     fuego: { name: 'Fuego', emoji: '🔥', color: 'bg-red-100 dark:bg-red-900/50' },
@@ -1412,7 +1412,7 @@ function refreshCombatVitals() {
     // Actualizar Acciones
     const actionsValue = document.querySelector('.vital-actions .combat-stat-value');
     if (actionsValue) {
-        actionsValue.textContent = `${character.stats.actions.current}`;
+        actionsValue.textContent = `${character.combat.currentActions}`;
     }
 }
 
@@ -2914,7 +2914,7 @@ document.getElementById('export-json-btn').addEventListener('click', () => {
     const exportData = { character: character, theme: themeData };
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileDefaultName = `${character.identity.name.replace(/\s/g, '_') || 'personaje'}_v4.5.json`;
+    const exportFileDefaultName = `${character.identity.name.replace(/\s/g, '_') || 'personaje'}_v5.0_premium.json`;
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
@@ -3280,7 +3280,7 @@ function openCombatMode() {
                         </div>
                         <div class="combat-stat-item vital-actions cursor-pointer hover:shadow-lg transition-all" onclick="editVitalCombat('actions')" title="Click para editar">
                             <span class="combat-stat-label">Acciones</span>
-                            <span class="combat-stat-value">${character.stats.actions.current}</span>
+                            <span class="combat-stat-value">${character.combat.currentActions}</span>
                         </div>
                     </div>
                 </div>
