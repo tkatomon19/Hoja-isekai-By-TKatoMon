@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Personaje - Isekai Delivery Service v6.10 Premium</title>
+    <title>Hoja de Personaje - Isekai Delivery Service v6.11 Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -487,7 +487,7 @@
         <!-- Header Section -->
         <div class="mb-8 pb-6 border-b-2 border-gray-300 dark:border-gray-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex-1">
-                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v6.10 Premium</h1>
+                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v6.11 Premium</h1>
                 <p class="text-lg text-gray-600 dark:text-gray-400">Los cambios se guardan automáticamente en tu navegador</p>
             </div>
             <!-- Modo Combate eliminado: acciones integradas en la vista principal -->
@@ -715,8 +715,8 @@ const SKILL_POINTS_PER_LEVEL = {
 };
 const EVOLUTION_LEVELS = [5, 10, 15, 20];
 const RARITIES = ['Intrínseco', 'Común', 'Raro', 'Épico', 'Legendario', 'Mítico / Único', 'Genesis'];
-const LOCAL_STORAGE_KEY = 'characterSheetData_v6.10'; // Updated version key
-const THEME_STORAGE_KEY = 'characterSheetTheme_v6.10'; // Updated version key
+const LOCAL_STORAGE_KEY = 'characterSheetData_v6.11'; // Updated version key
+const THEME_STORAGE_KEY = 'characterSheetTheme_v6.11'; // Updated version key
 
 const ELEMENTS_CONFIG = {
     fuego: { name: 'Fuego', emoji: '🔥', color: 'bg-red-100 dark:bg-red-900/50' },
@@ -2000,14 +2000,13 @@ function openInventoryForm(type = 'skills', item = null, index = -1) {
         } catch (e) { result = 'ERR'; }
         
         return `
-        <div class="grid grid-cols-12 gap-2 items-end mb-3 p-3 border rounded bg-gray-50 dark:bg-gray-700" id="formula-row-${i}">
-            <input type="checkbox" class="formula-check col-span-1" ${formula.activa ? 'checked' : ''} onchange="setActiveFormula(this.closest('[id^=formula-row]').id)">
-            <input type="text" class="input-field col-span-2 formula-title text-sm" placeholder="Título" value="${formula.titulo || ''}">
-            <textarea class="input-field col-span-7 formula-input" placeholder="Ej: (FUE)d6 + (Mod.MET)" rows="2" onblur="updateFormulaResult('formula-row-${i}')" oninput="updateFormulaResult('formula-row-${i}')">${formula.formula}</textarea>
-            <div class="col-span-1 text-xs font-mono text-center p-2 bg-green-100 dark:bg-green-900 rounded formula-result font-bold">${result}</div>
-            <button class="btn btn-danger text-xs col-span-1" onclick="document.getElementById('formula-row-${i}').remove()">✕</button>
-        </div>
-    `}).join('');
+        <div class="grid grid-cols-12 gap-2 items-end mb-3 p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 shadow-sm ${formula.activa ? 'ring-2 ring-blue-500' : ''}" id="formula-row-${i}">
+            <label class="col-span-1 cursor-pointer flex items-center justify-center" title="Marcar como fórmula activa">
+                <input type="checkbox" class="formula-check w-5 h-5 cursor-pointer accent-blue-500" ${formula.activa ? 'checked' : ''} onchange="setActiveFormula('formula-row-${i}')">
+            </label>
+            <input type="text" class="input-field col-span-2 formula-title text-sm" placeholder="Título (ej: Daño)" value="${formula.titulo || ''}">
+            <textarea class="input-field col-span-7 formula-input font-mono text-sm" placeholder="Ej: (FUE)d6 + (Mod.MET)" rows="2" onblur="updateFormulaResult('formula-row-${i}')" oninput="updateFormulaResult('formula-row-${i}')">${formula.formula}</textarea>\n            <div class="col-span-1 text-xs font-mono text-center p-2 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded-md formula-result font-bold border border-green-300 dark:border-green-700">${result}</div>\n            <button class="btn btn-danger text-xs col-span-1 h-fit" onclick="document.getElementById('formula-row-${i}').remove()">✕</button>
+        </div>\n    `}).join('');
     
     const costsHtml = costs.map((cost, i) => `
         <div class="flex gap-2 items-end mb-2" id="cost-row-${i}">
@@ -2103,22 +2102,27 @@ function addInventoryFormulaRow() {
     const container = document.getElementById('item-formulas-container');
     const id = 'formula-' + Date.now();
     const row = document.createElement('div');
-    row.className = 'grid grid-cols-12 gap-2 items-end mb-3 p-3 border rounded bg-gray-50 dark:bg-gray-700';
+    row.className = 'grid grid-cols-12 gap-2 items-end mb-3 p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 shadow-sm';
     row.id = id;
     
     row.innerHTML = `
-        <input type="checkbox" class="formula-check col-span-1">
-        <input type="text" class="input-field col-span-2 formula-title text-sm" placeholder="Título">
-        <textarea class="input-field col-span-7 formula-input" placeholder="Ej: (FUE)d6 + (Mod.MET)" rows="2"></textarea>
-        <div class="col-span-1 text-xs font-mono text-center p-2 bg-blue-100 dark:bg-blue-900 rounded formula-result">-</div>
-        <button class="btn btn-danger text-xs col-span-1" onclick="document.getElementById('${id}').remove()">✕</button>
+        <label class="col-span-1 cursor-pointer flex items-center justify-center" title="Marcar como fórmula activa">
+            <input type="checkbox" class="formula-check w-5 h-5 cursor-pointer accent-blue-500" onchange="setActiveFormula('${id}')">
+        </label>
+        <input type="text" class="input-field col-span-2 formula-title text-sm" placeholder="Título (ej: Daño)">
+        <textarea class="input-field col-span-7 formula-input font-mono text-sm" placeholder="Ej: (FUE)d6 + (Mod.MET)" rows="2"></textarea>
+        <div class="col-span-1 text-xs font-mono text-center p-2 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded-md formula-result font-bold border border-blue-300 dark:border-blue-700">-</div>
+        <button class="btn btn-danger text-xs col-span-1 h-fit" onclick="document.getElementById('${id}').remove()">✕</button>
     `;
     container.insertBefore(row, container.lastElementChild);
     
     const textarea = row.querySelector('textarea');
+    const checkbox = row.querySelector('.formula-check');
+    
     textarea.focus();
     textarea.addEventListener('blur', () => updateFormulaResult(id));
     textarea.addEventListener('input', () => updateFormulaResult(id));
+    checkbox.addEventListener('change', () => setActiveFormula(id));
 }
 
 function saveInventoryItem(type, index) {
@@ -2140,7 +2144,8 @@ function saveInventoryItem(type, index) {
     const formulas = [];
     const formulasContainer = document.getElementById('item-formulas-container');
     if (formulasContainer) {
-        formulasContainer.querySelectorAll('[id^="formula-row"]').forEach(row => {
+        formulasContainer.querySelectorAll('[id^="formula-row"], [id^="formula-"]').forEach(row => {
+            if (row.tagName === 'BUTTON') return;
             const titleEl = row.querySelector('.formula-title');
             const formulaEl = row.querySelector('.formula-input');
             const checkEl = row.querySelector('.formula-check');
@@ -2326,7 +2331,14 @@ function addFormulaRow() {
 }
 
 function setActiveFormula(rowId) {
-    const container = document.getElementById('formulas-container');
+    // El contenedor del nuevo sistema
+    let container = document.getElementById('item-formulas-container');
+    
+    // Fallback al sistema antiguo si es necesario
+    if (!container) {
+        container = document.getElementById('formulas-container');
+    }
+    
     if (!container) return;
     
     // Desactivar todos los checkboxes
@@ -2334,8 +2346,11 @@ function setActiveFormula(rowId) {
     allCheckboxes.forEach(cb => cb.checked = false);
     
     // Activar solo el seleccionado
-    const checkbox = document.getElementById(rowId).querySelector('.formula-check');
-    if (checkbox) checkbox.checked = true;
+    const row = document.getElementById(rowId);
+    if (row) {
+        const checkbox = row.querySelector('.formula-check');
+        if (checkbox) checkbox.checked = true;
+    }
 }
 
 function updateFormulaResult(rowId) {
@@ -2465,23 +2480,28 @@ function renderFormulaBuilder(containerId, textareaId) {
 function addToFormula(text, textareaId) {
     let textarea = null;
     
-    // 1. Si se proporciona textareaId, intentar usarlo
-    if (textareaId) {
-        textarea = document.getElementById(textareaId);
-    }
-    
-    // 2. Si no encontramos textarea, buscar la fórmula activa (con checkbox marcado)
-    if (!textarea) {
-        const activeCheckbox = document.querySelector('.formula-check:checked');
-        if (activeCheckbox) {
-            const activeRow = activeCheckbox.closest('[id^="formula-row"]');
-            if (activeRow) {
-                textarea = activeRow.querySelector('textarea.formula-input');
+    // PRIORIDAD 1: Si hay UNA Y SOLO UNA fórmula con checkbox marcado, agregar ALLÍ
+    const checkedCheckbox = document.querySelector('.formula-check:checked');
+    if (checkedCheckbox) {
+        const checkedRow = checkedCheckbox.closest('[id^="formula-row"], [id^="formula-"]');
+        if (checkedRow) {
+            textarea = checkedRow.querySelector('textarea.formula-input');
+            if (textarea) {
+                // Agregar al textarea marcado
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const before = textarea.value.substring(0, start);
+                const after = textarea.value.substring(end);
+                textarea.value = before + text + after;
+                textarea.selectionStart = textarea.selectionEnd = start + text.length;
+                textarea.dispatchEvent(new Event('input', { bubbles: true }));
+                textarea.focus();
+                return; // SALIR - Solo agregar a la activa
             }
         }
     }
     
-    // 3. Si aún no hay textarea, buscar en item-formulas-container (nuevo sistema unificado)
+    // PRIORIDAD 2: Si no hay marcada, buscar en item-formulas-container (nuevo sistema)
     if (!textarea) {
         const container = document.getElementById('item-formulas-container');
         if (container) {
@@ -2492,7 +2512,7 @@ function addToFormula(text, textareaId) {
         }
     }
     
-    // 4. Fallback: buscar en formulas-container (sistema antiguo)
+    // PRIORIDAD 3: Fallback a formulas-container (sistema antiguo)
     if (!textarea) {
         const container = document.getElementById('formulas-container');
         if (container) {
@@ -2511,11 +2531,9 @@ function addToFormula(text, textareaId) {
     const after = textarea.value.substring(end);
     textarea.value = before + text + after;
     textarea.selectionStart = textarea.selectionEnd = start + text.length;
-    
-    // Trigger input event para actualizar resultado
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
     textarea.focus();
-}
+}}
 
 function openAdvancedDiceModal(textareaId) {
     const content = `
@@ -3825,7 +3843,7 @@ document.getElementById('export-json-btn').addEventListener('click', () => {
     const exportData = { character: character, theme: themeData };
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileDefaultName = `${character.identity.name.replace(/\s/g, '_') || 'personaje'}_v6.10_premium.json`;
+    const exportFileDefaultName = `${character.identity.name.replace(/\s/g, '_') || 'personaje'}_v6.11_premium.json`;
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
