@@ -1418,27 +1418,11 @@ function addEventListeners() {
 
     const addSkillBtn = document.getElementById('add-skill-btn');
     if (addSkillBtn) {
-        addSkillBtn.addEventListener('click', () => {
-            if (character.skillPoints < 1) {
-                showNotification('Puntos Insuficientes', 'Necesitas al menos 1 Punto de Habilidad para añadir una nueva habilidad.');
-                return;
-            }
-            character.skillPoints -= 1;
-            updateUI();
-            openInventoryForm('skills');
-        });
+        addSkillBtn.addEventListener('click', () => openInventoryForm('skills'));
     }
     const addTechBtn = document.getElementById('add-technique-btn');
     if (addTechBtn) {
-        addTechBtn.addEventListener('click', () => {
-            if (character.skillPoints < 2) {
-                showNotification('Puntos Insuficientes', 'Necesitas al menos 2 Puntos de Habilidad para añadir una nueva técnica/hechizo.');
-                return;
-            }
-            character.skillPoints -= 2;
-            updateUI();
-            openInventoryForm('techniques');
-        });
+        addTechBtn.addEventListener('click', () => openInventoryForm('techniques'));
     }
     const addItemBtn = document.getElementById('add-item-btn');
     if (addItemBtn) {
@@ -1791,6 +1775,26 @@ function reduceSkillLevel(index) {
     character.skillPoints = (character.skillPoints || 0) + refund;
     saveAndRefresh();
     showNotification('PH Recuperado', `Has recuperado ${refund} PH al reducir el nivel de ${skill.name}.`);
+}
+
+function reduceTechniqueLevel(index) {
+    const tech = character.inventory.techniques[index];
+    if (!tech) {
+        console.error('Technique not found at index:', index);
+        showNotification('Error', 'No se pudo encontrar la técnica/hechizo.');
+        return;
+    }
+    if (!tech.upgrades || tech.upgrades <= 0) {
+        showNotification('Reducir Nivel', 'Esta técnica/hechizo no tiene niveles para reducir.');
+        return;
+    }
+    const lastUpgradeIndex = tech.upgrades - 1;
+    const refund = getUpgradeCost(lastUpgradeIndex);
+    tech.upgrades = Math.max(0, tech.upgrades - 1);
+    tech.level = Math.max(0, (tech.level || 0) - 1);
+    character.skillPoints = (character.skillPoints || 0) + refund;
+    saveAndRefresh();
+    showNotification('PH Recuperado', `Has recuperado ${refund} PH al reducir el nivel de ${tech.name}.`);
 }
 
 function openSpendSkillPointsModal() {
@@ -2919,6 +2923,7 @@ function renderSkillCard(skill, index) {
             <div class="flex-1">
                 <p class="font-bold">${skill.name} <span class="text-sm font-normal">(Nvl ${skill.level || 0})</span></p>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${skill.description || 'Sin descripción.'}</p>
+                <p class="text-sm mt-1"><strong>Tipo:</strong> ${skill.type || 'Activa'}</p>
                 <select class="input-field item-rarity-select mt-2 text-sm" onchange="changeRarity('skills', ${index}, this.value)">${rarityOptions}</select>
                 <p class="text-sm mt-2"><strong>Costes:</strong> ${costsHtml}</p>
                 <p class="text-sm mt-1"><strong>Fórmulas:</strong> ${formulasHtml || 'Sin fórmulas'}</p>
@@ -3120,7 +3125,11 @@ function renderTechniqueCard(tech, index) {
     if (tech.formulas && typeof tech.formulas === 'string') {
         try { formulas = JSON.parse(tech.formulas); } catch(e) { }
     }
-    const formulasHtml = formulas.map(f => `<code class="text-xs font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">${f}</code>`).join('');
+    const formulasHtml = formulas.map(f => {
+        const formulaObj = typeof f === 'string' ? {formula: f, titulo: ''} : f;
+        const displayText = formulaObj.titulo ? `${formulaObj.titulo}: ${formulaObj.formula}` : formulaObj.formula;
+        return `<code class="text-xs font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">${displayText}</code>`;
+    }).join('');
     
     let damageSwitch = '';
     if (tech.formula || (formulas && formulas.length > 0)) {
@@ -3138,9 +3147,11 @@ function renderTechniqueCard(tech, index) {
             <div class="flex-1">
                 <p class="font-bold">${tech.name} <span class="text-sm font-normal">(Nvl ${tech.level || 0})</span></p>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${tech.description || 'Sin descripción.'}</p>
+                <p class="text-sm mt-1"><strong>Tipo:</strong> ${tech.type || 'Técnica'}</p>
                 <select class="input-field item-rarity-select mt-2 text-sm" onchange="changeRarity('techniques', ${index}, this.value)">${rarityOptions}</select>
                 <p class="text-sm mt-2"><strong>Costes:</strong> ${costsHtml}</p>
                 <p class="text-sm mt-1"><strong>Fórmulas:</strong> ${formulasHtml || 'Sin fórmulas'}</p>
+                <p class="text-sm mt-1">Niveles: ${tech.upgrades || 0} ${tech.upgrades && tech.upgrades>0 ? `<button class="btn btn-secondary text-xs ml-2" onclick="reduceTechniqueLevel(${index})">Reducir Nivel</button>` : ''}</p>
                 ${damageSwitch}
             </div>
             <div class="flex flex-col space-y-1 ml-2">
