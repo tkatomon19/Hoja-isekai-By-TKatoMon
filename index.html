@@ -2463,20 +2463,43 @@ function renderFormulaBuilder(containerId, textareaId) {
 }
 
 function addToFormula(text, textareaId) {
-    // Si no hay un ID específico, insertar en el último textarea del contenedor
     let textarea = null;
     
+    // 1. Si se proporciona textareaId, intentar usarlo
     if (textareaId) {
         textarea = document.getElementById(textareaId);
     }
     
+    // 2. Si no encontramos textarea, buscar la fórmula activa (con checkbox marcado)
     if (!textarea) {
-        // Buscar en el contenedor de fórmulas
+        const activeCheckbox = document.querySelector('.formula-check:checked');
+        if (activeCheckbox) {
+            const activeRow = activeCheckbox.closest('[id^="formula-row"]');
+            if (activeRow) {
+                textarea = activeRow.querySelector('textarea.formula-input');
+            }
+        }
+    }
+    
+    // 3. Si aún no hay textarea, buscar en item-formulas-container (nuevo sistema unificado)
+    if (!textarea) {
+        const container = document.getElementById('item-formulas-container');
+        if (container) {
+            const textareas = container.querySelectorAll('textarea.formula-input');
+            if (textareas.length > 0) {
+                textarea = textareas[textareas.length - 1];
+            }
+        }
+    }
+    
+    // 4. Fallback: buscar en formulas-container (sistema antiguo)
+    if (!textarea) {
         const container = document.getElementById('formulas-container');
-        if (!container) return;
-        const textareas = container.querySelectorAll('textarea.formula-input');
-        if (textareas.length > 0) {
-            textarea = textareas[textareas.length - 1];
+        if (container) {
+            const textareas = container.querySelectorAll('textarea.formula-input');
+            if (textareas.length > 0) {
+                textarea = textareas[textareas.length - 1];
+            }
         }
     }
     
@@ -2488,6 +2511,9 @@ function addToFormula(text, textareaId) {
     const after = textarea.value.substring(end);
     textarea.value = before + text + after;
     textarea.selectionStart = textarea.selectionEnd = start + text.length;
+    
+    // Trigger input event para actualizar resultado
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
     textarea.focus();
 }
 
@@ -3494,11 +3520,6 @@ function openDiceBuilderModal(targetTextareaId) {
             closeModal(2);
         } else showNotification("Error", "Debes especificar el número de caras del dado.");
     };
-}
-
-function addToFormula(text, targetTextareaId) {
-    const textarea = document.getElementById(targetTextareaId);
-    if (textarea) textarea.value += text;
 }
 
 function safeEvaluateFormula(baseFormula, options = {}) {
