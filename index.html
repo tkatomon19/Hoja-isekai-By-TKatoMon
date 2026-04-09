@@ -2102,17 +2102,17 @@ function addInventoryFormulaRow() {
     const container = document.getElementById('item-formulas-container');
     const id = 'formula-' + Date.now();
     const row = document.createElement('div');
-    row.className = 'grid grid-cols-12 gap-2 items-end mb-3 p-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 shadow-sm';
+    row.className = 'grid grid-cols-12 gap-2 items-end mb-3 p-4 border-2 border-blue-300 dark:border-blue-600 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 shadow-md hover:shadow-lg transition-all';
     row.id = id;
     
     row.innerHTML = `
-        <label class="col-span-1 cursor-pointer flex items-center justify-center" title="Marcar como fórmula activa">
-            <input type="checkbox" class="formula-check w-5 h-5 cursor-pointer accent-blue-500" onchange="setActiveFormula('${id}')">
+        <label class="col-span-1 cursor-pointer flex items-center justify-center h-full" title="Marcar como fórmula activa">
+            <input type="checkbox" class="formula-check w-6 h-6 cursor-pointer accent-blue-600 rounded" onchange="setActiveFormula('${id}')">
         </label>
-        <input type="text" class="input-field col-span-2 formula-title text-sm" placeholder="Título (ej: Daño)">
-        <textarea class="input-field col-span-7 formula-input font-mono text-sm" placeholder="Ej: (FUE)d6 + (Mod.MET)" rows="2"></textarea>
-        <div class="col-span-1 text-xs font-mono text-center p-2 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded-md formula-result font-bold border border-blue-300 dark:border-blue-700">-</div>
-        <button class="btn btn-danger text-xs col-span-1 h-fit" onclick="document.getElementById('${id}').remove()">✕</button>
+        <input type="text" class="input-field col-span-2 formula-title text-sm font-semibold placeholder-blue-400" placeholder="Daño">
+        <textarea class="input-field col-span-7 formula-input font-mono text-sm border-blue-200 dark:border-blue-700 focus:ring-blue-500" placeholder="Ej: (FUE)d6 + (Mod.MET)" rows="2"></textarea>
+        <div class="col-span-1 text-xs font-bold font-mono text-center p-2 bg-gradient-to-br from-blue-400 to-blue-600 text-white rounded-md formula-result shadow-sm">-</div>
+        <button class="btn btn-danger text-xs col-span-1 h-fit hover:scale-110 transition-transform" onclick="document.getElementById('${id}').remove()" title="Eliminar fórmula">✕</button>
     `;
     container.insertBefore(row, container.lastElementChild);
     
