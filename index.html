@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Personaje - Isekai Delivery Service v6.8 Premium</title>
+    <title>Hoja de Personaje - Isekai Delivery Service v6.9 Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -487,7 +487,7 @@
         <!-- Header Section -->
         <div class="mb-8 pb-6 border-b-2 border-gray-300 dark:border-gray-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex-1">
-                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v6.8 Premium</h1>
+                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v6.9 Premium</h1>
                 <p class="text-lg text-gray-600 dark:text-gray-400">Los cambios se guardan automáticamente en tu navegador</p>
             </div>
             <!-- Modo Combate eliminado: acciones integradas en la vista principal -->
@@ -715,8 +715,8 @@ const SKILL_POINTS_PER_LEVEL = {
 };
 const EVOLUTION_LEVELS = [5, 10, 15, 20];
 const RARITIES = ['Intrínseco', 'Común', 'Raro', 'Épico', 'Legendario', 'Mítico / Único', 'Genesis'];
-const LOCAL_STORAGE_KEY = 'characterSheetData_v6.8'; // Updated version key
-const THEME_STORAGE_KEY = 'characterSheetTheme_v6.8'; // Updated version key
+const LOCAL_STORAGE_KEY = 'characterSheetData_v6.9'; // Updated version key
+const THEME_STORAGE_KEY = 'characterSheetTheme_v6.9'; // Updated version key
 
 const ELEMENTS_CONFIG = {
     fuego: { name: 'Fuego', emoji: '🔥', color: 'bg-red-100 dark:bg-red-900/50' },
@@ -1104,7 +1104,6 @@ function calculateDerivedStats() {
 function updateUI() {
     if (!character) return;
 
-    // Identity
     document.getElementById('char-name').value = character.identity.name;
     document.getElementById('char-race').value = character.identity.race;
     document.getElementById('char-notes').value = character.identity.notes;
@@ -1114,7 +1113,6 @@ function updateUI() {
     document.getElementById('char-spirits').value = character.identity.spirits;
     document.getElementById('char-size').value = character.identity.size;
 
-    // Attributes
     const attributesContainer = document.getElementById('attributes-container');
     attributesContainer.innerHTML = '';
     let baseAttributes = JSON.parse(JSON.stringify(character.attributes));
@@ -1181,7 +1179,6 @@ function updateUI() {
     document.getElementById('xp-bar').style.width = `${Math.min(xpPercentage, 100)}%`;
 
 
-    // Stats
     const statsContainer = document.getElementById('stats-container');
     statsContainer.innerHTML = '';
     const statsToDisplay = {
@@ -1228,11 +1225,9 @@ function updateUI() {
         }
     }
 
-    // Combat
     document.getElementById('current-actions').textContent = character.combat.currentActions;
     document.getElementById('max-actions').textContent = character.stats.actions.current;
     
-    // Technique Slots
     const level = character.stats.level.current;
     let slots = 0;
     if (level >= 1 && level <= 4) slots = 3;
@@ -1277,7 +1272,6 @@ function renderElements() {
 }
 
 function addEventListeners() {
-    // Attributes
     for (const key in character.attributes) {
         const input = document.getElementById(`attr-${key}`);
         if(input) {
@@ -1288,7 +1282,6 @@ function addEventListeners() {
         }
     }
     
-    // Stats
     ['health', 'mana'].forEach(key => {
         const input = document.getElementById(`stat-${key}-current`);
         if(input) {
@@ -1323,10 +1316,21 @@ function addEventListeners() {
         }
     }
 
-    // Skill button listener
     const addSkillBtn = document.getElementById('add-skill-btn');
     if (addSkillBtn) {
         addSkillBtn.addEventListener('click', () => openSkillForm());
+    }
+    const addTechBtn = document.getElementById('add-technique-btn');
+    if (addTechBtn) {
+        addTechBtn.addEventListener('click', () => openTechniqueForm());
+    }
+    const addItemBtn = document.getElementById('add-item-btn');
+    if (addItemBtn) {
+        addItemBtn.addEventListener('click', () => openItemForm());
+    }
+    const addPetBtn = document.getElementById('add-pet-btn');
+    if (addPetBtn) {
+        addPetBtn.addEventListener('click', () => openPetForm());
     }
 }
 
@@ -1345,10 +1349,6 @@ function renderList(type, list, renderer) {
         container.appendChild(renderer(item, index));
     });
 }
-
-// ===================================================================================
-// LÓGICA DE MODALES
-// ===================================================================================
 
 const modal = document.getElementById('modal');
 const modalContent = document.getElementById('modal-content');
@@ -1410,7 +1410,6 @@ function showNotification(title, message) {
     document.getElementById('notification-modal').classList.add('active');
 }
 
-// Tirada de atributo en modo combate con dice roll
 function rollAttributeCheckCombat(key) {
     const attr = character.attributes[key];
     if (!attr) return;
@@ -1427,7 +1426,6 @@ function rollAttributeCheckCombat(key) {
     showNotification(`Tirada de ${attr.name}`, message);
 }
 
-// Usar acción de combate con costo
 function useCombatAction(actionName, cost) {
     if (character.combat.currentActions < cost) {
         showNotification('Acción No Disponible', `No tienes suficientes acciones. Necesitas ${cost}, tienes ${character.combat.currentActions}`);
@@ -1441,34 +1439,28 @@ function useCombatAction(actionName, cost) {
     refreshCombatVitals();
 }
 
-// Actualizar solo los vitales en el modo combate sin reabrirlo
 function refreshCombatVitals() {
-    // Actualizar Vida
     const healthValue = document.querySelector('.vital-health .combat-stat-value');
     if (healthValue) {
         healthValue.textContent = `${character.stats.health.current}/${character.stats.health.max}`;
     }
     
-    // Actualizar Místyculas
     const manaValue = document.querySelector('.vital-mana .combat-stat-value');
     if (manaValue) {
         manaValue.textContent = `${character.stats.mana.current}/${character.stats.mana.max}`;
     }
     
-    // Actualizar Armadura
     const armorValue = document.querySelector('.vital-armor .combat-stat-value');
     if (armorValue) {
         armorValue.textContent = `${character.stats.armor.current}`;
     }
     
-    // Actualizar Acciones
     const actionsValue = document.querySelector('.vital-actions .combat-stat-value');
     if (actionsValue) {
         actionsValue.textContent = `${character.combat.currentActions}`;
     }
 }
 
-// Actualizar equipamiento en el modo combate
 function refreshCombatEquipment() {
     const equipmentContainer = document.querySelector('.combat-col-right');
     if (!equipmentContainer) return;
@@ -1515,7 +1507,6 @@ function refreshCombatEquipment() {
     }
 }
 
-// Actualizar estados en el modo combate
 function refreshCombatStates() {
     const statesContainer = document.querySelector('.combat-col-right');
     if (!statesContainer) return;
@@ -1605,7 +1596,6 @@ function saveVitalEdit(vitalType) {
     refreshCombatVitals();
 }
 
-// Añadir estado en modo combate
 function saveStatusEffect() {
     const name = document.getElementById('status-name').value.trim();
     if (!name) {
@@ -1627,7 +1617,6 @@ function saveStatusEffect() {
     refreshCombatStates();
 }
 
-// Equipar objeto desde inventario
 function equipItemFromInventory(itemIndex) {
     const item = character.inventory.items[itemIndex];
     if (!item) return;
@@ -1652,9 +1641,6 @@ function equipItemFromInventory(itemIndex) {
     refreshCombatEquipment();
 }
 
-// ===================================================================================
-// SISTEMA DE PUNTOS DE HABILIDAD (PH)
-// ===================================================================================
 function getUpgradeCost(currentUpgrades) {
     if (currentUpgrades <= 1) return 2;
     if (currentUpgrades <= 4) return 3;
@@ -1663,7 +1649,6 @@ function getUpgradeCost(currentUpgrades) {
     return Infinity; // Max 10 upgrades
 }
 
-// Helper: calculate total PH spent for a number of upgrades
 function calculateTotalPHSpentForUpgrades(upgradesCount) {
     let total = 0;
     for (let i = 0; i < upgradesCount; i++) {
@@ -1672,7 +1657,6 @@ function calculateTotalPHSpentForUpgrades(upgradesCount) {
     return total;
 }
 
-// Reduce a skill's level (one upgrade) and refund PH accordingly
 function reduceSkillLevel(index) {
     const skill = character.inventory.skills[index];
     if (!skill) {
@@ -1773,9 +1757,6 @@ function upgradeStat(type, keyOrIndex) {
     }
 }
 
-// ===================================================================================
-// AFINIDAD ELEMENTAL, FUSIÓN Y ESPÍRITUS
-// ===================================================================================
 function getBonusForRelation(value) {
     if (value <= 19) return -10;
     if (value <= 39) return -8;
@@ -1911,7 +1892,6 @@ function askSpiritFavor(elementKey) {
             `Tirada: ${roll} ${bonusString} (Bono) = ${totalRoll}\n\nAunque la tirada fue menor que tu relación (${relationThreshold}), tu vínculo con el espíritu reforzó la petición.\n\n**Se concede un ${favorResult.name}.**`
         );
     } else {
-        // Success
         showNotification(`Petición a ${elementName} Exitosa!`, 
             `Tirada: ${roll} ${bonusString} (Bono) = ${totalRoll} (Supera o iguala ${relationThreshold})\n\nResultado: ${favorResult.name}\n${favorResult.description}`
         );
@@ -1920,10 +1900,6 @@ function askSpiritFavor(elementKey) {
     saveCharacterToLocalStorage(); // Save just in case.
 };
 
-
-// ===================================================================================
-// LÓGICA DE INVENTARIO
-// ===================================================================================
 
 function createRaritySelector(selectedRarity = 'Común') {
     return `
@@ -1936,13 +1912,11 @@ function createRaritySelector(selectedRarity = 'Común') {
     `;
 }
 
-// --- Habilidades ---
 function openSkillForm(skill = null, index = -1) {
     const isEditing = skill !== null;
     const title = isEditing ? 'Editar Habilidad' : 'Añadir Habilidad';
     const btnText = isEditing ? 'Guardar Cambios' : 'Crear Habilidad';
     
-    // Parse costs from JSON if exists
     let costs = [];
     if (skill && skill.costs && typeof skill.costs === 'string') {
         try { costs = JSON.parse(skill.costs); } catch(e) { costs = []; }
@@ -1957,7 +1931,6 @@ function openSkillForm(skill = null, index = -1) {
         if (skill.costResources) costs.push({type: 'Recursos', value: skill.costResources});
     }
     
-    // Parse formulas
     // Parse formulas - now array of objects {titulo, formula, activa}
     let formulas = [];
     if (skill && skill.formulas && typeof skill.formulas === 'string') {
@@ -2111,8 +2084,6 @@ function updateFormulaResult(rowId) {
         resultEl.className = 'col-span-1 text-xs font-mono text-center p-2 bg-red-100 dark:bg-red-900 rounded formula-result';
     }
 }
-
-// ===== SISTEMA COMPLETO DE FÓRMULAS =====
 
 function renderFormulaBuilder(containerId, textareaId) {
     const container = document.getElementById(containerId);
@@ -2465,9 +2436,6 @@ function toggleAbilityDamage(index, type) {
     saveCharacterToLocalStorage();
 }
 
-// --- Técnicas/Hechizos ---
-document.getElementById('add-technique-btn').addEventListener('click', () => openTechniqueForm());
-
 function openTechniqueForm(tech = null, index = -1) {
     const isEditing = tech !== null;
     const title = isEditing ? 'Editar Técnica/Hechizo' : 'Añadir Técnica/Hechizo';
@@ -2599,7 +2567,6 @@ function saveTechnique(index) {
         }
     });
     
-    // Maintain backward compatibility
     let costPA = 0, costMP = 0;
     costs.forEach(cost => {
         if (cost.type === 'PA') costPA = parseInt(cost.value) || 0;
@@ -2677,9 +2644,6 @@ function renderTechniqueCard(tech, index) {
     return card;
 }
 
-
-// --- Objetos ---
-document.getElementById('add-item-btn').addEventListener('click', () => openItemForm());
 
 function openItemForm(item = null, index = -1) {
     const isEditing = item !== null;
@@ -2807,8 +2771,6 @@ function renderItemCard(item, index) {
 }
 
 // --- Mascotas ---
-document.getElementById('add-pet-btn').addEventListener('click', () => openPetForm());
-
 function calculatePetStats(pet) {
     if (!pet.attributes) return pet;
     const mods = {
@@ -3054,7 +3016,6 @@ function deletePetSkill(petIndex, skillIndex) {
     // FUNCIÓN REMOVIDA: Las habilidades de mascotas han sido eliminadas del sistema
 }
 
-// --- Borrado genérico ---
 function deleteItem(type, index) {
     const item = character.inventory[type] && character.inventory[type][index];
     if (!item) return;
@@ -3082,10 +3043,6 @@ function deleteItem(type, index) {
     };
 }
 
-
-// ===================================================================================
-// LÓGICA DE EQUIPAMIENTO
-// ===================================================================================
 
 document.getElementById('manage-slots-btn').addEventListener('click', openManageSlotsModal);
 
@@ -3210,10 +3167,6 @@ function confirmEquip(itemIndex, slotName) {
 }
 
 
-
-// ===================================================================================
-// CONSTRUCTOR Y EVALUADOR DE FÓRMULAS
-// ===================================================================================
 
 function renderFormulaBuilder(containerId, targetTextareaId) {
     const container = document.getElementById(containerId);
@@ -3443,10 +3396,6 @@ function useEquippedItem(slotIndex) {
 }
 
 
-// ===================================================================================
-// OTRAS FUNCIONALIDADES: COMBATE, GESTIÓN, ETC.
-// ===================================================================================
-
 function useAction(cost, type) {
     let message = '';
     let triggeredEffectsSummary = [];
@@ -3574,14 +3523,13 @@ function restoreHealthAndMana() {
     saveAndRefresh();
 }
 
-// --- Gestión ---
 document.getElementById('export-json-btn').addEventListener('click', () => {
     saveCharacterToLocalStorage();
     const themeData = JSON.parse(localStorage.getItem(THEME_STORAGE_KEY) || '{}');
     const exportData = { character: character, theme: themeData };
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileDefaultName = `${character.identity.name.replace(/\s/g, '_') || 'personaje'}_v6.8_premium.json`;
+    const exportFileDefaultName = `${character.identity.name.replace(/\s/g, '_') || 'personaje'}_v6.9_premium.json`;
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
@@ -3719,9 +3667,6 @@ document.getElementById('add-xp-btn').addEventListener('click', () => {
     }
 });
 
-// ===================================================================================
-// GESTIÓN DE TEMAS
-// ===================================================================================
 const themes = {
     'theme-light': { name: 'Claro' }, 'theme-dark': { name: 'Oscuro' },
     'theme-forest': { name: 'Bosque' }, 'theme-ocean': { name: 'Océano' },
@@ -3802,10 +3747,6 @@ function loadTheme() {
     const savedTheme = JSON.parse(localStorage.getItem(THEME_STORAGE_KEY));
     if (savedTheme) applyTheme(savedTheme.name);
 }
-
-// ===================================================================================
-// SISTEMA DE ESTADOS (NUEVO Y MEJORADO)
-// ===================================================================================
 
 function renderStatusEffects() {
     const container = document.getElementById('status-effects-list');
@@ -4166,7 +4107,6 @@ function unequipItem(slotIndex) {
             character.inventory.items.push({ ...item, quantity: 1 });
         }
         
-        // Desequipar
         character.equipment[slotIndex].item = null;
         saveAndRefresh();
         refreshCombatEquipment();
@@ -4385,9 +4325,6 @@ function removeStatusEffect(statusId) {
     saveAndRefresh();
 }
 
-// ===================================================================================
-// NUEVO: SISTEMA DE RECURSOS
-// ===================================================================================
 function renderResources() {
     const container = document.getElementById('resources-container');
     container.innerHTML = '';
@@ -4492,12 +4429,6 @@ function renderFavoresUI() {
     // Deprecated: Favores now rendered as part of renderSpiritAmulet()
 }
 
-// Simple interactive map module
-
-
-// ===================================================================================
-// INICIALIZACIÓN
-// ===================================================================================
 function initializeCharacter(isImport = false) {
     if (!isImport) {
         const loadedCharacter = loadCharacterFromLocalStorage();
