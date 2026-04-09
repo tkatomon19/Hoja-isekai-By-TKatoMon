@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Personaje - Isekai Delivery Service v6.1 Premium</title>
+    <title>Hoja de Personaje - Isekai Delivery Service v6.2 Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -220,14 +220,18 @@
             textarea#pet-notes { background-color: #f0f9ff; border-left: 4px solid #7dd3fc; }
 
             /* Favores (Debts) UI */
-            #favores-container { position: fixed; top: 1rem; right: 1rem; background: rgba(255,255,255,0.95); padding: .5rem 1rem; border-radius: .5rem; box-shadow: 0 6px 18px rgba(0,0,0,0.08); z-index: 60; }
-            #favores-container .count { font-weight: 700; font-size: 1rem; }
+            #favores-container { position: fixed; top: 1rem; right: 1rem; background: rgba(255,255,255,0.95); padding: 1rem; border-radius: 0.5rem; box-shadow: 0 6px 18px rgba(0,0,0,0.08); z-index: 60; max-width: 320px; border: 1px solid rgba(203,213,225,0.5); }
+            #favores-container > div:first-child { font-weight: 600; margin-bottom: 0.5rem; }
+            #favores-container .count { font-weight: 700; font-size: 1.125rem; color: #0ea5e9; }
+            #favores-container .max { font-weight: 600; color: #64748b; }
+            #favores-notes { background-color: #f0f9ff; border-left: 4px solid #7dd3fc; border: 1px solid #e0f2fe; }
 
             /* Map container */
-            #map-container { border: 1px dashed rgba(99,102,241,0.25); padding: .5rem; border-radius: .5rem; background: linear-gradient(180deg, rgba(249,250,251,0.6), rgba(255,255,255,0.25)); }
-            #map-grid { display: grid; grid-template-columns: repeat(10, 28px); gap: 4px; justify-content: start; }
-            .map-cell { width: 28px; height: 28px; background: #eef2ff; display:flex;align-items:center;justify-content:center;font-size:10px; cursor:pointer; border-radius:4px; }
-            .map-cell.avatar { background: #4f46e5; color:white; font-weight:700; }
+            #map-container { border: 1px dashed rgba(99,102,241,0.25); padding: 1rem; border-radius: 0.5rem; background: linear-gradient(180deg, rgba(249,250,251,0.6), rgba(255,255,255,0.25)); margin-top: 1rem; }
+            #map-grid { display: grid; grid-template-columns: repeat(10, 30px); gap: 3px; padding: 0.75rem; background: #fafbfc; border-radius: 0.375rem; }
+            .map-cell { width: 30px; height: 30px; background: #e0e7ff; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer; border-radius:4px; border: 1px solid #c7d2fe; transition: all 0.2s ease; }
+            .map-cell:hover { background: #ddd6fe; box-shadow: inset 0 0 4px rgba(99,102,241,0.2); }
+            .map-cell.avatar { background: #4f46e5; color:white; font-weight:700; border-color: #3730a3; box-shadow: 0 0 8px rgba(79,70,229,0.4); }
         
         @keyframes genesis-anim { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .item-card[data-rarity="Genesis"] {
@@ -1666,7 +1670,11 @@ function calculateTotalPHSpentForUpgrades(upgradesCount) {
 // Reduce a skill's level (one upgrade) and refund PH accordingly
 function reduceSkillLevel(index) {
     const skill = character.inventory.skills[index];
-    if (!skill) return;
+    if (!skill) {
+        console.error('Skill not found at index:', index);
+        showNotification('Error', 'No se pudo encontrar la habilidad.');
+        return;
+    }
     if (!skill.upgrades || skill.upgrades <= 0) {
         showNotification('Reducir Nivel', 'Esta habilidad no tiene niveles para reducir.');
         return;
@@ -2420,8 +2428,9 @@ function renderPetCard(pet, index) {
 function openPetSkillsMenu(petIndex) {
     const pet = character.inventory.pets[petIndex];
     if (!pet) return;
+    if (!pet.skills) pet.skills = [];
     let skillsHtml = '';
-    if (pet.skills && pet.skills.length > 0) {
+    if (pet.skills.length > 0) {
         skillsHtml = pet.skills.map((s, i) => `
             <div class="flex justify-between items-center p-2 border-b">
                 <div>
@@ -2429,8 +2438,8 @@ function openPetSkillsMenu(petIndex) {
                     <div class="text-xs text-gray-500">PA: ${s.costPA || 0} / MP: ${s.costMP || 0}</div>
                 </div>
                 <div class="flex gap-2">
-                    <button class="btn btn-secondary text-xs" onclick="openPetSkillForm(${petIndex}, character.inventory.pets[${petIndex}].skills[${i}], ${i})">Editar</button>
-                    <button class="btn btn-danger text-xs" onclick="(function(){ deletePetSkill(${petIndex}, ${i}); closeModal(2); })()">Borrar</button>
+                    <button class="btn btn-secondary text-xs" onclick="editPetSkillHandler(${petIndex}, ${i})">Editar</button>
+                    <button class="btn btn-danger text-xs" onclick="deletePetSkill(${petIndex}, ${i}); openPetSkillsMenu(${petIndex});">Borrar</button>
                 </div>
             </div>
         `).join('');
@@ -2447,6 +2456,13 @@ function openPetSkillsMenu(petIndex) {
         </div>
     `;
     openModal(content, 2);
+}
+
+function editPetSkillHandler(petIdx, skillIdx) {
+    if (character.inventory.pets[petIdx] && character.inventory.pets[petIdx].skills && character.inventory.pets[petIdx].skills[skillIdx]) {
+        const skill = character.inventory.pets[petIdx].skills[skillIdx];
+        openPetSkillForm(petIdx, skill, skillIdx);
+    }
 }
 
 function updatePetStat(petIndex, stat, value) {
@@ -3670,14 +3686,22 @@ function renderFavoresUI() {
         container.id = 'favores-container';
         container.innerHTML = `<div>Favores: <span class="count">0</span> / <span class="max">0</span></div><div class="mt-2"><textarea id="favores-notes" rows="3" class="input-field" placeholder="Notas de favores/deudas..."></textarea></div>`;
         document.body.appendChild(container);
-        document.getElementById('favores-notes').addEventListener('blur', (e) => {
-            character.favores.notes = e.target.value;
-            saveCharacterToLocalStorage();
-        });
     }
-    container.querySelector('.count').textContent = character.favores.current || 0;
-    container.querySelector('.max').textContent = character.favores.max || 10;
-    if (character.favores.notes) document.getElementById('favores-notes').value = character.favores.notes;
+    const countEl = container.querySelector('.count');
+    const maxEl = container.querySelector('.max');
+    const notesEl = document.getElementById('favores-notes');
+    if (countEl) countEl.textContent = character.favores.current || 0;
+    if (maxEl) maxEl.textContent = character.favores.max || 10;
+    if (notesEl) {
+        notesEl.value = character.favores.notes || '';
+        if (!notesEl.dataset.listenerAttached) {
+            notesEl.addEventListener('blur', (e) => {
+                character.favores.notes = e.target.value;
+                saveCharacterToLocalStorage();
+            });
+            notesEl.dataset.listenerAttached = 'true';
+        }
+    }
 }
 
 // Simple interactive map module
