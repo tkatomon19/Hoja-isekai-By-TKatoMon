@@ -771,7 +771,8 @@ function createNewInventoryItem(type) {
                 ...baseItem,
                 type: 'otro',  // Valor predeterminado para objetos
                 equipped: false,
-                slot: ''
+                slot: '',
+                linkedEffects: JSON.stringify([])
             };
         case 'pets':
             return {
@@ -1417,11 +1418,27 @@ function addEventListeners() {
 
     const addSkillBtn = document.getElementById('add-skill-btn');
     if (addSkillBtn) {
-        addSkillBtn.addEventListener('click', () => openInventoryForm('skills'));
+        addSkillBtn.addEventListener('click', () => {
+            if (character.skillPoints < 1) {
+                showNotification('Puntos Insuficientes', 'Necesitas al menos 1 Punto de Habilidad para añadir una nueva habilidad.');
+                return;
+            }
+            character.skillPoints -= 1;
+            updateUI();
+            openInventoryForm('skills');
+        });
     }
     const addTechBtn = document.getElementById('add-technique-btn');
     if (addTechBtn) {
-        addTechBtn.addEventListener('click', () => openInventoryForm('techniques'));
+        addTechBtn.addEventListener('click', () => {
+            if (character.skillPoints < 2) {
+                showNotification('Puntos Insuficientes', 'Necesitas al menos 2 Puntos de Habilidad para añadir una nueva técnica/hechizo.');
+                return;
+            }
+            character.skillPoints -= 2;
+            updateUI();
+            openInventoryForm('techniques');
+        });
     }
     const addItemBtn = document.getElementById('add-item-btn');
     if (addItemBtn) {
@@ -2144,6 +2161,46 @@ function openInventoryForm(type = 'skills', item = null, index = -1) {
         </div>
     ` : '';
     
+    let linkedEffects = [];
+    if (item && item.linkedEffects && typeof item.linkedEffects === 'string') {
+        try { linkedEffects = JSON.parse(item.linkedEffects); } catch(e) { linkedEffects = []; }
+    } else if (item && item.linkedEffects) {
+        linkedEffects = Array.isArray(item.linkedEffects) ? item.linkedEffects : [];
+    }
+    
+    const effectsHtml = linkedEffects.map((effect, i) => `
+        <div class="grid grid-cols-12 gap-2 items-end mb-2 p-2 border rounded" id="effect-row-${i}">
+            <select class="input-field col-span-2 effect-target">
+                <option value="self" ${effect.target === 'self' ? 'selected' : ''}>Propio</option>
+                <option value="target" ${effect.target === 'target' ? 'selected' : ''}>Objetivo</option>
+            </select>
+            <input type="text" class="input-field col-span-3 effect-attribute" placeholder="Atributo (ej: stats.health.current)" value="${effect.attribute || ''}">
+            <select class="input-field col-span-2 effect-modification">
+                <option value="fijo" ${effect.modification === 'fijo' ? 'selected' : ''}>Fijo</option>
+                <option value="porcentaje" ${effect.modification === 'porcentaje' ? 'selected' : ''}>Porcentaje</option>
+            </select>
+            <input type="number" class="input-field col-span-1 effect-value" placeholder="Valor" value="${effect.value || 0}">
+            <select class="input-field col-span-2 effect-applyOn">
+                <option value="continuo" ${effect.applyOn === 'continuo' ? 'selected' : ''}>Continuo</option>
+                <option value="ciclo" ${effect.applyOn === 'ciclo' ? 'selected' : ''}>Ciclo</option>
+                <option value="inicio" ${effect.applyOn === 'inicio' ? 'selected' : ''}>Inicio</option>
+                <option value="fin" ${effect.applyOn === 'fin' ? 'selected' : ''}>Fin</option>
+            </select>
+            <input type="text" class="input-field col-span-1 effect-condition" placeholder="Condición" value="${effect.condition || ''}">
+            <button class="btn btn-danger text-xs col-span-1" onclick="document.getElementById('effect-row-${i}').remove()">✕</button>
+        </div>
+    `).join('');
+    
+    const effectsSection = config.hasEffects ? `
+        <div class="border p-4 rounded-md border-gray-200 dark:border-gray-600">
+            <div class="flex justify-between items-center mb-2">
+                <label class="font-semibold">Efectos</label>
+                <button class="btn btn-secondary text-xs" onclick="addInventoryEffectRow()">+ Agregar Efecto</button>
+            </div>
+            <div id="item-effects-container" class="space-y-2">${effectsHtml || '<p class="text-xs text-gray-500">Sin efectos</p>'}</div>
+        </div>
+    ` : '';
+    
     const content = `
         <h3 class="text-2xl font-bold mb-4">${title}</h3>
         <div class="modal-scrollable-content">
@@ -2153,6 +2210,7 @@ function openInventoryForm(type = 'skills', item = null, index = -1) {
                 <textarea id="item-description" class="input-field" placeholder="Descripción..." rows="3">${item?.description || ''}</textarea>
                 ${costsSection}
                 ${formulasSection}
+                ${effectsSection}
             </div>
         </div>
         <div class="flex justify-end space-x-2 mt-6 pt-4 border-t dark:border-gray-600">
@@ -2224,6 +2282,35 @@ function addInventoryFormulaRow() {
     checkbox.addEventListener('change', () => setActiveFormula(id));
 }
 
+function addInventoryEffectRow() {
+    const container = document.getElementById('item-effects-container');
+    const id = 'effect-' + Date.now();
+    const row = document.createElement('div');
+    row.className = 'grid grid-cols-12 gap-2 items-end mb-2 p-2 border rounded';
+    row.id = id;
+    row.innerHTML = `
+        <select class="input-field col-span-2 effect-target">
+            <option value="self">Propio</option>
+            <option value="target">Objetivo</option>
+        </select>
+        <input type="text" class="input-field col-span-3 effect-attribute" placeholder="Atributo (ej: stats.health.current)">
+        <select class="input-field col-span-2 effect-modification">
+            <option value="fijo">Fijo</option>
+            <option value="porcentaje">Porcentaje</option>
+        </select>
+        <input type="number" class="input-field col-span-1 effect-value" placeholder="Valor">
+        <select class="input-field col-span-2 effect-applyOn">
+            <option value="continuo">Continuo</option>
+            <option value="ciclo">Ciclo</option>
+            <option value="inicio">Inicio</option>
+            <option value="fin">Fin</option>
+        </select>
+        <input type="text" class="input-field col-span-1 effect-condition" placeholder="Condición">
+        <button class="btn btn-danger text-xs col-span-1" onclick="document.getElementById('${id}').remove()">✕</button>
+    `;
+    container.appendChild(row);
+}
+
 function saveInventoryItem(type, index) {
     const isEditing = index !== undefined && index !== -1;
     const config = INVENTORY_CONFIG[type];
@@ -2272,6 +2359,31 @@ function saveInventoryItem(type, index) {
         });
     }
     
+    // 3.5 RECOPILAR EFECTOS
+    const linkedEffects = [];
+    const effectsContainer = document.getElementById('item-effects-container');
+    if (effectsContainer) {
+        effectsContainer.querySelectorAll('[id^="effect-row"]').forEach(row => {
+            const targetEl = row.querySelector('.effect-target');
+            const attributeEl = row.querySelector('.effect-attribute');
+            const modificationEl = row.querySelector('.effect-modification');
+            const valueEl = row.querySelector('.effect-value');
+            const applyOnEl = row.querySelector('.effect-applyOn');
+            const conditionEl = row.querySelector('.effect-condition');
+            
+            if (attributeEl && attributeEl.value) {
+                linkedEffects.push({
+                    target: targetEl?.value || 'self',
+                    attribute: attributeEl.value,
+                    modification: modificationEl?.value || 'fijo',
+                    value: parseFloat(valueEl?.value) || 0,
+                    applyOn: applyOnEl?.value || 'continuo',
+                    condition: conditionEl?.value || ''
+                });
+            }
+        });
+    }
+    
     // 4. CONVERTIR COSTOS A FORMATO LEGACY (compatibilidad hacia atrás)
     let costPA = 0, costMP = 0, costHP = 0, costMovement = 0, costResources = '';
     costs.forEach(cost => {
@@ -2299,6 +2411,7 @@ function saveInventoryItem(type, index) {
             description: document.getElementById('item-description')?.value || '',
             costs: JSON.stringify(costs),
             formulas: JSON.stringify(formulas),
+            linkedEffects: JSON.stringify(linkedEffects),
             // Actualizar campos legacy
             costPA: costPA,
             costMP: costMP,
@@ -2318,6 +2431,7 @@ function saveInventoryItem(type, index) {
             description: document.getElementById('item-description')?.value || '',
             costs: JSON.stringify(costs),
             formulas: JSON.stringify(formulas),
+            linkedEffects: JSON.stringify(linkedEffects),
             // Campos legacy
             costPA: costPA,
             costMP: costMP,
