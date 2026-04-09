@@ -727,7 +727,106 @@ const ELEMENTS_CONFIG = {
     luz: { name: 'Luz', emoji: '☀️', color: 'bg-yellow-50 dark:bg-yellow-800/50' },
     oscuridad: { name: 'Oscuridad', emoji: '🌙', color: 'bg-slate-900 dark:bg-slate-600' }
 };
-
+function createNewInventoryItem(type) {
+    // Generar ID único usando timestamp
+    const uniqueId = `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Estructura base común para todos los tipos
+    const baseItem = {
+        id: uniqueId,
+        name: '',
+        description: '',
+        type: '',
+        rarity: 'Común',
+        level: 0,
+        upgrades: 0,
+        isDamageFormulaActive: false,
+        costs: JSON.stringify([]),
+        formulas: JSON.stringify([]),
+        // Campos legacy para compatibilidad
+        costPA: 0,
+        costMP: 0,
+        costHP: 0,
+        costMovement: 0,
+        costResources: '',
+        formula: '',
+        createdAt: new Date().toISOString(),
+        lastModified: new Date().toISOString()
+    };
+    
+    // Configuración específica según el tipo
+    switch(type) {
+        case 'skills':
+            return {
+                ...baseItem,
+                type: 'Activa'  // Valor predeterminado para habilidades
+            };
+        case 'techniques':
+            return {
+                ...baseItem,
+                type: 'Técnica'  // Valor predeterminado para técnicas
+            };
+        case 'items':
+            return {
+                ...baseItem,
+                type: 'otro',  // Valor predeterminado para objetos
+                equipped: false,
+                slot: ''
+            };
+        case 'pets':
+            return {
+                ...baseItem,
+                health: { current: 10, max: 10 },
+                actions: 1,
+                element: 'ninguno'
+            };
+        default:
+            console.warn(`Tipo desconocido: ${type}. Retornando item base.`);
+            return baseItem;
+    }
+}
+function validateInventoryItem(item, type) {
+    const errors = [];
+    
+    // Validaciones comunes
+    if (!item.name || item.name.trim() === '') {
+        errors.push('El nombre es obligatorio');
+    }
+    
+    if (item.name && item.name.length > 100) {
+        errors.push('El nombre no puede exceder 100 caracteres');
+    }
+    
+    // Validar costos
+    if (item.costs) {
+        try {
+            const costs = typeof item.costs === 'string' ? JSON.parse(item.costs) : item.costs;
+            if (!Array.isArray(costs)) {
+                errors.push('El formato de costos es inválido');
+            }
+        } catch(e) {
+            errors.push('Error al procesar los costos');
+        }
+    }
+    
+    // Validar fórmulas
+    if (item.formulas) {
+        try {
+            const formulas = typeof item.formulas === 'string' ? JSON.parse(item.formulas) : item.formulas;
+            if (!Array.isArray(formulas)) {
+                errors.push('El formato de fórmulas es inválido');
+            }
+        } catch(e) {
+            errors.push('Error al procesar las fórmulas');
+        }
+    }
+    
+    return {
+        valid: errors.length === 0,
+        errors: errors
+    };
+}
+ 
 let character; // Se inicializará en window.onload
 let tempLinkedEffects = []; // Almacén temporal para el constructor de estados
 
@@ -2129,6 +2228,14 @@ function saveInventoryItem(type, index) {
     const isEditing = index !== undefined && index !== -1;
     const config = INVENTORY_CONFIG[type];
     
+    // 1. OBTENER NOMBRE Y VALIDAR
+    const nameInput = document.getElementById('item-name');
+    if (!nameInput || !nameInput.value.trim()) {
+        showNotification('Error', 'El nombre es obligatorio');
+        return;
+    }
+    
+    // 2. RECOPILAR COSTOS
     const costs = [];
     const costsContainer = document.getElementById('item-costs-container');
     if (costsContainer) {
@@ -2136,19 +2243,25 @@ function saveInventoryItem(type, index) {
             const typeEl = row.querySelector('.cost-type');
             const valueEl = row.querySelector('.cost-value');
             if (typeEl && valueEl && valueEl.value) {
-                costs.push({ type: typeEl.value, value: valueEl.value });
+                costs.push({ 
+                    type: typeEl.value, 
+                    value: valueEl.value 
+                });
             }
         });
     }
     
+    // 3. RECOPILAR FÓRMULAS CON ESTRUCTURA COMPLETA
     const formulas = [];
     const formulasContainer = document.getElementById('item-formulas-container');
     if (formulasContainer) {
         formulasContainer.querySelectorAll('[id^="formula-row"], [id^="formula-"]').forEach(row => {
-            if (row.tagName === 'BUTTON') return;
+            if (row.tagName === 'BUTTON') return;  // Ignorar botones
+            
             const titleEl = row.querySelector('.formula-title');
             const formulaEl = row.querySelector('.formula-input');
             const checkEl = row.querySelector('.formula-check');
+            
             if (formulaEl && formulaEl.value.trim()) {
                 formulas.push({
                     titulo: titleEl?.value || '',
@@ -2159,35 +2272,81 @@ function saveInventoryItem(type, index) {
         });
     }
     
-    let costPA = 0, costMP = 0, costHP = 0;
+    // 4. CONVERTIR COSTOS A FORMATO LEGACY (compatibilidad hacia atrás)
+    let costPA = 0, costMP = 0, costHP = 0, costMovement = 0, costResources = '';
     costs.forEach(cost => {
-        if (cost.type === 'PA') costPA = parseInt(cost.value) || 0;
-        else if (cost.type === 'MP') costMP = parseInt(cost.value) || 0;
-        else if (cost.type === 'HP') costHP = parseInt(cost.value) || 0;
+        switch(cost.type) {
+            case 'PA': costPA = parseInt(cost.value) || 0; break;
+            case 'MP': costMP = parseInt(cost.value) || 0; break;
+            case 'HP': costHP = parseInt(cost.value) || 0; break;
+            case 'Movimiento': costMovement = parseInt(cost.value) || 0; break;
+            case 'Recursos': costResources = cost.value; break;
+        }
     });
     
-    const newItem = {
-        name: document.getElementById('item-name').value,
-        type: document.getElementById('item-type-field').value,
-        description: document.getElementById('item-description').value,
-        costs: JSON.stringify(costs),
-        formulas: JSON.stringify(formulas),
-        costPA: costPA,
-        costMP: costMP,
-        costHP: costHP,
-        formula: formulas[0]?.formula || '',
-        rarity: isEditing ? character.inventory[type][index].rarity : 'Común',
-        isDamageFormulaActive: isEditing ? character.inventory[type][index].isDamageFormulaActive : false,
-        level: isEditing ? character.inventory[type][index].level : 0,
-        upgrades: isEditing ? character.inventory[type][index].upgrades : 0
-    };
+    // 5. OBTENER FÓRMULA ACTIVA PARA COMPATIBILIDAD
+    const activeFormula = formulas.find(f => f.activa) || formulas[0] || null;
     
-    if (index === -1) {
-        character.inventory[type].push(newItem);
+    // 6. CREAR O ACTUALIZAR ITEM
+    let newItem;
+    
+    if (isEditing) {
+        // EDICIÓN: Preservar datos existentes y actualizar solo lo necesario
+        newItem = {
+            ...character.inventory[type][index],  // Preservar datos existentes
+            name: nameInput.value.trim(),
+            type: document.getElementById('item-type-field')?.value || character.inventory[type][index].type,
+            description: document.getElementById('item-description')?.value || '',
+            costs: JSON.stringify(costs),
+            formulas: JSON.stringify(formulas),
+            // Actualizar campos legacy
+            costPA: costPA,
+            costMP: costMP,
+            costHP: costHP,
+            costMovement: costMovement,
+            costResources: costResources,
+            formula: activeFormula?.formula || '',
+            lastModified: new Date().toISOString()
+        };
     } else {
-        character.inventory[type][index] = newItem;
+        // CREACIÓN: Usar valores predeterminados robustos
+        const defaultItem = createNewInventoryItem(type);
+        newItem = {
+            ...defaultItem,  // Usar template con todos los campos inicializados
+            name: nameInput.value.trim(),
+            type: document.getElementById('item-type-field')?.value || defaultItem.type,
+            description: document.getElementById('item-description')?.value || '',
+            costs: JSON.stringify(costs),
+            formulas: JSON.stringify(formulas),
+            // Campos legacy
+            costPA: costPA,
+            costMP: costMP,
+            costHP: costHP,
+            costMovement: costMovement,
+            costResources: costResources,
+            formula: activeFormula?.formula || ''
+        };
     }
     
+    // 7. VALIDAR ANTES DE GUARDAR
+    const validation = validateInventoryItem(newItem, type);
+    if (!validation.valid) {
+        showNotification('Error de Validación', validation.errors.join('\n'));
+        return;
+    }
+    
+    // 8. GUARDAR EN EL ARRAY CORRECTO
+    if (index === -1) {
+        // Nuevo item: agregar al final
+        character.inventory[type].push(newItem);
+        showNotification('¡Éxito!', `${config.label} "${newItem.name}" creado correctamente`);
+    } else {
+        // Editar: reemplazar en el índice
+        character.inventory[type][index] = newItem;
+        showNotification('¡Actualizado!', `${config.label} "${newItem.name}" actualizado correctamente`);
+    }
+    
+    // 9. CERRAR MODAL Y REFRESCAR
     closeModal();
     saveAndRefresh();
 }
