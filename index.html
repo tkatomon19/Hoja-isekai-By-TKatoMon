@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Personaje - Isekai Delivery Service v6.4 Premium</title>
+    <title>Hoja de Personaje - Isekai Delivery Service v6.5 Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -487,7 +487,7 @@
         <!-- Header Section -->
         <div class="mb-8 pb-6 border-b-2 border-gray-300 dark:border-gray-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex-1">
-                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v6.4 Premium</h1>
+                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v6.5 Premium</h1>
                 <p class="text-lg text-gray-600 dark:text-gray-400">Los cambios se guardan automáticamente en tu navegador</p>
             </div>
             <!-- Modo Combate eliminado: acciones integradas en la vista principal -->
@@ -715,8 +715,8 @@ const SKILL_POINTS_PER_LEVEL = {
 };
 const EVOLUTION_LEVELS = [5, 10, 15, 20];
 const RARITIES = ['Intrínseco', 'Común', 'Raro', 'Épico', 'Legendario', 'Mítico / Único', 'Genesis'];
-const LOCAL_STORAGE_KEY = 'characterSheetData_v6.4'; // Updated version key
-const THEME_STORAGE_KEY = 'characterSheetTheme_v6.4'; // Updated version key
+const LOCAL_STORAGE_KEY = 'characterSheetData_v6.5'; // Updated version key
+const THEME_STORAGE_KEY = 'characterSheetTheme_v6.5'; // Updated version key
 
 const ELEMENTS_CONFIG = {
     fuego: { name: 'Fuego', emoji: '🔥', color: 'bg-red-100 dark:bg-red-900/50' },
@@ -2003,40 +2003,11 @@ function openSkillForm(skill = null, index = -1) {
             </div>
             
             <div class="border p-4 rounded-md border-gray-200 dark:border-gray-600">
-                <div class="flex justify-between items-center mb-2">
+                <div class="flex justify-between items-center mb-3">
                     <label class="font-semibold">Fórmulas / Efectos</label>
                 </div>
-                <button class="btn btn-secondary text-xs mb-2 w-full" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">🔧 Constructor de Fórmula</button>
-                <div class="mb-3 p-3 bg-gray-100 dark:bg-gray-700 rounded text-xs space-y-2" style="display:none;">
-                    <div class="font-semibold text-sm mb-2">Dados</div>
-                    <div class="grid grid-cols-3 gap-1 mb-2">
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('d4')">d4</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('d6')">d6</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('d8')">d8</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('d10')">d10</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('d12')">d12</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('d20')">d20</button>
-                    </div>
-                    <div class="font-semibold text-sm mt-2 mb-2">Operadores</div>
-                    <div class="grid grid-cols-3 gap-1 mb-2">
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField(' + ')">+</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField(' - ')">-</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField(' * ')">*</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField(' / ')\">/</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('(')\">(</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField(')')\">) </button>
-                    </div>
-                    <div class="font-semibold text-sm mt-2 mb-2">Atributos</div>
-                    <div class="grid grid-cols-3 gap-1">
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('FUE')">FUE</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('AGI')">AGI</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('MET')">MET</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('INT')">INT</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('VOL')">VOL</button>
-                        <button class="btn btn-secondary text-xs py-1" onclick="addToFormulaField('APM')">APM</button>
-                    </div>
-                </div>
-                <div id="formulas-container">${formulasHtml || '<p class="text-xs text-gray-500">Sin fórmulas</p>'}</div>
+                <div id="formula-builder-container"></div>
+                <div id="formulas-container" class="mt-3 p-3 border-t">${formulasHtml || '<p class="text-xs text-gray-500">Sin fórmulas</p>'}</div>
                 <button class="btn btn-secondary text-xs mt-2 w-full" onclick="addFormulaRow()">+ Agregar Fórmula</button>
             </div>
         </div></div>
@@ -2045,6 +2016,12 @@ function openSkillForm(skill = null, index = -1) {
             <button id="save-skill-btn" class="btn btn-primary">${btnText}</button>
         </div>`;
     openModal(content);
+    
+    // Rentabilizar el constructor de fórmulas DESPUÉS de que el modal se abra
+    setTimeout(() => {
+        renderFormulaBuilder('formula-builder-container', 'formula-new-input');
+    }, 100);
+    
     document.getElementById('save-skill-btn').onclick = () => saveSkill(index);
 }
 
@@ -2075,18 +2052,243 @@ function addFormulaRow() {
     row.className = 'flex gap-2 items-end mb-2';
     row.id = id;
     row.innerHTML = `
-        <textarea class="input-field flex-1 formula-input" placeholder="Ej: (FUE)d6" rows="2"></textarea>
+        <textarea class="input-field flex-1 formula-input" placeholder="Ej: (FUE)d6" rows="2" data-formula-id="${id}"></textarea>
         <button class="btn btn-danger text-xs self-start" onclick="document.getElementById('${id}').remove()">✕</button>
     `;
-    container.appendChild(row);
+    container.insertBefore(row, container.lastElementChild);
+    
+    // Focus en el nuevo textarea y hacerlo editable con el constructor
+    const textarea = row.querySelector('textarea');
+    textarea.focus();
+    textarea.addEventListener('blur', () => {
+        // Cuando se termina de editar, permitir insertar más formulas
+    });
 }
 
-function addToFormulaField(text) {
-    const container = document.getElementById('formulas-container');
-    const lastFormula = container.querySelector('.formula-input:last-of-type');
-    if (lastFormula) {
-        lastFormula.value += text;
-        lastFormula.focus();
+// ===== SISTEMA COMPLETO DE FÓRMULAS =====
+
+function renderFormulaBuilder(containerId, textareaId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = `
+        <div class="formula-builder space-y-3">
+            <!-- ATRIBUTOS -->
+            <div class="formula-section">
+                <div class="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Atributos</div>
+                <div class="grid grid-cols-5 gap-1">
+                    <button class="formula-btn text-xs" onclick="addToFormula('(FUE)', '${textareaId}')">FUE</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(AGI)', '${textareaId}')">AGI</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(MET)', '${textareaId}')">MET</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(INT)', '${textareaId}')">INT</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(APM)', '${textareaId}')">APM</button>
+                </div>
+            </div>
+            
+            <!-- MODIFICADORES -->
+            <div class="formula-section">
+                <div class="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Modificadores</div>
+                <div class="grid grid-cols-5 gap-1">
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Mod.FUE)', '${textareaId}')">Mod.FUE</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Mod.AGI)', '${textareaId}')">Mod.AGI</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Mod.MET)', '${textareaId}')">Mod.MET</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Mod.INT)', '${textareaId}')">Mod.INT</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Mod.APM)', '${textareaId}')">Mod.APM</button>
+                </div>
+            </div>
+            
+            <!-- ESTADÍSTICAS -->
+            <div class="formula-section">
+                <div class="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Estadísticas</div>
+                <div class="grid grid-cols-4 gap-1">
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Nivel)', '${textareaId}')">Nivel</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Vida)', '${textareaId}')">Vida</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Armadura)', '${textareaId}')">Armadura</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Mistycals)', '${textareaId}')">Mistycals</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Acciones)', '${textareaId}')">Acciones</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Movimiento)', '${textareaId}')">Movimiento</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(SalvacionMagia)', '${textareaId}')">SalvacionMagia</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Carga)', '${textareaId}')">Carga</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Resistencia)', '${textareaId}')">Resistencia</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(Sabiduria)', '${textareaId}')">Sabiduria</button>
+                </div>
+            </div>
+            
+            <!-- DADOS -->
+            <div class="formula-section">
+                <div class="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Dados</div>
+                <div class="grid grid-cols-7 gap-1 mb-1">
+                    <button class="formula-btn text-xs" onclick="addToFormula('1d4', '${textareaId}')">1d4</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('1d6', '${textareaId}')">1d6</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('1d8', '${textareaId}')">1d8</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('1d10', '${textareaId}')">1d10</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('1d12', '${textareaId}')">1d12</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('1d20', '${textareaId}')">1d20</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('1d100', '${textareaId}')">1d100</button>
+                </div>
+                <button class="formula-btn-advanced text-xs w-full" onclick="openAdvancedDiceModal('${textareaId}')">()d() - Avanzado</button>
+            </div>
+            
+            <!-- OPERADORES -->
+            <div class="formula-section">
+                <div class="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Operadores</div>
+                <div class="grid grid-cols-6 gap-1">
+                    <button class="formula-btn text-xs" onclick="addToFormula(' + ', '${textareaId}')">+</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula(' - ', '${textareaId}')")-</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula(' * ', '${textareaId}')")*</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula(' / ', '${textareaId}')"> / </button>
+                    <button class="formula-btn text-xs" onclick="addToFormula('(', '${textareaId}')">(</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula(')', '${textareaId}')">)</button>
+                </div>
+            </div>
+        </div>
+        <style>
+            .formula-section { padding: 0.5rem; background: rgba(107, 114, 128, 0.05); border-radius: 0.375rem; }
+            .formula-btn { 
+                padding: 0.4rem 0.3rem; 
+                background: #3b82f6; 
+                color: white; 
+                border: none; 
+                border-radius: 0.25rem; 
+                cursor: pointer; 
+                font-weight: 500;
+                transition: all 0.2s;
+            }
+            .formula-btn:hover { background: #2563eb; transform: scale(1.05); }
+            .formula-btn-advanced { 
+                padding: 0.5rem; 
+                background: #8b5cf6; 
+                color: white; 
+                border: none; 
+                border-radius: 0.375rem; 
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .formula-btn-advanced:hover { background: #7c3aed; }
+        </style>
+    `;
+}
+
+function addToFormula(text, textareaId) {
+    // Si no hay un ID específico, insertar en el último textarea del contenedor
+    let textarea = null;
+    
+    if (textareaId) {
+        textarea = document.getElementById(textareaId);
+    }
+    
+    if (!textarea) {
+        // Buscar en el contenedor de fórmulas
+        const container = document.getElementById('formulas-container');
+        if (!container) return;
+        const textareas = container.querySelectorAll('textarea.formula-input');
+        if (textareas.length > 0) {
+            textarea = textareas[textareas.length - 1];
+        }
+    }
+    
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const before = textarea.value.substring(0, start);
+    const after = textarea.value.substring(end);
+    textarea.value = before + text + after;
+    textarea.selectionStart = textarea.selectionEnd = start + text.length;
+    textarea.focus();
+}
+
+function openAdvancedDiceModal(textareaId) {
+    const content = `
+        <h3 class="text-xl font-bold mb-4">Constructor Avanzado de Dados</h3>
+        <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="text-sm font-semibold block mb-2">Cantidad de dados</label>
+                    <input type="text" id="dice-qty" class="input-field" placeholder="Ej: 2 o (FUE)" value="1">
+                </div>
+                <div>
+                    <label class="text-sm font-semibold block mb-2">Tipo de dado</label>
+                    <input type="text" id="dice-type" class="input-field" placeholder="Ej: 6 o (INT)" value="6">
+                </div>
+            </div>
+            <div class="bg-gray-100 dark:bg-gray-700 p-3 rounded">
+                <p class="text-sm font-mono">Resultado: <span id="dice-preview">(1)d(6)</span></p>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="insertAdvancedDice('${textareaId}')">Insertar</button>
+            </div>
+        </div>
+    `;
+    openModal(content);
+    
+    document.getElementById('dice-qty').addEventListener('input', updateDicePreview);
+    document.getElementById('dice-type').addEventListener('input', updateDicePreview);
+}
+
+function updateDicePreview() {
+    const qty = document.getElementById('dice-qty').value || '1';
+    const type = document.getElementById('dice-type').value || '6';
+    document.getElementById('dice-preview').textContent = `(${qty})d(${type})`;
+}
+
+function insertAdvancedDice(textareaId) {
+    const qty = document.getElementById('dice-qty').value || '1';
+    const type = document.getElementById('dice-type').value || '6';
+    const formula = `(${qty})d(${type})`;
+    addToFormula(formula, textareaId);
+    closeModal();
+}
+
+function safeEvaluateFormula(formula, characterData) {
+    if (!formula || !characterData) return 0;
+    
+    try {
+        let expr = formula;
+        
+        // 1. Reemplazar atributos
+        expr = expr.replace(/\(FUE\)/g, characterData.attributes.FUE?.value || 10);
+        expr = expr.replace(/\(AGI\)/g, characterData.attributes.AGI?.value || 10);
+        expr = expr.replace(/\(MET\)/g, characterData.attributes.MET?.value || 10);
+        expr = expr.replace(/\(INT\)/g, characterData.attributes.INT?.value || 10);
+        expr = expr.replace(/\(APM\)/g, characterData.attributes.APM?.value || 10);
+        
+        // 2. Reemplazar modificadores
+        const getMod = (val) => Math.floor((val - 10) / 2);
+        expr = expr.replace(/\(Mod\.FUE\)/g, getMod(characterData.attributes.FUE?.value || 10));
+        expr = expr.replace(/\(Mod\.AGI\)/g, getMod(characterData.attributes.AGI?.value || 10));
+        expr = expr.replace(/\(Mod\.MET\)/g, getMod(characterData.attributes.MET?.value || 10));
+        expr = expr.replace(/\(Mod\.INT\)/g, getMod(characterData.attributes.INT?.value || 10));
+        expr = expr.replace(/\(Mod\.APM\)/g, getMod(characterData.attributes.APM?.value || 10));
+        
+        // 3. Reemplazar estadísticas
+        expr = expr.replace(/\(Nivel\)/g, characterData.stats.level.current);
+        expr = expr.replace(/\(Vida\)/g, characterData.stats.health.current);
+        expr = expr.replace(/\(Armadura\)/g, characterData.stats.armor.current);
+        expr = expr.replace(/\(Mistycals\)/g, characterData.stats.mana.current);
+        expr = expr.replace(/\(Acciones\)/g, characterData.stats.actions.current);
+        expr = expr.replace(/\(Movimiento\)/g, characterData.stats.movement.current);
+        expr = expr.replace(/\(SalvacionMagia\)/g, characterData.stats.magicSave.current);
+        expr = expr.replace(/\(Carga\)/g, characterData.stats.load.current);
+        expr = expr.replace(/\(Resistencia\)/g, characterData.stats.resistance.current);
+        expr = expr.replace(/\(Sabiduria\)/g, characterData.stats.wisdom.current);
+        
+        // 4. Evaluar dados: buscar patrón NdM o (.)d(.)
+        expr = expr.replace(/(\d+)d(\d+)/g, (match, qty, sides) => {
+            let total = 0;
+            for (let i = 0; i < parseInt(qty); i++) {
+                total += Math.floor(Math.random() * parseInt(sides)) + 1;
+            }
+            return total;
+        });
+        
+        // 5. Evaluación final matemática segura
+        const result = Function('"use strict"; return (' + expr + ')')();
+        return Math.floor(result);
+    } catch (error) {
+        console.error('Error evaluating formula:', error);
+        return 0;
     }
 }
 
@@ -3424,7 +3626,7 @@ document.getElementById('export-json-btn').addEventListener('click', () => {
     const exportData = { character: character, theme: themeData };
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileDefaultName = `${character.identity.name.replace(/\s/g, '_') || 'personaje'}_v6.4_premium.json`;
+    const exportFileDefaultName = `${character.identity.name.replace(/\s/g, '_') || 'personaje'}_v6.5_premium.json`;
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
@@ -3763,9 +3965,9 @@ function openMapModal() {
                 <input type="number" id="avatar-y" class="input-field" value="${character.map.avatar.y || 0}" min="0">
             </div>
         </div>
-        <div id="map-modal-container" style="background-image: ${mapBg}; background-size: cover; background-position: center; padding: 1rem; border-radius: 0.5rem; border: 2px solid #e5e7eb; min-height: 400px;">
-            <div id="map-grid-modal" style="display: grid; grid-template-columns: repeat(${character.map.gridSize || 10}, 30px); gap: 3px; width: fit-content;"></div>
-            <p id="map-info-modal" class="text-xs mt-4 font-mono text-gray-600">Selecciona una celda para mover el avatar</p>
+        <div id="map-modal-container" style="position: relative; background-image: ${mapBg}; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; padding: 1rem; border-radius: 0.5rem; border: 2px solid #e5e7eb; min-height: 400px;">
+            <div id="map-grid-modal" style="display: grid; grid-template-columns: repeat(${character.map.gridSize || 10}, 1fr); gap: 1px; width: 100%; height: 100%; position: absolute; top: 1rem; left: 1rem; right: 1rem; bottom: 1rem;"></div>
+            <p id="map-info-modal" class="text-xs mt-4 font-mono text-gray-600" style="position: relative; z-index: 10;">Selecciona una celda para mover el avatar</p>
         </div>
         <div class="flex justify-end gap-2 mt-6">
             <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
@@ -3782,6 +3984,7 @@ function openMapModal() {
             reader.onload = (evt) => {
                 character.map.backgroundImage = evt.target.result;
                 document.getElementById('map-modal-container').style.backgroundImage = `url('${evt.target.result}')`;
+                document.getElementById('map-modal-container').style.backgroundSize = '100% 100%';
                 saveCharacterToLocalStorage();
             };
             reader.readAsDataURL(e.target.files[0]);
@@ -3797,9 +4000,39 @@ function renderMapModalGrid() {
         for (let x = 0; x < size; x++) {
             const cell = document.createElement('div');
             cell.className = 'map-cell';
-            cell.style.width = '30px';
-            cell.style.height = '30px';
-            if (character.map.avatar.x === x && character.map.avatar.y === y) cell.classList.add('avatar');
+            cell.style.width = '100%';
+            cell.style.height = '100%';
+            cell.style.backgroundColor = 'rgba(200, 200, 200, 0.3)';
+            cell.style.border = '1px solid rgba(100, 100, 100, 0.5)';
+            cell.style.cursor = 'pointer';
+            cell.style.display = 'flex';
+            cell.style.alignItems = 'center';
+            cell.style.justifyContent = 'center';
+            cell.style.fontSize = '12px';
+            cell.style.fontWeight = 'bold';
+            cell.style.transition = 'background-color 0.2s';
+            cell.style.position = 'relative';
+            cell.style.zIndex = '20';
+            
+            if (character.map.avatar.x === x && character.map.avatar.y === y) {
+                cell.classList.add('avatar');
+                cell.style.backgroundColor = 'rgba(59, 130, 246, 0.6)';
+                cell.style.color = 'white';
+                cell.textContent = '①';
+            }
+            
+            cell.addEventListener('mouseover', () => {
+                if (character.map.avatar.x !== x || character.map.avatar.y !== y) {
+                    cell.style.backgroundColor = 'rgba(150, 150, 150, 0.4)';
+                }
+            });
+            
+            cell.addEventListener('mouseout', () => {
+                if (character.map.avatar.x !== x || character.map.avatar.y !== y) {
+                    cell.style.backgroundColor = 'rgba(200, 200, 200, 0.3)';
+                }
+            });
+            
             cell.addEventListener('click', () => {
                 const prev = { ...character.map.avatar };
                 character.map.avatar.x = x;
