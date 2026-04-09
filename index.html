@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Personaje - Isekai Delivery Service v6.6 Premium</title>
+    <title>Hoja de Personaje - Isekai Delivery Service v6.7 Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -487,7 +487,7 @@
         <!-- Header Section -->
         <div class="mb-8 pb-6 border-b-2 border-gray-300 dark:border-gray-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex-1">
-                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v6.6 Premium</h1>
+                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v6.7 Premium</h1>
                 <p class="text-lg text-gray-600 dark:text-gray-400">Los cambios se guardan automáticamente en tu navegador</p>
             </div>
             <!-- Modo Combate eliminado: acciones integradas en la vista principal -->
@@ -715,8 +715,8 @@ const SKILL_POINTS_PER_LEVEL = {
 };
 const EVOLUTION_LEVELS = [5, 10, 15, 20];
 const RARITIES = ['Intrínseco', 'Común', 'Raro', 'Épico', 'Legendario', 'Mítico / Único', 'Genesis'];
-const LOCAL_STORAGE_KEY = 'characterSheetData_v6.6'; // Updated version key
-const THEME_STORAGE_KEY = 'characterSheetTheme_v6.6'; // Updated version key
+const LOCAL_STORAGE_KEY = 'characterSheetData_v6.7'; // Updated version key
+const THEME_STORAGE_KEY = 'characterSheetTheme_v6.7'; // Updated version key
 
 const ELEMENTS_CONFIG = {
     fuego: { name: 'Fuego', emoji: '🔥', color: 'bg-red-100 dark:bg-red-900/50' },
@@ -1990,31 +1990,33 @@ function openSkillForm(skill = null, index = -1) {
     
     const content = `
         <h3 class="text-2xl font-bold mb-4">${title}</h3>
-        <div class="modal-scrollable-content"><div class="space-y-4">
-            <input id="skill-name" class="input-field" placeholder="Nombre" value="${skill?.name || ''}">
-            <textarea id="skill-description" class="input-field" placeholder="Descripción..." rows="3">${skill?.description || ''}</textarea>
-            <select id="skill-type" class="input-field">
-                <option value="Activa" ${skill?.type === 'Activa' ? 'selected' : ''}>Activa</option>
-                <option value="Pasiva" ${skill?.type === 'Pasiva' ? 'selected' : ''}>Pasiva</option>
-            </select>
-            
-            <div class="border p-4 rounded-md border-gray-200 dark:border-gray-600">
-                <div class="flex justify-between items-center mb-2">
-                    <label class="font-semibold">Costes</label>
-                    <button class="btn btn-secondary text-xs" onclick="addCostRow()">+ Agregar Coste</button>
+        <div class="modal-scrollable-content">
+            <div class="space-y-4">
+                <input id="skill-name" class="input-field" placeholder="Nombre" value="${skill?.name || ''}">
+                <textarea id="skill-description" class="input-field" placeholder="Descripción..." rows="3">${skill?.description || ''}</textarea>
+                <select id="skill-type" class="input-field">
+                    <option value="Activa" ${skill?.type === 'Activa' ? 'selected' : ''}>Activa</option>
+                    <option value="Pasiva" ${skill?.type === 'Pasiva' ? 'selected' : ''}>Pasiva</option>
+                </select>
+                
+                <div class="border p-4 rounded-md border-gray-200 dark:border-gray-600">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="font-semibold">Costes</label>
+                        <button class="btn btn-secondary text-xs" onclick="addCostRow()">+ Agregar Coste</button>
+                    </div>
+                    <div id="costs-container" class="space-y-2">${costsHtml || '<p class="text-xs text-gray-500">Sin costes</p>'}</div>
                 </div>
-                <div id="costs-container">${costsHtml || '<p class="text-xs text-gray-500">Sin costes</p>'}</div>
-            </div>
-            
-            <div class="border p-4 rounded-md border-gray-200 dark:border-gray-600">
-                <div class="flex justify-between items-center mb-3">
-                    <label class="font-semibold">Fórmulas / Efectos</label>
+                
+                <div class="border p-4 rounded-md border-gray-200 dark:border-gray-600">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="font-semibold">Fórmulas / Efectos</label>
+                    </div>
+                    <div id="formula-builder-container"></div>
+                    <div id="formulas-container" class="mt-3 p-3 border-t">${formulasHtml || '<p class="text-xs text-gray-500">Sin fórmulas</p>'}</div>
+                    <button class="btn btn-secondary text-xs mt-2 w-full" onclick="addFormulaRow()">+ Agregar Fórmula</button>
                 </div>
-                <div id="formula-builder-container"></div>
-                <div id="formulas-container" class="mt-3 p-3 border-t">${formulasHtml || '<p class="text-xs text-gray-500">Sin fórmulas</p>'}</div>
-                <button class="btn btn-secondary text-xs mt-2 w-full" onclick="addFormulaRow()">+ Agregar Fórmula</button>
             </div>
-        </div></div>
+        </div>
         <div class="flex justify-end space-x-2 mt-6 pt-4 border-t dark:border-gray-600">
             <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
             <button id="save-skill-btn" class="btn btn-primary">${btnText}</button>
@@ -2175,8 +2177,8 @@ function renderFormulaBuilder(containerId, textareaId) {
                 <div class="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Operadores</div>
                 <div class="grid grid-cols-6 gap-1">
                     <button class="formula-btn text-xs" onclick="addToFormula(' + ', '${textareaId}')">+</button>
-                    <button class="formula-btn text-xs" onclick="addToFormula(' - ', '${textareaId}')")-</button>
-                    <button class="formula-btn text-xs" onclick="addToFormula(' * ', '${textareaId}')")*</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula(' - ', '${textareaId}')">-</button>
+                    <button class="formula-btn text-xs" onclick="addToFormula(' * ', '${textareaId}')">*</button>
                     <button class="formula-btn text-xs" onclick="addToFormula(' / ', '${textareaId}')"> / </button>
                     <button class="formula-btn text-xs" onclick="addToFormula('(', '${textareaId}')">(</button>
                     <button class="formula-btn text-xs" onclick="addToFormula(')', '${textareaId}')">)</button>
@@ -3676,7 +3678,7 @@ document.getElementById('export-json-btn').addEventListener('click', () => {
     const exportData = { character: character, theme: themeData };
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileDefaultName = `${character.identity.name.replace(/\s/g, '_') || 'personaje'}_v6.6_premium.json`;
+    const exportFileDefaultName = `${character.identity.name.replace(/\s/g, '_') || 'personaje'}_v6.7_premium.json`;
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
@@ -3989,101 +3991,106 @@ function openCombatMode() {
 function openMapModal() {
     if (!character.map) character.map = { avatar: { x: 0, y: 0 }, gridSize: 10, backgroundImage: '', markers: [] };
     if (!character.map.markers) character.map.markers = [];
-    const mapBg = character.map.backgroundImage ? `url('${character.map.backgroundImage}')` : 'none';
+    if (!Array.isArray(character.map.markers)) character.map.markers = [];
     
+    const mapBg = character.map.backgroundImage ? `url('${character.map.backgroundImage}')` : 'none';
     const markerTypes = ['Aliado', 'Enemigo', 'Punto de Interés', 'Trampa'];
     const markerColors = { 'Aliado': '#10b981', 'Enemigo': '#ef4444', 'Punto de Interés': '#f59e0b', 'Trampa': '#8b5cf6' };
     
     const markerRows = character.map.markers.map((m, i) => `
-        <div class="flex gap-2 items-center text-sm p-2 border-b">
-            <div class="w-4 h-4 rounded" style="background-color: ${markerColors[m.type] || '#6b7280'}"></div>
-            <span class="flex-1"><strong>${m.type}</strong> en (${m.x}, ${m.y})</span>
-            <input type="text" placeholder="Nombre" value="${m.name || ''}" class="input-field flex-1 text-xs" onchange="character.map.markers[${i}].name = this.value; saveCharacterToLocalStorage();">
-            <button class="btn btn-danger text-xs px-2" onclick="character.map.markers.splice(${i}, 1); openMapModal()">✕</button>
+        <div class="flex gap-2 items-center text-sm p-2 border-b hover:bg-gray-100 dark:hover:bg-gray-700">
+            <div class="w-4 h-4 rounded flex-shrink-0" style="background-color: ${markerColors[m.type] || '#6b7280'}"></div>
+            <span class="flex-1 font-medium min-w-fit">${m.type}</span>
+            <span class="text-xs text-gray-500 font-mono min-w-fit">(${m.x}, ${m.y})</span>
+            <input type="text" placeholder="Nombre" value="${m.name || ''}" class="input-field text-xs flex-1 py-1" onchange="character.map.markers[${i}].name = this.value; saveCharacterToLocalStorage();">
+            <button class="btn btn-danger text-xs px-2 flex-shrink-0" onclick="character.map.markers.splice(${i}, 1); openMapModal()">✕</button>
         </div>
     `).join('');
     
+    const gridSize = Math.max(5, Math.min(20, character.map.gridSize || 10));
     const content = `
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-2xl font-bold">Mapa del Mundo</h3>
             <div class="flex gap-2">
                 <label class="btn btn-secondary text-xs cursor-pointer">
-                    Subir Fondo
+                    📤 Subir Fondo
                     <input type="file" id="map-bg-upload" accept="image/*" style="display:none;">
                 </label>
                 <button class="btn btn-danger text-xs" onclick="clearMapBackground()">Limpiar</button>
             </div>
         </div>
-        <div class="grid grid-cols-4 gap-4 mb-4">
+        
+        <div class="grid grid-cols-5 gap-3 mb-4 bg-gray-50 dark:bg-gray-800 p-3 rounded">
             <div>
-                <label class="text-sm font-semibold">Tamaño de Grid</label>
-                <input type="number" id="map-size" class="input-field" min="5" max="20" value="${character.map.gridSize || 10}" onchange="updateMapSize(parseInt(this.value))">
+                <label class="text-xs font-semibold block mb-1">Tamaño Grid</label>
+                <input type="number" id="map-size" class="input-field text-sm" min="5" max="20" value="${gridSize}" onchange="updateMapSize(parseInt(this.value))">
             </div>
             <div>
-                <label class="text-sm font-semibold">Posición X</label>
-                <input type="number" id="avatar-x" class="input-field" value="${character.map.avatar.x || 0}" min="0">
+                <label class="text-xs font-semibold block mb-1">Avatar X</label>
+                <input type="number" id="avatar-x" class="input-field text-sm" value="${character.map.avatar.x || 0}" min="0" max="${gridSize - 1}">
             </div>
             <div>
-                <label class="text-sm font-semibold">Posición Y</label>
-                <input type="number" id="avatar-y" class="input-field" value="${character.map.avatar.y || 0}" min="0">
+                <label class="text-xs font-semibold block mb-1">Avatar Y</label>
+                <input type="number" id="avatar-y" class="input-field text-sm" value="${character.map.avatar.y || 0}" min="0" max="${gridSize - 1}">
             </div>
             <div>
-                <label class="text-sm font-semibold">Agregar Marcador</label>
+                <label class="text-xs font-semibold block mb-1">Modo</label>
+                <select id="map-mode" class="input-field text-xs">
+                    <option value="avatar">Avatar</option>
+                    <option value="marker">Marcador</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-semibold block mb-1">Tipo Marcador</label>
                 <select id="marker-type" class="input-field text-xs">
                     ${markerTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
                 </select>
             </div>
         </div>
-        <div id="map-modal-container" style="position: relative; background-image: ${mapBg}; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; padding: 1rem; border-radius: 0.5rem; border: 2px solid #e5e7eb; min-height: 400px;">
-            <div id="map-grid-modal" style="display: grid; grid-template-columns: repeat(${character.map.gridSize || 10}, 1fr); gap: 1px; width: 100%; height: 100%; position: absolute; top: 1rem; left: 1rem; right: 1rem; bottom: 1rem;"></div>
-            <p id="map-info-modal" class="text-xs mt-4 font-mono text-gray-600" style="position: relative; z-index: 10;">Selecciona una celda para mover el avatar o agregar marcador</p>
+        
+        <div id="map-modal-container" style="position: relative; background-image: ${mapBg}; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; padding: 0.75rem; border-radius: 0.5rem; border: 2px solid #d1d5db; aspect-ratio: 1; max-height: 450px; overflow: hidden;">
+            <div id="map-grid-modal" style="display: grid; grid-template-columns: repeat(${gridSize}, 1fr); gap: 1px; width: 100%; height: 100%; background: rgba(0,0,0,0.02);"></div>
         </div>
-        <div class="grid grid-cols-2 gap-4 mt-4">
+        
+        <p id="map-info-modal" class="text-xs mt-2 font-mono text-gray-600 dark:text-gray-400 text-center">Haz clic en una celda para interactuar</p>
+        
+        <div class="grid grid-cols-2 gap-3 mt-4">
             <div>
-                <h4 class="font-semibold text-sm mb-2">Marcadores (${character.map.markers.length})</h4>
-                <div class="bg-gray-100 dark:bg-gray-800 rounded max-h-32 overflow-y-auto">
-                    ${markerRows || '<p class="text-xs text-gray-500 p-2">Sin marcadores</p>'}
+                <h4 class="font-semibold text-sm mb-2 flex items-center gap-2">
+                    📍 Marcadores
+                    <span class="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">${character.map.markers.length}</span>
+                </h4>
+                <div class="bg-gray-100 dark:bg-gray-800 rounded max-h-40 overflow-y-auto border">
+                    ${markerRows && markerRows.trim() ? markerRows : '<p class="text-xs text-gray-500 p-3 text-center">Sin marcadores (haz clic en modo Marcador)</p>'}
                 </div>
             </div>
             <div>
-                <h4 class="font-semibold text-sm mb-2">Leyenda</h4>
-                <div class="space-y-1 text-xs">
+                <h4 class="font-semibold text-sm mb-2">🎨 Leyenda</h4>
+                <div class="space-y-1.5 text-xs bg-gray-50 dark:bg-gray-800 p-2 rounded border">
                     ${markerTypes.map(t => `
                         <div class="flex items-center gap-2">
                             <div class="w-3 h-3 rounded" style="background-color: ${markerColors[t]}"></div>
-                            <span>${t}</span>
+                            <span class="font-medium">${t}</span>
                         </div>
                     `).join('')}
                 </div>
             </div>
         </div>
-        <div class="flex justify-end gap-2 mt-6">
+        
+        <div class="flex justify-end gap-2 mt-6 pt-4 border-t dark:border-gray-600">
             <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
-            <button class="btn btn-primary" onclick="saveMapState()">Guardar</button>
+            <button class="btn btn-primary" onclick="saveMapState()">Guardar Mapa</button>
         </div>
     `;
     openModal(content);
-    
     renderMapModalGrid();
     
-    // Click on cells to add marker or move avatar
-    let markerMode = false;
-    const toggleMarkerMode = () => {
-        markerMode = !markerMode;
-        const mapInfo = document.getElementById('map-info-modal');
-        mapInfo.textContent = markerMode ? 'Modo: Agregar Marcador' : 'Modo: Mover Avatar';
-    };
-    
-    // Double click to toggle marker mode
-    document.getElementById('map-grid-modal').addEventListener('dblclick', () => toggleMarkerMode());
-    
-    document.getElementById('map-bg-upload').addEventListener('change', function(e) {
+    document.getElementById('map-bg-upload')?.addEventListener('change', function(e) {
         if (e.target.files[0]) {
             const reader = new FileReader();
             reader.onload = (evt) => {
                 character.map.backgroundImage = evt.target.result;
                 document.getElementById('map-modal-container').style.backgroundImage = `url('${evt.target.result}')`;
-                document.getElementById('map-modal-container').style.backgroundSize = '100% 100%';
                 saveCharacterToLocalStorage();
             };
             reader.readAsDataURL(e.target.files[0]);
@@ -4093,15 +4100,19 @@ function openMapModal() {
 
 function renderMapModalGrid() {
     const grid = document.getElementById('map-grid-modal');
+    if (!grid) return;
+    
     grid.innerHTML = '';
-    const size = character.map.gridSize || 10;
-    const markerTypeSelect = document.getElementById('marker-type');
-    const markerType = markerTypeSelect?.value || 'Aliado';
+    const size = Math.max(5, Math.min(20, character.map.gridSize || 10));
+    const mode = document.getElementById('map-mode')?.value || 'avatar';
+    const markerType = document.getElementById('marker-type')?.value || 'Aliado';
+    const markerColors = { 'Aliado': '#10b981', 'Enemigo': '#ef4444', 'Punto de Interés': '#f59e0b', 'Trampa': '#8b5cf6' };
     
     for (let y = 0; y < size; y++) {
         for (let x = 0; x < size; x++) {
             const cell = document.createElement('div');
             cell.className = 'map-cell';
+            cell.style.userSelect = 'none';
             cell.style.width = '100%';
             cell.style.height = '100%';
             cell.style.backgroundColor = 'rgba(200, 200, 200, 0.3)';
@@ -4110,79 +4121,107 @@ function renderMapModalGrid() {
             cell.style.display = 'flex';
             cell.style.alignItems = 'center';
             cell.style.justifyContent = 'center';
-            cell.style.fontSize = '12px';
-            cell.style.fontWeight = 'bold';
-            cell.style.transition = 'background-color 0.2s';
+            cell.style.fontSize = '11px';
+            cell.style.fontWeight = '600';
+            cell.style.transition = 'all 0.15s';
             cell.style.position = 'relative';
             cell.style.zIndex = '20';
             
-            const markerColors = { 'Aliado': '#10b981', 'Enemigo': '#ef4444', 'Punto de Interés': '#f59e0b', 'Trampa': '#8b5cf6' };
             const marker = character.map.markers.find(m => m.x === x && m.y === y);
+            const isAvatar = character.map.avatar.x === x && character.map.avatar.y === y;
             
-            if (character.map.avatar.x === x && character.map.avatar.y === y) {
-                cell.classList.add('avatar');
-                cell.style.backgroundColor = 'rgba(59, 130, 246, 0.6)';
+            // Render avatar
+            if (isAvatar) {
+                cell.style.backgroundColor = 'rgba(59, 130, 246, 0.7)';
                 cell.style.color = 'white';
+                cell.style.boxShadow = 'inset 0 0 8px rgba(0,0,0,0.3)';
                 cell.textContent = '①';
-            } else if (marker) {
+                cell.setAttribute('title', `Avatar en (${x}, ${y})`);
+            } 
+            // Render marker
+            else if (marker) {
                 cell.style.backgroundColor = markerColors[marker.type] || '#6b7280';
                 cell.style.color = 'white';
-                cell.textContent = marker.type[0];
-                cell.title = `${marker.type}: ${marker.name || '(sin nombre)'}`;
+                cell.style.boxShadow = '0 0 4px rgba(0,0,0,0.4)';
+                cell.textContent = marker.type.charAt(0).toUpperCase();
+                cell.setAttribute('title', `${marker.type}: ${marker.name || '(sin nombre)'}`);
             }
             
+            // Hover effects
             cell.addEventListener('mouseover', () => {
-                if (character.map.avatar.x !== x || character.map.avatar.y !== y) {
-                    if (!marker) cell.style.backgroundColor = 'rgba(150, 150, 150, 0.4)';
+                if (!isAvatar && !marker) {
+                    cell.style.backgroundColor = 'rgba(150, 150, 150, 0.5)';
+                    cell.style.transform = 'scale(1.02)';
                 }
             });
             
             cell.addEventListener('mouseout', () => {
-                if (character.map.avatar.x !== x || character.map.avatar.y !== y) {
-                    if (!marker) cell.style.backgroundColor = 'rgba(200, 200, 200, 0.3)';
-                    else cell.style.backgroundColor = markerColors[marker.type];
+                if (!isAvatar && !marker) {
+                    cell.style.backgroundColor = 'rgba(200, 200, 200, 0.3)';
+                    cell.style.transform = 'scale(1)';
                 }
             });
             
+            // Click handler
             cell.addEventListener('click', () => {
                 const mapInfo = document.getElementById('map-info-modal');
-                const markerTypeSelect = document.getElementById('marker-type');
-                const markerType = markerTypeSelect?.value || 'Aliado';
+                const mode = document.getElementById('map-mode')?.value || 'avatar';
                 
-                // Check if we're in marker mode (double clicked recently)
-                const isMarkerMode = mapInfo.textContent.includes('Modo: Agregar Marcador');
-                
-                if (isMarkerMode) {
-                    // Add or remove marker
+                if (mode === 'marker') {
+                    // Marker mode
+                    const markerType = document.getElementById('marker-type')?.value || 'Aliado';
                     const existingIdx = character.map.markers.findIndex(m => m.x === x && m.y === y);
+                    
                     if (existingIdx >= 0) {
+                        // Remove existing marker
                         character.map.markers.splice(existingIdx, 1);
+                        mapInfo.textContent = `✓ Marcador eliminado en (${x}, ${y})`;
                     } else {
+                        // Add new marker
                         character.map.markers.push({ x, y, type: markerType, name: '' });
+                        mapInfo.textContent = `✓ ${markerType} agregado en (${x}, ${y})`;
                     }
+                    saveCharacterToLocalStorage();
                     renderMapModalGrid();
                 } else {
-                    // Move avatar
+                    // Avatar mode
                     const prev = { ...character.map.avatar };
                     character.map.avatar.x = x;
                     character.map.avatar.y = y;
+                    
                     document.getElementById('avatar-x').value = x;
                     document.getElementById('avatar-y').value = y;
+                    
+                    const dist = Math.sqrt(Math.pow(prev.x - x, 2) + Math.pow(prev.y - y, 2)).toFixed(1);
+                    mapInfo.textContent = `✓ Avatar movido a (${x}, ${y}) — Distancia: ${dist} celdas`;
+                    
                     renderMapModalGrid();
-                    const dist = Math.sqrt(Math.pow(prev.x - x, 2) + Math.pow(prev.y - y, 2)).toFixed(2);
-                    mapInfo.textContent = `Avatar: (${x}, ${y}) — Distancia: ${dist}`;
                 }
             });
+            
             grid.appendChild(cell);
         }
     }
 }
 
 function updateMapSize(newSize) {
-    if (newSize < 5) newSize = 5;
-    if (newSize > 20) newSize = 20;
+    newSize = Math.max(5, Math.min(20, parseInt(newSize) || 10));
     character.map.gridSize = newSize;
+    
+    // Validar que el avatar esté dentro del nuevo grid
+    if (character.map.avatar.x >= newSize) character.map.avatar.x = newSize - 1;
+    if (character.map.avatar.y >= newSize) character.map.avatar.y = newSize - 1;
+    
+    // Eliminar marcadores fuera del nuevo grid
+    character.map.markers = character.map.markers.filter(m => m.x < newSize && m.y < newSize);
+    
     renderMapModalGrid();
+    
+    // Actualizar los inputs max
+    document.getElementById('avatar-x').max = newSize - 1;
+    document.getElementById('avatar-y').max = newSize - 1;
+    
+    saveCharacterToLocalStorage();
 }
 
 function clearMapBackground() {
@@ -4192,9 +4231,23 @@ function clearMapBackground() {
 }
 
 function saveMapState() {
-    character.map.avatar.x = parseInt(document.getElementById('avatar-x').value) || 0;
-    character.map.avatar.y = parseInt(document.getElementById('avatar-y').value) || 0;
+    const gridSize = character.map.gridSize || 10;
+    let x = parseInt(document.getElementById('avatar-x').value) || 0;
+    let y = parseInt(document.getElementById('avatar-y').value) || 0;
+    
+    // Validar límites
+    x = Math.max(0, Math.min(x, gridSize - 1));
+    y = Math.max(0, Math.min(y, gridSize - 1));
+    
+    character.map.avatar.x = x;
+    character.map.avatar.y = y;
+    
+    // Actualizar inputs si fueron ajustados
+    document.getElementById('avatar-x').value = x;
+    document.getElementById('avatar-y').value = y;
+    
     saveAndRefresh();
+    showNotification('Mapa Guardado', `Avatar guardado en (${x}, ${y}) con ${character.map.markers.length} marcador(es).`);
     closeModal();
 }
 
