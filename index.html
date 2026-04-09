@@ -2533,8 +2533,7 @@ function addToFormula(text, textareaId) {
     textarea.selectionStart = textarea.selectionEnd = start + text.length;
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
     textarea.focus();
-}}
-
+}
 function openAdvancedDiceModal(textareaId) {
     const content = `
         <h3 class="text-xl font-bold mb-4">Constructor Avanzado de Dados</h3>
