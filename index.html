@@ -151,26 +151,26 @@
         .modal-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background-color: rgba(0, 0, 0, 0.7); display: flex;
-            align-items: center; justify-content: center; z-index: 50;
+            align-items: center; justify-content: center; z-index: 9998;
             opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s;
             backdrop-filter: blur(4px);
         }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         
-        #modal-secondary {
-            z-index: 70 !important;
-        }
-        
-        #notification-modal {
-            z-index: 100 !important;
-        }
-        
         #modal {
-            z-index: 110 !important;
+            z-index: 9998 !important;
+        }
+        
+        #modal-secondary {
+            z-index: 9999 !important;
         }
         
         #modal-tertiary {
-            z-index: 120 !important;
+            z-index: 10000 !important;
+        }
+        
+        #notification-modal {
+            z-index: 10001 !important;
         }
         
         .modal-content {
@@ -178,6 +178,8 @@
             width: 90%; max-width: 600px; transform: scale(0.95);
             transition: transform 0.3s, background-color 0.3s; display: flex; flex-direction: column;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
         }
         
         #modal-secondary-content.modal-content {
@@ -2319,154 +2321,170 @@ function saveInventoryItem(type, index) {
     const isEditing = index !== undefined && index !== -1;
     const config = INVENTORY_CONFIG[type];
     
-    // 1. OBTENER NOMBRE Y VALIDAR
-    const nameInput = document.getElementById('item-name');
-    if (!nameInput || !nameInput.value.trim()) {
-        showNotification('Error', 'El nombre es obligatorio');
-        return;
-    }
-    
-    // 2. RECOPILAR COSTOS
-    const costs = [];
-    const costsContainer = document.getElementById('item-costs-container');
-    if (costsContainer) {
-        costsContainer.querySelectorAll('> div').forEach(row => {
-            const typeEl = row.querySelector('.cost-type');
-            const valueEl = row.querySelector('.cost-value');
-            if (typeEl && valueEl && valueEl.value) {
-                costs.push({ 
-                    type: typeEl.value, 
-                    value: valueEl.value 
-                });
-            }
-        });
-    }
-    
-    // 3. RECOPILAR FÓRMULAS CON ESTRUCTURA COMPLETA
-    const formulas = [];
-    const formulasContainer = document.getElementById('item-formulas-container');
-    if (formulasContainer) {
-        formulasContainer.querySelectorAll('[id^="formula-row"], [id^="formula-"]').forEach(row => {
-            if (row.tagName === 'BUTTON') return;  // Ignorar botones
-            
-            const titleEl = row.querySelector('.formula-title');
-            const formulaEl = row.querySelector('.formula-input');
-            const checkEl = row.querySelector('.formula-check');
-            
-            if (formulaEl && formulaEl.value.trim()) {
-                formulas.push({
-                    titulo: titleEl?.value || '',
-                    formula: formulaEl.value.trim(),
-                    activa: checkEl?.checked || false
-                });
-            }
-        });
-    }
-    
-    // 3.5 RECOPILAR EFECTOS
-    const linkedEffects = [];
-    const effectsContainer = document.getElementById('item-effects-container');
-    if (effectsContainer) {
-        effectsContainer.querySelectorAll('[id^="effect-row"]').forEach(row => {
-            const targetEl = row.querySelector('.effect-target');
-            const attributeEl = row.querySelector('.effect-attribute');
-            const modificationEl = row.querySelector('.effect-modification');
-            const valueEl = row.querySelector('.effect-value');
-            const applyOnEl = row.querySelector('.effect-applyOn');
-            const conditionEl = row.querySelector('.effect-condition');
-            
-            if (attributeEl && attributeEl.value) {
-                linkedEffects.push({
-                    target: targetEl?.value || 'self',
-                    attribute: attributeEl.value,
-                    modification: modificationEl?.value || 'fijo',
-                    value: parseFloat(valueEl?.value) || 0,
-                    applyOn: applyOnEl?.value || 'continuo',
-                    condition: conditionEl?.value || ''
-                });
-            }
-        });
-    }
-    
-    // 4. CONVERTIR COSTOS A FORMATO LEGACY (compatibilidad hacia atrás)
-    let costPA = 0, costMP = 0, costHP = 0, costMovement = 0, costResources = '';
-    costs.forEach(cost => {
-        switch(cost.type) {
-            case 'PA': costPA = parseInt(cost.value) || 0; break;
-            case 'MP': costMP = parseInt(cost.value) || 0; break;
-            case 'HP': costHP = parseInt(cost.value) || 0; break;
-            case 'Movimiento': costMovement = parseInt(cost.value) || 0; break;
-            case 'Recursos': costResources = cost.value; break;
+    try {
+        // 1. OBTENER NOMBRE Y VALIDAR
+        const nameInput = document.getElementById('item-name');
+        if (!nameInput || !nameInput.value.trim()) {
+            showNotification('Error', 'El nombre es obligatorio');
+            return;
         }
-    });
-    
-    // 5. OBTENER FÓRMULA ACTIVA PARA COMPATIBILIDAD
-    const activeFormula = formulas.find(f => f.activa) || formulas[0] || null;
-    
-    // 6. CREAR O ACTUALIZAR ITEM
-    let newItem;
-    
-    if (isEditing) {
-        // EDICIÓN: Preservar datos existentes y actualizar solo lo necesario
-        newItem = {
-            ...character.inventory[type][index],  // Preservar datos existentes
-            name: nameInput.value.trim(),
-            type: document.getElementById('item-type-field')?.value || character.inventory[type][index].type,
-            description: document.getElementById('item-description')?.value || '',
-            costs: JSON.stringify(costs),
-            formulas: JSON.stringify(formulas),
-            linkedEffects: JSON.stringify(linkedEffects),
-            // Actualizar campos legacy
-            costPA: costPA,
-            costMP: costMP,
-            costHP: costHP,
-            costMovement: costMovement,
-            costResources: costResources,
-            formula: activeFormula?.formula || '',
-            lastModified: new Date().toISOString()
-        };
-    } else {
-        // CREACIÓN: Usar valores predeterminados robustos
-        const defaultItem = createNewInventoryItem(type);
-        newItem = {
-            ...defaultItem,  // Usar template con todos los campos inicializados
-            name: nameInput.value.trim(),
-            type: document.getElementById('item-type-field')?.value || defaultItem.type,
-            description: document.getElementById('item-description')?.value || '',
-            costs: JSON.stringify(costs),
-            formulas: JSON.stringify(formulas),
-            linkedEffects: JSON.stringify(linkedEffects),
-            // Campos legacy
-            costPA: costPA,
-            costMP: costMP,
-            costHP: costHP,
-            costMovement: costMovement,
-            costResources: costResources,
-            formula: activeFormula?.formula || ''
-        };
+        
+        // 2. RECOPILAR COSTOS
+        const costs = [];
+        const costsContainer = document.getElementById('item-costs-container');
+        if (costsContainer) {
+            costsContainer.querySelectorAll('> div').forEach(row => {
+                const typeEl = row.querySelector('.cost-type');
+                const valueEl = row.querySelector('.cost-value');
+                if (typeEl && valueEl && valueEl.value) {
+                    costs.push({ 
+                        type: typeEl.value, 
+                        value: valueEl.value 
+                    });
+                }
+            });
+        }
+        
+        // 3. RECOPILAR FÓRMULAS CON ESTRUCTURA COMPLETA
+        const formulas = [];
+        const formulasContainer = document.getElementById('item-formulas-container');
+        if (formulasContainer) {
+            formulasContainer.querySelectorAll('[id^="formula-row"], [id^="formula-"]').forEach(row => {
+                if (row.tagName === 'BUTTON') return;  // Ignorar botones
+                
+                const titleEl = row.querySelector('.formula-title');
+                const formulaEl = row.querySelector('.formula-input');
+                const checkEl = row.querySelector('.formula-check');
+                
+                if (formulaEl && formulaEl.value.trim()) {
+                    formulas.push({
+                        titulo: titleEl?.value || '',
+                        formula: formulaEl.value.trim(),
+                        activa: checkEl?.checked || false
+                    });
+                }
+            });
+        }
+        
+        // 3.5 RECOPILAR EFECTOS
+        const linkedEffects = [];
+        const effectsContainer = document.getElementById('item-effects-container');
+        if (effectsContainer) {
+            effectsContainer.querySelectorAll('[id^="effect-row"]').forEach(row => {
+                const targetEl = row.querySelector('.effect-target');
+                const attributeEl = row.querySelector('.effect-attribute');
+                const modificationEl = row.querySelector('.effect-modification');
+                const valueEl = row.querySelector('.effect-value');
+                const applyOnEl = row.querySelector('.effect-applyOn');
+                const conditionEl = row.querySelector('.effect-condition');
+                
+                if (attributeEl && attributeEl.value) {
+                    linkedEffects.push({
+                        target: targetEl?.value || 'self',
+                        attribute: attributeEl.value,
+                        modification: modificationEl?.value || 'fijo',
+                        value: parseFloat(valueEl?.value) || 0,
+                        applyOn: applyOnEl?.value || 'continuo',
+                        condition: conditionEl?.value || ''
+                    });
+                }
+            });
+        }
+        
+        // 4. CONVERTIR COSTOS A FORMATO LEGACY (compatibilidad hacia atrás)
+        let costPA = 0, costMP = 0, costHP = 0, costMovement = 0, costResources = '';
+        costs.forEach(cost => {
+            switch(cost.type) {
+                case 'PA': costPA = parseInt(cost.value) || 0; break;
+                case 'MP': costMP = parseInt(cost.value) || 0; break;
+                case 'HP': costHP = parseInt(cost.value) || 0; break;
+                case 'Movimiento': costMovement = parseInt(cost.value) || 0; break;
+                case 'Recursos': costResources = cost.value; break;
+            }
+        });
+        
+        // 5. OBTENER FÓRMULA ACTIVA PARA COMPATIBILIDAD
+        const activeFormula = formulas.find(f => f.activa) || formulas[0] || null;
+        
+        // 6. CREAR O ACTUALIZAR ITEM
+        let newItem;
+        
+        if (isEditing) {
+            // EDICIÓN: Preservar datos existentes y actualizar solo lo necesario
+            newItem = {
+                ...character.inventory[type][index],  // Preservar datos existentes
+                name: nameInput.value.trim(),
+                type: document.getElementById('item-type-field')?.value || character.inventory[type][index].type,
+                description: document.getElementById('item-description')?.value || '',
+                costs: JSON.stringify(costs),
+                formulas: JSON.stringify(formulas),
+                linkedEffects: JSON.stringify(linkedEffects),
+                // Actualizar campos legacy
+                costPA: costPA,
+                costMP: costMP,
+                costHP: costHP,
+                costMovement: costMovement,
+                costResources: costResources,
+                formula: activeFormula?.formula || '',
+                lastModified: new Date().toISOString()
+            };
+        } else {
+            // CREACIÓN: Usar valores predeterminados robustos
+            const defaultItem = createNewInventoryItem(type);
+            newItem = {
+                ...defaultItem,  // Usar template con todos los campos inicializados
+                name: nameInput.value.trim(),
+                type: document.getElementById('item-type-field')?.value || defaultItem.type,
+                description: document.getElementById('item-description')?.value || '',
+                costs: JSON.stringify(costs),
+                formulas: JSON.stringify(formulas),
+                linkedEffects: JSON.stringify(linkedEffects),
+                // Campos legacy
+                costPA: costPA,
+                costMP: costMP,
+                costHP: costHP,
+                costMovement: costMovement,
+                costResources: costResources,
+                formula: activeFormula?.formula || ''
+            };
+        }
+        
+        // 7. VALIDAR ANTES DE GUARDAR
+        const validation = validateInventoryItem(newItem, type);
+        if (!validation.valid) {
+            showNotification('Error de Validación', validation.errors.join('\n'));
+            return;
+        }
+        
+        // 8. GUARDAR EN EL ARRAY CORRECTO
+        if (index === -1) {
+            // Nuevo item: agregar al final
+            character.inventory[type].push(newItem);
+            console.log(`✓ ${config.label} "${newItem.name}" creado y agregado al inventario`);
+        } else {
+            // Editar: reemplazar en el índice
+            character.inventory[type][index] = newItem;
+            console.log(`✓ ${config.label} "${newItem.name}" actualizado en el inventario`);
+        }
+        
+        // 9. CERRAR MODAL Y REFRESCAR
+        closeModal();
+        saveCharacterToLocalStorage();
+        updateUI();
+        renderInventory();
+        
+        // Mostrar notificación de éxito
+        setTimeout(() => {
+            showNotification(
+                '¡Éxito!',
+                `${config.label} "${newItem.name}" ${isEditing ? 'actualizado' : 'creado'} correctamente`
+            );
+        }, 100);
+        
+    } catch (error) {
+        console.error('Error al guardar item:', error);
+        showNotification('Error', `Error al guardar: ${error.message}`);
     }
-    
-    // 7. VALIDAR ANTES DE GUARDAR
-    const validation = validateInventoryItem(newItem, type);
-    if (!validation.valid) {
-        showNotification('Error de Validación', validation.errors.join('\n'));
-        return;
-    }
-    
-    // 8. GUARDAR EN EL ARRAY CORRECTO
-    if (index === -1) {
-        // Nuevo item: agregar al final
-        character.inventory[type].push(newItem);
-        showNotification('¡Éxito!', `${config.label} "${newItem.name}" creado correctamente`);
-    } else {
-        // Editar: reemplazar en el índice
-        character.inventory[type][index] = newItem;
-        showNotification('¡Actualizado!', `${config.label} "${newItem.name}" actualizado correctamente`);
-    }
-    
-    // 9. CERRAR MODAL Y REFRESCAR
-    closeModal();
-    saveAndRefresh();
 }
 
 // NOTE: openSkillForm was removed - use openInventoryForm('skills', ...) instead
@@ -3163,7 +3181,7 @@ function renderPetCard(pet, index) {
                 <img src="${hydratedPet.image}" alt="Avatar" class="w-16 h-16 rounded-full object-cover border-2 border-white shadow-md">
                 <div>
                     <p class="font-bold text-lg">${hydratedPet.name}</p>
-                    <p class="text-sm rarity-text -mt-1">${hydratedPet.rarity}</p>
+                    <p class="text-sm rarity-text -mt-1">${hydratedPet.rarity}</p> 
                     <p class="text-xs text-gray-500 dark:text-gray-400">${hydratedPet.type} - Nivel ${hydratedPet.level}</p>
                 </div>
             </div>
