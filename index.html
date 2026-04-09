@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Personaje - Isekai Delivery Service v6.2 Premium</title>
+    <title>Hoja de Personaje - Isekai Delivery Service v5.0 Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1246,8 +1246,6 @@ function updateUI() {
     renderEquipment();
     renderStatusEffects();
     renderResources();
-    renderFavoresUI();
-    renderMap();
     addEventListeners();
 }
 
@@ -1856,6 +1854,8 @@ function saveFusionElement(index) {
 }
 
 function renderSpiritAmulet() {
+    if (!character.favores) character.favores = { current: 0, max: 10, notes: '' };
+    
     const container = document.getElementById('spirit-amulet-container');
     const level = character.stats.level.current;
     let charges = 0;
@@ -1865,7 +1865,32 @@ function renderSpiritAmulet() {
     if (level >= 15) charges = 4;
     if (level >= 20) charges = 5;
     
-    container.innerHTML = `<p class="text-center font-medium">Cargas de Amuleto Elemental: <span class="font-bold text-xl">${charges}</span></p>`;
+    container.innerHTML = `
+        <div class="space-y-4">
+            <p class="text-center font-medium">Cargas de Amuleto Elemental: <span class="font-bold text-xl">${charges}</span></p>
+            
+            <div class="border-t pt-4 mt-4">
+                <div class="flex items-center justify-between mb-3">
+                    <label class="font-semibold">Favores / Deudas</label>
+                    <div class="flex gap-2 items-center">
+                        <input type="number" id="favores-current" class="input-field w-14 text-center text-sm" value="${character.favores.current}" onchange="updateFavoresCurrent(parseInt(this.value))">
+                        <span class="text-sm font-medium">/</span>
+                        <input type="number" id="favores-max" class="input-field w-14 text-center text-sm" value="${character.favores.max}" onchange="updateFavoresMax(parseInt(this.value))">
+                    </div>
+                </div>
+                <textarea id="favores-notes-textarea" class="input-field" placeholder="Notas de favores y deudas..." rows="3">${character.favores.notes || ''}</textarea>
+            </div>
+        </div>
+    `;
+    
+    // Add event listeners
+    const notesArea = document.getElementById('favores-notes-textarea');
+    if (notesArea) {
+        notesArea.addEventListener('blur', (e) => {
+            character.favores.notes = e.target.value;
+            saveCharacterToLocalStorage();
+        });
+    }
 }
 
 function askSpiritFavor(elementKey) {
@@ -1919,6 +1944,54 @@ function openSkillForm(skill = null, index = -1) {
     const isEditing = skill !== null;
     const title = isEditing ? 'Editar Habilidad' : 'Añadir Habilidad';
     const btnText = isEditing ? 'Guardar Cambios' : 'Crear Habilidad';
+    
+    // Parse costs from JSON if exists
+    let costs = [];
+    if (skill && skill.costs && typeof skill.costs === 'string') {
+        try { costs = JSON.parse(skill.costs); } catch(e) { costs = []; }
+    } else if (skill && skill.costs) {
+        costs = Array.isArray(skill.costs) ? skill.costs : [];
+    }
+    if (!costs.length && skill) {
+        if (skill.costPA) costs.push({type: 'PA', value: skill.costPA});
+        if (skill.costMP) costs.push({type: 'MP', value: skill.costMP});
+        if (skill.costHP) costs.push({type: 'HP', value: skill.costHP});
+        if (skill.costMovement) costs.push({type: 'Movimiento', value: skill.costMovement});
+        if (skill.costResources) costs.push({type: 'Recursos', value: skill.costResources});
+    }
+    
+    // Parse formulas
+    let formulas = [];
+    if (skill && skill.formulas && typeof skill.formulas === 'string') {
+        try { formulas = JSON.parse(skill.formulas); } catch(e) { formulas = []; }
+    } else if (skill && skill.formulas) {
+        formulas = Array.isArray(skill.formulas) ? skill.formulas : [];
+    }
+    if (!formulas.length && skill && skill.formula) {
+        formulas = [skill.formula];
+    }
+    
+    const costsHtml = costs.map((cost, i) => `
+        <div class="flex gap-2 items-end mb-2" id="cost-row-${i}">
+            <select class="input-field flex-1 cost-type" value="${cost.type}">
+                <option value="PA">PA</option>
+                <option value="MP">MP</option>
+                <option value="HP">HP</option>
+                <option value="Movimiento">Movimiento</option>
+                <option value="Recursos">Recursos</option>
+            </select>
+            <input type="text" class="input-field flex-1 cost-value" placeholder="Valor" value="${cost.value}">
+            <button class="btn btn-danger text-xs" onclick="document.getElementById('cost-row-${i}').remove()">✕</button>
+        </div>
+    `).join('');
+    
+    const formulasHtml = formulas.map((formula, i) => `
+        <div class="flex gap-2 items-end mb-2" id="formula-row-${i}">
+            <textarea class="input-field flex-1 formula-input" placeholder="Ej: (FUE)d6" rows="2">${formula}</textarea>
+            <button class="btn btn-danger text-xs self-start" onclick="document.getElementById('formula-row-${i}').remove()">✕</button>
+        </div>
+    `).join('');
+    
     const content = `
         <h3 class="text-2xl font-bold mb-4">${title}</h3>
         <div class="modal-scrollable-content"><div class="space-y-4">
@@ -1928,15 +2001,21 @@ function openSkillForm(skill = null, index = -1) {
                 <option value="Activa" ${skill?.type === 'Activa' ? 'selected' : ''}>Activa</option>
                 <option value="Pasiva" ${skill?.type === 'Pasiva' ? 'selected' : ''}>Pasiva</option>
             </select>
-            <input id="skill-cost-pa" type="number" class="input-field" placeholder="Coste PA" value="${skill?.costPA || 0}">
-            <input id="skill-cost-mp" type="number" class="input-field" placeholder="Coste Místyculas" value="${skill?.costMP || 0}">
-            <input id="skill-cost-hp" type="number" class="input-field" placeholder="Coste Vida (HP)" value="${skill?.costHP || 0}">
-            <input id="skill-cost-movement" type="number" class="input-field" placeholder="Coste Movimiento" value="${skill?.costMovement || 0}">
-            <input id="skill-cost-resources" type="text" class="input-field" placeholder="Coste Recursos (clave:cantidad,...)" value="${skill?.costResources || ''}">
-            <div class="border p-4 rounded-md mt-4 border-gray-200 dark:border-gray-600">
-                <label for="skill-formula" class="font-semibold">Fórmula</label>
-                <textarea id="skill-formula" class="input-field mt-1" placeholder="Ej: (FUE)d(6)" rows="2">${skill?.formula || ''}</textarea>
-                <div id="formula-builder-container" class="mt-2"></div>
+            
+            <div class="border p-4 rounded-md border-gray-200 dark:border-gray-600">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="font-semibold">Costes</label>
+                    <button class="btn btn-secondary text-xs" onclick="addCostRow()">+ Agregar Coste</button>
+                </div>
+                <div id="costs-container">${costsHtml || '<p class="text-xs text-gray-500">Sin costes</p>'}</div>
+            </div>
+            
+            <div class="border p-4 rounded-md border-gray-200 dark:border-gray-600">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="font-semibold">Fórmulas / Efectos</label>
+                    <button class="btn btn-secondary text-xs" onclick="addFormulaRow()">+ Agregar Fórmula</button>
+                </div>
+                <div id="formulas-container">${formulasHtml || '<p class="text-xs text-gray-500">Sin fórmulas</p>'}</div>
             </div>
         </div></div>
         <div class="flex justify-end space-x-2 mt-6 pt-4 border-t dark:border-gray-600">
@@ -1944,25 +2023,90 @@ function openSkillForm(skill = null, index = -1) {
             <button id="save-skill-btn" class="btn btn-primary">${btnText}</button>
         </div>`;
     openModal(content);
-    renderFormulaBuilder('formula-builder-container', 'skill-formula');
     document.getElementById('save-skill-btn').onclick = () => saveSkill(index);
+}
+
+function addCostRow() {
+    const container = document.getElementById('costs-container');
+    const id = 'cost-' + Date.now();
+    const row = document.createElement('div');
+    row.className = 'flex gap-2 items-end mb-2';
+    row.id = id;
+    row.innerHTML = `
+        <select class="input-field flex-1 cost-type">
+            <option value="PA">PA</option>
+            <option value="MP">MP</option>
+            <option value="HP">HP</option>
+            <option value="Movimiento">Movimiento</option>
+            <option value="Recursos">Recursos</option>
+        </select>
+        <input type="text" class="input-field flex-1 cost-value" placeholder="Valor">
+        <button class="btn btn-danger text-xs" onclick="document.getElementById('${id}').remove()">✕</button>
+    `;
+    container.appendChild(row);
+}
+
+function addFormulaRow() {
+    const container = document.getElementById('formulas-container');
+    const id = 'formula-' + Date.now();
+    const row = document.createElement('div');
+    row.className = 'flex gap-2 items-end mb-2';
+    row.id = id;
+    row.innerHTML = `
+        <textarea class="input-field flex-1 formula-input" placeholder="Ej: (FUE)d6" rows="2"></textarea>
+        <button class="btn btn-danger text-xs self-start" onclick="document.getElementById('${id}').remove()">✕</button>
+    `;
+    container.appendChild(row);
 }
 
 function saveSkill(index) {
     const isEditing = index !== undefined && index !== -1;
+    
+    // Gather costs from UI
+    const costs = [];
+    document.querySelectorAll('#costs-container > div').forEach(row => {
+        const typeEl = row.querySelector('.cost-type');
+        const valueEl = row.querySelector('.cost-value');
+        if (typeEl && valueEl && valueEl.value) {
+            costs.push({ type: typeEl.value, value: valueEl.value });
+        }
+    });
+    
+    // Gather formulas from UI
+    const formulas = [];
+    document.querySelectorAll('#formulas-container > div').forEach(row => {
+        const formulaEl = row.querySelector('.formula-input');
+        if (formulaEl && formulaEl.value.trim()) {
+            formulas.push(formulaEl.value.trim());
+        }
+    });
+    
+    // Maintain backward compatibility
+    let costPA = 0, costMP = 0, costHP = 0, costMovement = 0, costResources = '';
+    costs.forEach(cost => {
+        if (cost.type === 'PA') costPA = parseInt(cost.value) || 0;
+        else if (cost.type === 'MP') costMP = parseInt(cost.value) || 0;
+        else if (cost.type === 'HP') costHP = parseInt(cost.value) || 0;
+        else if (cost.type === 'Movimiento') costMovement = parseInt(cost.value) || 0;
+        else if (cost.type === 'Recursos') costResources = cost.value;
+    });
+    
     const newSkill = {
         name: document.getElementById('skill-name').value,
         description: document.getElementById('skill-description').value,
         type: document.getElementById('skill-type').value,
-        costPA: parseInt(document.getElementById('skill-cost-pa').value) || 0,
-        costMP: parseInt(document.getElementById('skill-cost-mp').value) || 0,
-        costHP: parseInt((document.getElementById('skill-cost-hp') && document.getElementById('skill-cost-hp').value) || 0) || 0,
-        costMovement: parseInt((document.getElementById('skill-cost-movement') && document.getElementById('skill-cost-movement').value) || 0) || 0,
-        costResources: (document.getElementById('skill-cost-resources') && document.getElementById('skill-cost-resources').value) || '',
-        formula: document.getElementById('skill-formula').value,
+        costs: JSON.stringify(costs),
+        formulas: JSON.stringify(formulas),
+        // Legacy fields
+        costPA: costPA,
+        costMP: costMP,
+        costHP: costHP,
+        costMovement: costMovement,
+        costResources: costResources,
+        formula: formulas[0] || '',
         rarity: isEditing ? character.inventory.skills[index].rarity : 'Común',
         isDamageFormulaActive: isEditing ? character.inventory.skills[index].isDamageFormulaActive : false,
-        level: isEditing ? character.inventory.skills[index].level : 0, // CORRECCIÓN: Inicia en nivel 0
+        level: isEditing ? character.inventory.skills[index].level : 0,
         upgrades: isEditing ? character.inventory.skills[index].upgrades : 0,
     };
     if (index === -1) character.inventory.skills.push(newSkill);
@@ -1976,8 +2120,23 @@ function renderSkillCard(skill, index) {
     card.className = 'p-4 rounded-lg item-card';
     card.dataset.rarity = skill.rarity || 'Común';
     const rarityOptions = RARITIES.map(r => `<option value="${r}" ${skill.rarity === r ? 'selected' : ''}>${r}</option>`).join('');
+    
+    // Parse costs
+    let costs = [];
+    if (skill.costs && typeof skill.costs === 'string') {
+        try { costs = JSON.parse(skill.costs); } catch(e) { }
+    }
+    const costsHtml = costs.map(c => `${c.value} ${c.type}`).join(' / ') || 'Sin costes';
+    
+    // Parse formulas
+    let formulas = [];
+    if (skill.formulas && typeof skill.formulas === 'string') {
+        try { formulas = JSON.parse(skill.formulas); } catch(e) { }
+    }
+    const formulasHtml = formulas.map(f => `<code class="text-xs font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">${f}</code>`).join('');
+    
     let damageSwitch = '';
-    if (skill.formula) {
+    if (skill.formula || (formulas && formulas.length > 0)) {
         damageSwitch = `
             <div class="flex items-center space-x-2 mt-2">
                 <span class="text-xs font-medium">Potenciar con Arma</span>
@@ -1989,17 +2148,16 @@ function renderSkillCard(skill, index) {
     }
     card.innerHTML = `
         <div class="flex justify-between items-start">
-            <div>
+            <div class="flex-1">
                 <p class="font-bold">${skill.name} <span class="text-sm font-normal">(Nvl ${skill.level || 0})</span></p>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${skill.description || 'Sin descripción.'}</p>
                 <select class="input-field item-rarity-select mt-2 text-sm" onchange="changeRarity('skills', ${index}, this.value)">${rarityOptions}</select>
-                <p class="text-sm mt-2">Coste: ${skill.costPA} PA / ${skill.costMP} MP ${skill.costHP ? '/ ' + skill.costHP + ' HP' : ''} ${skill.costMovement ? '/ ' + skill.costMovement + ' mv' : ''}</p>
-                ${skill.costResources ? `<p class="text-sm mt-1">Recursos: ${skill.costResources}</p>` : ''}
+                <p class="text-sm mt-2"><strong>Costes:</strong> ${costsHtml}</p>
+                <p class="text-sm mt-1"><strong>Fórmulas:</strong> ${formulasHtml || 'Sin fórmulas'}</p>
                 <p class="text-sm mt-1">Niveles: ${skill.upgrades || 0} ${skill.upgrades && skill.upgrades>0 ? `<button class="btn btn-secondary text-xs ml-2" onclick="reduceSkillLevel(${index})">Reducir Nivel</button>` : ''}</p>
-                <p class="text-sm font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded mt-1 inline-block">${skill.formula || 'Sin fórmula'}</p>
                 ${damageSwitch}
             </div>
-            <div class="flex flex-col space-y-1">
+            <div class="flex flex-col space-y-1 ml-2">
                 <button class="btn btn-primary text-xs" onclick="useAbility('skills', ${index})">Usar</button>
                 <button class="btn btn-secondary text-xs" onclick="openSkillForm(character.inventory.skills[${index}], ${index})">Editar</button>
                 <button class="btn btn-danger text-xs" onclick="deleteItem('skills', ${index})">Borrar</button>
@@ -2024,6 +2182,48 @@ document.getElementById('add-technique-btn').addEventListener('click', () => ope
 function openTechniqueForm(tech = null, index = -1) {
     const isEditing = tech !== null;
     const title = isEditing ? 'Editar Técnica/Hechizo' : 'Añadir Técnica/Hechizo';
+    
+    // Parse costs
+    let costs = [];
+    if (tech && tech.costs && typeof tech.costs === 'string') {
+        try { costs = JSON.parse(tech.costs); } catch(e) { costs = []; }
+    } else if (tech && tech.costs) {
+        costs = Array.isArray(tech.costs) ? tech.costs : [];
+    }
+    if (!costs.length && tech) {
+        if (tech.costPA) costs.push({type: 'PA', value: tech.costPA});
+        if (tech.costMP) costs.push({type: 'MP', value: tech.costMP});
+    }
+    
+    // Parse formulas
+    let formulas = [];
+    if (tech && tech.formulas && typeof tech.formulas === 'string') {
+        try { formulas = JSON.parse(tech.formulas); } catch(e) { formulas = []; }
+    } else if (tech && tech.formulas) {
+        formulas = Array.isArray(tech.formulas) ? tech.formulas : [];
+    }
+    if (!formulas.length && tech && tech.formula) {
+        formulas = [tech.formula];
+    }
+    
+    const costsHtml = costs.map((cost, i) => `
+        <div class="flex gap-2 items-end mb-2" id="cost-row-${i}">
+            <select class="input-field flex-1 cost-type" value="${cost.type}">
+                <option value="PA">PA</option>
+                <option value="MP">MP</option>
+            </select>
+            <input type="text" class="input-field flex-1 cost-value" placeholder="Valor" value="${cost.value}">
+            <button class="btn btn-danger text-xs" onclick="document.getElementById('cost-row-${i}').remove()">✕</button>
+        </div>
+    `).join('');
+    
+    const formulasHtml = formulas.map((formula, i) => `
+        <div class="flex gap-2 items-end mb-2" id="formula-row-${i}">
+            <textarea class="input-field flex-1 formula-input" placeholder="Ej: (INT)d8" rows="2">${formula}</textarea>
+            <button class="btn btn-danger text-xs self-start" onclick="document.getElementById('formula-row-${i}').remove()">✕</button>
+        </div>
+    `).join('');
+    
     const content = `
         <h3 class="text-2xl font-bold mb-4">${title}</h3>
         <div class="modal-scrollable-content"><div class="space-y-4">
@@ -2033,12 +2233,21 @@ function openTechniqueForm(tech = null, index = -1) {
                 <option value="Técnica" ${tech?.type === 'Técnica' ? 'selected' : ''}>Técnica</option>
                 <option value="Hechizo" ${tech?.type === 'Hechizo' ? 'selected' : ''}>Hechizo</option>
             </select>
-            <input id="tech-cost-pa" type="number" class="input-field" placeholder="Coste PA" value="${tech?.costPA || 0}">
-            <input id="tech-cost-mp" type="number" class="input-field" placeholder="Coste Místyculas" value="${tech?.costMP || 0}">
-            <div class="border p-4 rounded-md mt-4 border-gray-200 dark:border-gray-600">
-                <label for="tech-formula" class="font-semibold">Fórmula</label>
-                <textarea id="tech-formula" class="input-field mt-1" placeholder="Ej: (INT)d(8)" rows="2">${tech?.formula || ''}</textarea>
-                <div id="formula-builder-container" class="mt-2"></div>
+            
+            <div class="border p-4 rounded-md border-gray-200 dark:border-gray-600">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="font-semibold">Costes</label>
+                    <button class="btn btn-secondary text-xs" onclick="addTechCostRow()">+ Agregar Coste</button>
+                </div>
+                <div id="tech-costs-container">${costsHtml || '<p class="text-xs text-gray-500">Sin costes</p>'}</div>
+            </div>
+            
+            <div class="border p-4 rounded-md border-gray-200 dark:border-gray-600">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="font-semibold">Fórmulas / Efectos</label>
+                    <button class="btn btn-secondary text-xs" onclick="addTechFormulaRow()">+ Agregar Fórmula</button>
+                </div>
+                <div id="tech-formulas-container">${formulasHtml || '<p class="text-xs text-gray-500">Sin fórmulas</p>'}</div>
             </div>
         </div></div>
         <div class="flex justify-end space-x-2 mt-6 pt-4 border-t dark:border-gray-600">
@@ -2046,22 +2255,81 @@ function openTechniqueForm(tech = null, index = -1) {
             <button id="save-tech-btn" class="btn btn-primary">${isEditing ? 'Guardar' : 'Crear'}</button>
         </div>`;
     openModal(content);
-    renderFormulaBuilder('formula-builder-container', 'tech-formula');
     document.getElementById('save-tech-btn').onclick = () => saveTechnique(index);
+}
+
+function addTechCostRow() {
+    const container = document.getElementById('tech-costs-container');
+    const id = 'techcost-' + Date.now();
+    const row = document.createElement('div');
+    row.className = 'flex gap-2 items-end mb-2';
+    row.id = id;
+    row.innerHTML = `
+        <select class="input-field flex-1 cost-type">
+            <option value="PA">PA</option>
+            <option value="MP">MP</option>
+        </select>
+        <input type="text" class="input-field flex-1 cost-value" placeholder="Valor">
+        <button class="btn btn-danger text-xs" onclick="document.getElementById('${id}').remove()">✕</button>
+    `;
+    container.appendChild(row);
+}
+
+function addTechFormulaRow() {
+    const container = document.getElementById('tech-formulas-container');
+    const id = 'techformula-' + Date.now();
+    const row = document.createElement('div');
+    row.className = 'flex gap-2 items-end mb-2';
+    row.id = id;
+    row.innerHTML = `
+        <textarea class="input-field flex-1 formula-input" placeholder="Ej: (INT)d8" rows="2"></textarea>
+        <button class="btn btn-danger text-xs self-start" onclick="document.getElementById('${id}').remove()">✕</button>
+    `;
+    container.appendChild(row);
 }
 
 function saveTechnique(index) {
     const isEditing = index !== undefined && index !== -1;
+    
+    // Gather costs from UI
+    const costs = [];
+    document.querySelectorAll('#tech-costs-container > div').forEach(row => {
+        const typeEl = row.querySelector('.cost-type');
+        const valueEl = row.querySelector('.cost-value');
+        if (typeEl && valueEl && valueEl.value) {
+            costs.push({ type: typeEl.value, value: valueEl.value });
+        }
+    });
+    
+    // Gather formulas from UI
+    const formulas = [];
+    document.querySelectorAll('#tech-formulas-container > div').forEach(row => {
+        const formulaEl = row.querySelector('.formula-input');
+        if (formulaEl && formulaEl.value.trim()) {
+            formulas.push(formulaEl.value.trim());
+        }
+    });
+    
+    // Maintain backward compatibility
+    let costPA = 0, costMP = 0;
+    costs.forEach(cost => {
+        if (cost.type === 'PA') costPA = parseInt(cost.value) || 0;
+        else if (cost.type === 'MP') costMP = parseInt(cost.value) || 0;
+    });
+    
     const newTech = {
         name: document.getElementById('tech-name').value,
         description: document.getElementById('tech-description').value,
         type: document.getElementById('tech-type').value,
-        costPA: parseInt(document.getElementById('tech-cost-pa').value) || 0,
-        costMP: parseInt(document.getElementById('tech-cost-mp').value) || 0,
-        formula: document.getElementById('tech-formula').value,
+        costs: JSON.stringify(costs),
+        formulas: JSON.stringify(formulas),
+        // Legacy fields
+        costPA: costPA,
+        costMP: costMP,
+        formula: formulas[0] || '',
         rarity: isEditing ? character.inventory.techniques[index].rarity : 'Común',
         isDamageFormulaActive: isEditing ? character.inventory.techniques[index].isDamageFormulaActive : false,
-        level: isEditing ? character.inventory.techniques[index].level : 0, // CORRECCIÓN: Inicia en nivel 0
+        level: isEditing ? character.inventory.techniques[index].level : 0,
         upgrades: isEditing ? character.inventory.techniques[index].upgrades : 0,
     };
     if (index === -1) character.inventory.techniques.push(newTech);
@@ -2075,8 +2343,23 @@ function renderTechniqueCard(tech, index) {
     card.className = 'p-4 rounded-lg item-card';
     card.dataset.rarity = tech.rarity || 'Común';
     const rarityOptions = RARITIES.map(r => `<option value="${r}" ${tech.rarity === r ? 'selected' : ''}>${r}</option>`).join('');
+    
+    // Parse costs
+    let costs = [];
+    if (tech.costs && typeof tech.costs === 'string') {
+        try { costs = JSON.parse(tech.costs); } catch(e) { }
+    }
+    const costsHtml = costs.map(c => `${c.value} ${c.type}`).join(' / ') || 'Sin costes';
+    
+    // Parse formulas
+    let formulas = [];
+    if (tech.formulas && typeof tech.formulas === 'string') {
+        try { formulas = JSON.parse(tech.formulas); } catch(e) { }
+    }
+    const formulasHtml = formulas.map(f => `<code class="text-xs font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">${f}</code>`).join('');
+    
     let damageSwitch = '';
-    if (tech.formula) {
+    if (tech.formula || (formulas && formulas.length > 0)) {
         damageSwitch = `
             <div class="flex items-center space-x-2 mt-2">
                 <span class="text-xs font-medium">Potenciar con Arma</span>
@@ -2088,15 +2371,15 @@ function renderTechniqueCard(tech, index) {
     }
     card.innerHTML = `
         <div class="flex justify-between items-start">
-            <div>
+            <div class="flex-1">
                 <p class="font-bold">${tech.name} <span class="text-sm font-normal">(Nvl ${tech.level || 0})</span></p>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${tech.description || 'Sin descripción.'}</p>
                 <select class="input-field item-rarity-select mt-2 text-sm" onchange="changeRarity('techniques', ${index}, this.value)">${rarityOptions}</select>
-                <p class="text-sm mt-2">Coste: ${tech.costPA} PA / ${tech.costMP} MP</p>
-                <p class="text-sm font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded mt-1 inline-block">${tech.formula || 'Sin fórmula'}</p>
+                <p class="text-sm mt-2"><strong>Costes:</strong> ${costsHtml}</p>
+                <p class="text-sm mt-1"><strong>Fórmulas:</strong> ${formulasHtml || 'Sin fórmulas'}</p>
                 ${damageSwitch}
             </div>
-            <div class="flex flex-col space-y-1">
+            <div class="flex flex-col space-y-1 ml-2">
                 <button class="btn btn-primary text-xs" onclick="useAbility('techniques', ${index})">Usar</button>
                 <button class="btn btn-secondary text-xs" onclick="openTechniqueForm(character.inventory.techniques[${index}], ${index})">Editar</button>
                 <button class="btn btn-danger text-xs" onclick="deleteItem('techniques', ${index})">Borrar</button>
@@ -2269,46 +2552,142 @@ function calculatePetStats(pet) {
 function openPetForm(pet = null, index = -1) {
     const isEditing = pet !== null;
     const title = isEditing ? 'Editar Mascota' : 'Añadir Mascota';
+    const btnText = isEditing ? 'Guardar' : 'Crear';
+    
     const attrInputs = Object.keys(character.attributes).map(key => `
-        <div class="flex justify-between items-center">
-            <label for="pet-attr-${key}" class="font-medium">${character.attributes[key].name}</label>
-            <input type="number" id="pet-attr-${key}" class="input-field w-20 text-center" value="${pet?.attributes?.[key] || 10}">
+        <div class="flex justify-between items-center mb-2">
+            <label class="text-sm font-medium">${character.attributes[key].name}</label>
+            <input type="number" id="pet-attr-${key}" class="input-field w-20 text-center text-sm" value="${pet?.attributes?.[key] || 10}">
         </div>`).join('');
+    
     const content = `
-        <h3 class="text-2xl font-bold mb-4">${title}</h3>
-        <div class="modal-scrollable-content"><div class="space-y-4">
-            <div class="flex items-center space-x-4">
-                <img id="pet-image-preview" src="${pet?.image || 'https://placehold.co/80x80/e0e0e0/2c3e50?text=Pet'}" alt="Avatar de la Mascota" class="w-20 h-20 rounded-full object-cover border-4 border-gray-200 dark:border-gray-700">
-                <div><label for="pet-image-upload" class="btn btn-primary text-sm">Cargar Imagen</label><input type="file" id="pet-image-upload" class="hidden" accept="image/*"></div>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-2xl font-bold">${title}</h3>
+            <div>
+                <img id="pet-image-preview" src="${pet?.image || 'https://placehold.co/100x100/e0e0e0/2c3e50?text=Pet'}" alt="Avatar" class="w-24 h-24 rounded-lg object-cover border-2 border-gray-300">
             </div>
-            <input id="pet-name" class="input-field" placeholder="Nombre" value="${pet?.name || ''}">
-            <input id="pet-type" class="input-field" placeholder="Tipo (Ej: Bestia, Elemental)" value="${pet?.type || ''}">
-            <input id="pet-level" type="number" class="input-field" placeholder="Nivel" value="${pet?.level || 1}">
-            ${createRaritySelector(pet?.rarity || 'Común')}
-            <textarea id="pet-notes" class="input-field" rows="3" placeholder="Notas, personalidad, historia...">${pet?.notes || ''}</textarea>
-            <h4 class="font-semibold pt-2 border-t mt-4 dark:border-gray-600">Atributos Base</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">${attrInputs}</div>
-            <h4 class="font-semibold pt-2 border-t mt-4 dark:border-gray-600">Estadísticas Base</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-                 <div class="flex justify-between items-center"><label for="pet-base-health" class="font-medium">Vida Base</label><input type="number" id="pet-base-health" class="input-field w-20 text-center" value="${pet?.stats?.health?.base || 20}"></div>
-                 <div class="flex justify-between items-center"><label for="pet-base-mana" class="font-medium">Maná Base</label><input type="number" id="pet-base-mana" class="input-field w-20 text-center" value="${pet?.stats?.mana?.base || 20}"></div>
-                 <div class="flex justify-between items-center"><label for="pet-base-armor" class="font-medium">Armadura Base</label><input type="number" id="pet-base-armor" class="input-field w-20 text-center" value="${pet?.stats?.armor?.base || 10}"></div>
-                 <div class="flex justify-between items-center"><label for="pet-base-actions" class="font-medium">Acciones Base</label><input type="number" id="pet-base-actions" class="input-field w-20 text-center" value="${pet?.stats?.actions?.base || 2}"></div>
+        </div>
+        
+        <div class="border-b border-gray-200 dark:border-gray-700 mb-4">
+            <nav class="-mb-px flex space-x-4" id="pet-modal-tabs">
+                <button data-pet-tab="info" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm active">Información</button>
+                <button data-pet-tab="attributes" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">Atributos</button>
+                <button data-pet-tab="stats" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">Estadísticas</button>
+                <button data-pet-tab="skills" class="tab-button whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">Habilidades</button>
+            </nav>
+        </div>
+        
+        <div class="modal-scrollable-content">
+            <!-- Tab: Información -->
+            <div id="pet-tab-info" class="pet-pane active space-y-4">
+                <label class="block">
+                    <span class="text-sm font-medium mb-1 block">Cargar Imagen</span>
+                    <input type="file" id="pet-image-upload" accept="image/*" class="input-field w-full text-sm">
+                </label>
+                <input id="pet-name" class="input-field" placeholder="Nombre de la Mascota" value="${pet?.name || ''}">
+                <input id="pet-type" class="input-field" placeholder="Tipo (Ej: Bestia, Dragón, Elemental)" value="${pet?.type || ''}">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-sm font-medium mb-1 block">Nivel</label>
+                        <input id="pet-level" type="number" class="input-field" value="${pet?.level || 1}">
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium mb-1 block">Rareza</label>
+                        ${createRaritySelector(pet?.rarity || 'Común')}
+                    </div>
+                </div>
+                <label>
+                    <span class="text-sm font-medium mb-1 block">Notas / Personalidad</span>
+                    <textarea id="pet-notes" class="input-field" rows="4" placeholder="Descripción, historia, personalidad...">${pet?.notes || ''}</textarea>
+                </label>
             </div>
-        </div></div>
+            
+            <!-- Tab: Atributos -->
+            <div id="pet-tab-attributes" class="pet-pane hidden space-y-2">
+                ${attrInputs}
+            </div>
+            
+            <!-- Tab: Estadísticas Base -->
+            <div id="pet-tab-stats" class="pet-pane hidden space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-sm font-medium mb-1 block">Vida Base</label>
+                        <input type="number" id="pet-base-health" class="input-field" value="${pet?.stats?.health?.base || 20}">
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium mb-1 block">Maná Base</label>
+                        <input type="number" id="pet-base-mana" class="input-field" value="${pet?.stats?.mana?.base || 20}">
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium mb-1 block">Armadura Base</label>
+                        <input type="number" id="pet-base-armor" class="input-field" value="${pet?.stats?.armor?.base || 10}">
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium mb-1 block">Acciones Base</label>
+                        <input type="number" id="pet-base-actions" class="input-field" value="${pet?.stats?.actions?.base || 2}">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab: Habilidades -->
+            <div id="pet-tab-skills" class="pet-pane hidden">
+                <div id="pet-skills-list" class="space-y-2">
+                    ${pet && pet.skills && pet.skills.length > 0 ? pet.skills.map((s, i) => `
+                        <div class="flex justify-between items-center p-2 border rounded bg-gray-50 dark:bg-gray-700">
+                            <div>
+                                <div class="font-semibold text-sm">${s.name}</div>
+                                <div class="text-xs text-gray-500">PA: ${s.costPA || 0} | MP: ${s.costMP || 0}</div>
+                            </div>
+                            <div class="flex gap-1">
+                                <button class="btn btn-secondary text-xs" onclick="editPetCompanionSkill(${index}, ${i})">Editar</button>
+                                <button class="btn btn-danger text-xs" onclick="deletePetSkill(${index}, ${i}); openPetForm(character.inventory.pets[${index}], ${index})">X</button>
+                            </div>
+                        </div>
+                    `).join('') : '<p class="text-xs text-gray-500">Sin habilidades. Haz clic en "Agregar" para añadir.</p>'}
+                </div>
+                <button class="btn btn-secondary text-sm mt-3 w-full" onclick="addPetCompanionSkill(${index})">+ Agregar Habilidad</button>
+            </div>
+        </div>
+        
         <div class="flex justify-end space-x-2 mt-6 pt-4 border-t dark:border-gray-600">
             <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-            <button id="save-pet-btn" class="btn btn-primary">${isEditing ? 'Guardar' : 'Crear'}</button>
-        </div>`;
+            <button id="save-pet-btn" class="btn btn-primary">${btnText}</button>
+        </div>
+    `;
     openModal(content);
-    document.getElementById('pet-image-upload').addEventListener('change', function(event) {
-        if (event.target.files && event.target.files[0]) {
+    
+    // Tab switching
+    document.getElementById('pet-modal-tabs').addEventListener('click', (e) => {
+        if (e.target.dataset.petTab) {
+            const tab = e.target.dataset.petTab;
+            document.querySelectorAll('#pet-modal-tabs .tab-button').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            document.querySelectorAll('.pet-pane').forEach(pane => pane.classList.add('hidden'));
+            document.getElementById(`pet-tab-${tab}`).classList.remove('hidden');
+        }
+    });
+    
+    // Image upload
+    document.getElementById('pet-image-upload')?.addEventListener('change', function(event) {
+        if (event.target.files?.[0]) {
             const reader = new FileReader();
             reader.onload = (e) => document.getElementById('pet-image-preview').src = e.target.result;
             reader.readAsDataURL(event.target.files[0]);
         }
     });
+    
     document.getElementById('save-pet-btn').onclick = () => savePet(index);
+}
+
+function addPetCompanionSkill(petIndex) {
+    openPetSkillForm(petIndex);
+}
+
+function editPetCompanionSkill(petIndex, skillIndex) {
+    const pet = character.inventory.pets[petIndex];
+    if (pet && pet.skills && pet.skills[skillIndex]) {
+        openPetSkillForm(petIndex, pet.skills[skillIndex], skillIndex);
+    }
 }
 
 function savePet(index) {
@@ -3351,7 +3730,109 @@ function saveAttributeEdit(key) {
 }
 
 function openCombatMode() {
-    showNotification('Modo de Combate Eliminado', 'El modo de combate separado ha sido eliminado. Todas las acciones se usan desde la vista principal.');
+    // Open map modal with image upload
+    openMapModal();
+}
+
+function openMapModal() {
+    if (!character.map) character.map = { avatar: { x: 0, y: 0 }, gridSize: 10, backgroundImage: '' };
+    const mapBg = character.map.backgroundImage ? `url('${character.map.backgroundImage}')` : 'none';
+    
+    const content = `
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-2xl font-bold">Mapa del Mundo</h3>
+            <div class="flex gap-2">
+                <label class="btn btn-secondary text-xs cursor-pointer">
+                    Subir Fondo
+                    <input type="file" id="map-bg-upload" accept="image/*" style="display:none;">
+                </label>
+                <button class="btn btn-danger text-xs" onclick="clearMapBackground()">Limpiar</button>
+            </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4 mb-4">
+            <div>
+                <label class="text-sm font-semibold">Tamaño de Grid</label>
+                <input type="number" id="map-size" class="input-field" min="5" max="20" value="${character.map.gridSize || 10}" onchange="updateMapSize(parseInt(this.value))">
+            </div>
+            <div>
+                <label class="text-sm font-semibold">Posición X</label>
+                <input type="number" id="avatar-x" class="input-field" value="${character.map.avatar.x || 0}" min="0">
+            </div>
+            <div>
+                <label class="text-sm font-semibold">Posición Y</label>
+                <input type="number" id="avatar-y" class="input-field" value="${character.map.avatar.y || 0}" min="0">
+            </div>
+        </div>
+        <div id="map-modal-container" style="background-image: ${mapBg}; background-size: cover; background-position: center; padding: 1rem; border-radius: 0.5rem; border: 2px solid #e5e7eb; min-height: 400px;">
+            <div id="map-grid-modal" style="display: grid; grid-template-columns: repeat(${character.map.gridSize || 10}, 30px); gap: 3px; width: fit-content;"></div>
+            <p id="map-info-modal" class="text-xs mt-4 font-mono text-gray-600">Selecciona una celda para mover el avatar</p>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+            <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+            <button class="btn btn-primary" onclick="saveMapState()">Guardar</button>
+        </div>
+    `;
+    openModal(content);
+    
+    renderMapModalGrid();
+    
+    document.getElementById('map-bg-upload').addEventListener('change', function(e) {
+        if (e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                character.map.backgroundImage = evt.target.result;
+                document.getElementById('map-modal-container').style.backgroundImage = `url('${evt.target.result}')`;
+                saveCharacterToLocalStorage();
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+}
+
+function renderMapModalGrid() {
+    const grid = document.getElementById('map-grid-modal');
+    grid.innerHTML = '';
+    const size = character.map.gridSize || 10;
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            const cell = document.createElement('div');
+            cell.className = 'map-cell';
+            cell.style.width = '30px';
+            cell.style.height = '30px';
+            if (character.map.avatar.x === x && character.map.avatar.y === y) cell.classList.add('avatar');
+            cell.addEventListener('click', () => {
+                const prev = { ...character.map.avatar };
+                character.map.avatar.x = x;
+                character.map.avatar.y = y;
+                document.getElementById('avatar-x').value = x;
+                document.getElementById('avatar-y').value = y;
+                renderMapModalGrid();
+                const dist = Math.sqrt(Math.pow(prev.x - x, 2) + Math.pow(prev.y - y, 2)).toFixed(2);
+                document.getElementById('map-info-modal').textContent = `Avatar: (${x}, ${y}) — Distancia: ${dist}`;
+            });
+            grid.appendChild(cell);
+        }
+    }
+}
+
+function updateMapSize(newSize) {
+    if (newSize < 5) newSize = 5;
+    if (newSize > 20) newSize = 20;
+    character.map.gridSize = newSize;
+    renderMapModalGrid();
+}
+
+function clearMapBackground() {
+    character.map.backgroundImage = '';
+    document.getElementById('map-modal-container').style.backgroundImage = 'none';
+    saveCharacterToLocalStorage();
+}
+
+function saveMapState() {
+    character.map.avatar.x = parseInt(document.getElementById('avatar-x').value) || 0;
+    character.map.avatar.y = parseInt(document.getElementById('avatar-y').value) || 0;
+    saveAndRefresh();
+    closeModal();
 }
 
 function unequipItem(slotIndex) {
@@ -3677,70 +4158,22 @@ function setResource(index, value) {
     saveAndRefresh();
 }
 
-// Favores UI
+function updateFavoresCurrent(value) {
+    character.favores.current = Math.max(0, value);
+    saveCharacterToLocalStorage();
+}
+
+function updateFavoresMax(value) {
+    character.favores.max = Math.max(1, value);
+    saveCharacterToLocalStorage();
+}
+
+// Favores UI - deprecated, now integrated in renderSpiritAmulet
 function renderFavoresUI() {
-    if (!character.favores) character.favores = { current: 0, max: 10, notes: '' };
-    let container = document.getElementById('favores-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'favores-container';
-        container.innerHTML = `<div>Favores: <span class="count">0</span> / <span class="max">0</span></div><div class="mt-2"><textarea id="favores-notes" rows="3" class="input-field" placeholder="Notas de favores/deudas..."></textarea></div>`;
-        document.body.appendChild(container);
-    }
-    const countEl = container.querySelector('.count');
-    const maxEl = container.querySelector('.max');
-    const notesEl = document.getElementById('favores-notes');
-    if (countEl) countEl.textContent = character.favores.current || 0;
-    if (maxEl) maxEl.textContent = character.favores.max || 10;
-    if (notesEl) {
-        notesEl.value = character.favores.notes || '';
-        if (!notesEl.dataset.listenerAttached) {
-            notesEl.addEventListener('blur', (e) => {
-                character.favores.notes = e.target.value;
-                saveCharacterToLocalStorage();
-            });
-            notesEl.dataset.listenerAttached = 'true';
-        }
-    }
+    // Deprecated: Favores now rendered as part of renderSpiritAmulet()
 }
 
 // Simple interactive map module
-function renderMap() {
-    if (!character.map) character.map = { avatar: { x: 0, y: 0 }, gridSize: 10 };
-    let container = document.getElementById('map-container');
-    if (!container) {
-        // Try to place under header main container if available
-        const main = document.querySelector('.max-w-7xl');
-        container = document.createElement('div');
-        container.id = 'map-container';
-        container.className = 'card p-4 mt-4';
-        container.innerHTML = `<h3 class="card-title">Mapa</h3><div id="map-grid" class="mt-2"></div><p id="map-info" class="text-xs mt-2"></p>`;
-        if (main && main.parentNode) main.parentNode.insertBefore(container, main.nextSibling);
-        else document.body.appendChild(container);
-    }
-    const grid = document.getElementById('map-grid');
-    grid.innerHTML = '';
-    const size = character.map.gridSize || 10;
-    for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
-            const cell = document.createElement('div');
-            cell.className = 'map-cell';
-            cell.dataset.x = x; cell.dataset.y = y;
-            if (character.map.avatar.x === x && character.map.avatar.y === y) cell.classList.add('avatar');
-            cell.addEventListener('click', () => {
-                const prev = {...character.map.avatar};
-                character.map.avatar.x = x; character.map.avatar.y = y;
-                renderMap();
-                const dx = Math.abs(prev.x - x);
-                const dy = Math.abs(prev.y - y);
-                const dist = Math.sqrt(dx*dx + dy*dy).toFixed(2);
-                document.getElementById('map-info').textContent = `Avatar: (${x}, ${y}) — Distancia desde anterior: ${dist}`;
-                saveCharacterToLocalStorage();
-            });
-            grid.appendChild(cell);
-        }
-    }
-}
 
 
 // ===================================================================================
