@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Personaje - Isekai Delivery Service v6.7 Premium</title>
+    <title>Hoja de Personaje - Isekai Delivery Service v6.8 Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -487,7 +487,7 @@
         <!-- Header Section -->
         <div class="mb-8 pb-6 border-b-2 border-gray-300 dark:border-gray-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex-1">
-                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v6.7 Premium</h1>
+                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v6.8 Premium</h1>
                 <p class="text-lg text-gray-600 dark:text-gray-400">Los cambios se guardan automáticamente en tu navegador</p>
             </div>
             <!-- Modo Combate eliminado: acciones integradas en la vista principal -->
@@ -715,8 +715,8 @@ const SKILL_POINTS_PER_LEVEL = {
 };
 const EVOLUTION_LEVELS = [5, 10, 15, 20];
 const RARITIES = ['Intrínseco', 'Común', 'Raro', 'Épico', 'Legendario', 'Mítico / Único', 'Genesis'];
-const LOCAL_STORAGE_KEY = 'characterSheetData_v6.7'; // Updated version key
-const THEME_STORAGE_KEY = 'characterSheetTheme_v6.7'; // Updated version key
+const LOCAL_STORAGE_KEY = 'characterSheetData_v6.8'; // Updated version key
+const THEME_STORAGE_KEY = 'characterSheetTheme_v6.8'; // Updated version key
 
 const ELEMENTS_CONFIG = {
     fuego: { name: 'Fuego', emoji: '🔥', color: 'bg-red-100 dark:bg-red-900/50' },
@@ -1321,6 +1321,12 @@ function addEventListeners() {
                 saveCharacterToLocalStorage();
             };
         }
+    }
+
+    // Skill button listener
+    const addSkillBtn = document.getElementById('add-skill-btn');
+    if (addSkillBtn) {
+        addSkillBtn.addEventListener('click', () => openSkillForm());
     }
 }
 
@@ -1931,8 +1937,6 @@ function createRaritySelector(selectedRarity = 'Común') {
 }
 
 // --- Habilidades ---
-document.getElementById('add-skill-btn').addEventListener('click', () => openSkillForm());
-
 function openSkillForm(skill = null, index = -1) {
     const isEditing = skill !== null;
     const title = isEditing ? 'Editar Habilidad' : 'Añadir Habilidad';
@@ -2959,7 +2963,6 @@ function savePet(index) {
     if (!petData.stats.mana) petData.stats.mana = {};
     if (!petData.stats.armor) petData.stats.armor = {};
     if (!petData.stats.actions) petData.stats.actions = {};
-    if (!petData.skills) petData.skills = [];
     Object.keys(character.attributes).forEach(key => {
         petData.attributes[key] = parseInt(document.getElementById(`pet-attr-${key}`).value) || 10;
     });
@@ -2994,18 +2997,6 @@ function renderPetCard(pet, index) {
         <div class="flex justify-between items-center text-xs"><span class="font-semibold">Maná</span><div class="flex items-center gap-1"><input type="number" value="${hydratedPet.stats.mana.current}" class="input-field !p-1 !text-xs w-12 text-center" onchange="updatePetStat(${index}, 'mana', this.value)"><span>/</span><span class="font-bold">${hydratedPet.stats.mana.max}</span></div></div>
         <div class="flex justify-between text-xs"><span class="font-semibold">Armadura</span> <span class="font-bold">${hydratedPet.stats.armor.current}</span></div>
         <div class="flex justify-between text-xs"><span class="font-semibold">Acciones</span> <span class="font-bold">${hydratedPet.stats.actions.current}</span></div>`;
-    const skillsHtml = hydratedPet.skills.map((skill, skillIndex) => `
-        <div class="p-2 border-t dark:border-gray-600 flex justify-between items-center">
-            <div>
-                <p class="font-semibold text-sm">${skill.name} <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(${skill.type})</span></p>
-                <p class="text-xs">Coste: ${skill.costPA || 0} PA / ${skill.costMP || 0} MP</p>
-                <p class="text-xs font-mono bg-gray-200 dark:bg-gray-600 px-1 py-0.5 rounded mt-1 inline-block">${skill.formula || 'N/A'}</p>
-            </div>
-            <div class="flex flex-col gap-1">
-                <button class="btn btn-secondary !p-1 text-xs" onclick="openPetSkillForm(${index}, character.inventory.pets[${index}].skills[${skillIndex}], ${skillIndex})">E</button>
-                <button class="btn btn-danger !p-1 text-xs" onclick="deletePetSkill(${index}, ${skillIndex})">X</button>
-            </div>
-        </div>`).join('');
     card.innerHTML = `
         <div class="flex justify-between items-start">
             <div class="flex items-center gap-4">
@@ -3025,77 +3016,19 @@ function renderPetCard(pet, index) {
             <div><h4 class="font-semibold mb-1 text-sm">Atributos</h4><div class="space-y-1">${attributesHtml}</div></div>
             <div><h4 class="font-semibold mb-1 text-sm">Estadísticas</h4><div class="space-y-1">${statsHtml}</div></div>
         </div>
-        <div>
-            <div class="border-b border-gray-200 dark:border-gray-700"><nav class="-mb-px flex space-x-2">
-                <button data-pet-tab="skills" class="tab-button pet-tab-${index} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-xs border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200 active">Habilidades</button>
-                <button data-pet-tab="notes" class="tab-button pet-tab-${index} whitespace-nowrap py-2 px-1 border-b-2 font-medium text-xs border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-200">Notas</button>
-            </nav></div>
-            <div class="mt-2">
-                <div id="pet-tab-content-${index}-skills" class="pet-pane-${index} active">
-                    <div class="space-y-1 max-h-40 overflow-y-auto">${skillsHtml || '<p class="text-xs text-gray-500 dark:text-gray-400 p-2">Sin habilidades.</p>'}</div>
-                    <button class="btn btn-primary text-xs w-full mt-2" onclick="openPetSkillForm(${index})">Añadir Habilidad</button>
-                </div>
-                <div id="pet-tab-content-${index}-notes" class="pet-pane-${index} hidden">
-                    <p class="text-xs p-2 bg-gray-100 dark:bg-gray-800 rounded min-h-[4rem]">${hydratedPet.notes || 'Sin notas.'}</p>
-                </div>
-            </div>
+        <div class="border-t dark:border-gray-600 pt-3">
+            <p class="text-sm font-semibold mb-2">Notas</p>
+            <p class="text-xs p-2 bg-gray-100 dark:bg-gray-800 rounded min-h-[4rem] text-gray-700 dark:text-gray-300">${hydratedPet.notes || '(Sin notas)'}</p>
         </div>`;
-    card.querySelectorAll(`.pet-tab-${index}`).forEach(button => {
-        button.addEventListener('click', (e) => {
-            const tabName = e.target.dataset.petTab;
-            card.querySelectorAll(`.pet-tab-${index}`).forEach(btn => btn.classList.remove('active'));
-            e.target.classList.add('active');
-            card.querySelectorAll(`.pet-pane-${index}`).forEach(pane => pane.classList.add('hidden'));
-            card.querySelector(`#pet-tab-content-${index}-${tabName}`).classList.remove('hidden');
-        });
-    });
-    // Quick access button to manage pet's companion skills
-    const skillsBtn = document.createElement('button');
-    skillsBtn.className = 'btn btn-primary mt-2 text-xs';
-    skillsBtn.textContent = 'Habilidades de Compañero';
-    skillsBtn.addEventListener('click', () => openPetSkillsMenu(index));
-    card.appendChild(skillsBtn);
     return card;
 }
 
 function openPetSkillsMenu(petIndex) {
-    const pet = character.inventory.pets[petIndex];
-    if (!pet) return;
-    if (!pet.skills) pet.skills = [];
-    let skillsHtml = '';
-    if (pet.skills.length > 0) {
-        skillsHtml = pet.skills.map((s, i) => `
-            <div class="flex justify-between items-center p-2 border-b">
-                <div>
-                    <div class="font-semibold">${s.name}</div>
-                    <div class="text-xs text-gray-500">PA: ${s.costPA || 0} / MP: ${s.costMP || 0}</div>
-                </div>
-                <div class="flex gap-2">
-                    <button class="btn btn-secondary text-xs" onclick="editPetSkillHandler(${petIndex}, ${i})">Editar</button>
-                    <button class="btn btn-danger text-xs" onclick="deletePetSkill(${petIndex}, ${i}); openPetSkillsMenu(${petIndex});">Borrar</button>
-                </div>
-            </div>
-        `).join('');
-    } else {
-        skillsHtml = '<p class="text-sm text-gray-500 p-2">Sin habilidades.</p>';
-    }
-
-    const content = `
-        <h3 class="text-2xl font-bold mb-4">Habilidades de ${pet.name}</h3>
-        <div class="modal-scrollable-content">${skillsHtml}</div>
-        <div class="flex justify-end gap-2 mt-4">
-            <button class="btn btn-secondary" onclick="closeModal(2)">Cerrar</button>
-            <button class="btn btn-primary" onclick="openPetSkillForm(${petIndex})">Añadir Habilidad</button>
-        </div>
-    `;
-    openModal(content, 2);
+    // FUNCIÓN REMOVIDA: Las habilidades de mascotas han sido eliminadas del sistema
 }
 
 function editPetSkillHandler(petIdx, skillIdx) {
-    if (character.inventory.pets[petIdx] && character.inventory.pets[petIdx].skills && character.inventory.pets[petIdx].skills[skillIdx]) {
-        const skill = character.inventory.pets[petIdx].skills[skillIdx];
-        openPetSkillForm(petIdx, skill, skillIdx);
-    }
+    // FUNCIÓN REMOVIDA: Las habilidades de mascotas han sido eliminadas del sistema
 }
 
 function updatePetStat(petIndex, stat, value) {
@@ -3110,45 +3043,15 @@ function updatePetStat(petIndex, stat, value) {
 }
 
 function openPetSkillForm(petIndex, skill = null, skillIndex = -1) {
-    const isEditing = skill !== null;
-    const title = isEditing ? 'Editar Habilidad de Mascota' : 'Añadir Habilidad de Mascota';
-    const content = `
-        <h3 class="text-2xl font-bold mb-4">${title}</h3>
-        <div class="modal-scrollable-content"><div class="space-y-4">
-            <input id="pet-skill-name" class="input-field" placeholder="Nombre" value="${skill?.name || ''}">
-            <select id="pet-skill-type" class="input-field">
-                <option value="Activa" ${skill?.type === 'Activa' ? 'selected' : ''}>Activa</option>
-                <option value="Pasiva" ${skill?.type === 'Pasiva' ? 'selected' : ''}>Pasiva</option>
-            </select>
-            <input id="pet-skill-cost-pa" type="number" class="input-field" placeholder="Coste PA" value="${skill?.costPA || 0}">
-            <input id="pet-skill-cost-mp" type="number" class="input-field" placeholder="Coste MP" value="${skill?.costMP || 0}">
-            <textarea id="pet-skill-formula" class="input-field" placeholder="Fórmula" rows="2">${skill?.formula || ''}</textarea>
-        </div></div>
-        <div class="flex justify-end space-x-2 mt-6 pt-4 border-t dark:border-gray-600">
-            <button class="btn btn-secondary" onclick="closeModal(2)">Cancelar</button>
-            <button id="save-pet-skill-btn" class="btn btn-primary">${isEditing ? 'Guardar' : 'Crear'}</button>
-        </div>`;
-    openModal(content, 2);
-    document.getElementById('save-pet-skill-btn').onclick = () => savePetSkill(petIndex, skillIndex);
+    // FUNCIÓN REMOVIDA: Las habilidades de mascotas han sido eliminadas del sistema
 }
 
 function savePetSkill(petIndex, skillIndex) {
-    const newSkill = {
-        name: document.getElementById('pet-skill-name').value,
-        type: document.getElementById('pet-skill-type').value,
-        costPA: parseInt(document.getElementById('pet-skill-cost-pa').value) || 0,
-        costMP: parseInt(document.getElementById('pet-skill-cost-mp').value) || 0,
-        formula: document.getElementById('pet-skill-formula').value,
-    };
-    if (skillIndex === -1) character.inventory.pets[petIndex].skills.push(newSkill);
-    else character.inventory.pets[petIndex].skills[skillIndex] = newSkill;
-    closeModal(2);
-    saveAndRefresh();
+    // FUNCIÓN REMOVIDA: Las habilidades de mascotas han sido eliminadas del sistema
 }
 
 function deletePetSkill(petIndex, skillIndex) {
-    character.inventory.pets[petIndex].skills.splice(skillIndex, 1);
-    saveAndRefresh();
+    // FUNCIÓN REMOVIDA: Las habilidades de mascotas han sido eliminadas del sistema
 }
 
 // --- Borrado genérico ---
@@ -3678,7 +3581,7 @@ document.getElementById('export-json-btn').addEventListener('click', () => {
     const exportData = { character: character, theme: themeData };
     const dataStr = JSON.stringify(exportData, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileDefaultName = `${character.identity.name.replace(/\s/g, '_') || 'personaje'}_v6.7_premium.json`;
+    const exportFileDefaultName = `${character.identity.name.replace(/\s/g, '_') || 'personaje'}_v6.8_premium.json`;
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
