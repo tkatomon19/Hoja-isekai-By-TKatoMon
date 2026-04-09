@@ -69,7 +69,7 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             transform: translateY(-2px);
         }
-        .card p-7 {
+        .card.p-7 {
             padding: 1.75rem;
         }
         .card-title {
@@ -216,6 +216,18 @@
         .item-card[data-rarity="Mítico / Único"] .bg-gray-200, .item-card[data-rarity="Mítico / Único"] .bg-gray-100 { 
             background-color: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.2); 
         }
+            /* Pet notes visual differentiation */
+            textarea#pet-notes { background-color: #f0f9ff; border-left: 4px solid #7dd3fc; }
+
+            /* Favores (Debts) UI */
+            #favores-container { position: fixed; top: 1rem; right: 1rem; background: rgba(255,255,255,0.95); padding: .5rem 1rem; border-radius: .5rem; box-shadow: 0 6px 18px rgba(0,0,0,0.08); z-index: 60; }
+            #favores-container .count { font-weight: 700; font-size: 1rem; }
+
+            /* Map container */
+            #map-container { border: 1px dashed rgba(99,102,241,0.25); padding: .5rem; border-radius: .5rem; background: linear-gradient(180deg, rgba(249,250,251,0.6), rgba(255,255,255,0.25)); }
+            #map-grid { display: grid; grid-template-columns: repeat(10, 28px); gap: 4px; justify-content: start; }
+            .map-cell { width: 28px; height: 28px; background: #eef2ff; display:flex;align-items:center;justify-content:center;font-size:10px; cursor:pointer; border-radius:4px; }
+            .map-cell.avatar { background: #4f46e5; color:white; font-weight:700; }
         
         @keyframes genesis-anim { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .item-card[data-rarity="Genesis"] {
@@ -460,9 +472,10 @@
         /* Responsivo mejorado */
         @media (max-width: 768px) {
             body { padding: 0.5rem; }
-            .card p-7 { padding: 1.25rem; }
+            .card.p-7 { padding: 1.25rem; }
         }
     </style>
+<base target="_blank">
 </head>
 <body class="p-4 md:p-8">
 
@@ -473,9 +486,7 @@
                 <h1 class="text-4xl md:text-5xl font-bold mb-2 text-gray-900 dark:text-white tracking-tight">Hoja de Personaje v5.0 Premium</h1>
                 <p class="text-lg text-gray-600 dark:text-gray-400">Los cambios se guardan automáticamente en tu navegador</p>
             </div>
-            <button id="combat-mode-btn" class="btn btn-primary h-14 px-6 whitespace-nowrap text-lg font-bold shadow-lg hover:shadow-xl" onclick="openCombatMode()">
-                ⚔️ Modo Combate
-            </button>
+            <!-- Modo Combate eliminado: acciones integradas en la vista principal -->
         </div>
 
         <!-- Contenedor Principal con Grid -->
@@ -592,7 +603,7 @@
                             <button class="btn btn-primary" onclick="useAction(3, 'Reacción')">Reacción (3)</button>
                             <button class="btn btn-secondary" onclick="useAction(-1, 'Bonus')">A. Bonus (+1)</button>
                         </div>
-                        <button class="btn-primary w-full mt-2" onclick="useAction(20, 'Legendaria')">Acción Legendaria (20)</button>
+                        <button class="btn btn-primary w-full mt-2" onclick="useAction(20, 'Legendaria')">Acción Legendaria (20)</button>
                         <button id="end-turn-btn" class="btn btn-secondary w-full">Finalizar Turno</button>
                     </div>
                 </div>
@@ -1231,6 +1242,8 @@ function updateUI() {
     renderEquipment();
     renderStatusEffects();
     renderResources();
+    renderFavoresUI();
+    renderMap();
     addEventListeners();
 }
 
@@ -1641,6 +1654,31 @@ function getUpgradeCost(currentUpgrades) {
     return Infinity; // Max 10 upgrades
 }
 
+// Helper: calculate total PH spent for a number of upgrades
+function calculateTotalPHSpentForUpgrades(upgradesCount) {
+    let total = 0;
+    for (let i = 0; i < upgradesCount; i++) {
+        total += getUpgradeCost(i);
+    }
+    return total;
+}
+
+// Reduce a skill's level (one upgrade) and refund PH accordingly
+function reduceSkillLevel(index) {
+    const skill = character.inventory.skills[index];
+    if (!skill) return;
+    if (!skill.upgrades || skill.upgrades <= 0) {
+        showNotification('Reducir Nivel', 'Esta habilidad no tiene niveles para reducir.');
+        return;
+    }
+    const lastUpgradeIndex = skill.upgrades - 1;
+    const refund = getUpgradeCost(lastUpgradeIndex);
+    skill.upgrades = Math.max(0, skill.upgrades - 1);
+    character.skillPoints = (character.skillPoints || 0) + refund;
+    saveAndRefresh();
+    showNotification('PH Recuperado', `Has recuperado ${refund} PH al reducir el nivel de ${skill.name}.`);
+}
+
 function openSpendSkillPointsModal() {
     const generateUpgradeRow = (item, type, index) => {
         const cost = getUpgradeCost(item.upgrades);
@@ -1884,6 +1922,9 @@ function openSkillForm(skill = null, index = -1) {
             </select>
             <input id="skill-cost-pa" type="number" class="input-field" placeholder="Coste PA" value="${skill?.costPA || 0}">
             <input id="skill-cost-mp" type="number" class="input-field" placeholder="Coste Místyculas" value="${skill?.costMP || 0}">
+            <input id="skill-cost-hp" type="number" class="input-field" placeholder="Coste Vida (HP)" value="${skill?.costHP || 0}">
+            <input id="skill-cost-movement" type="number" class="input-field" placeholder="Coste Movimiento" value="${skill?.costMovement || 0}">
+            <input id="skill-cost-resources" type="text" class="input-field" placeholder="Coste Recursos (clave:cantidad,...)" value="${skill?.costResources || ''}">
             <div class="border p-4 rounded-md mt-4 border-gray-200 dark:border-gray-600">
                 <label for="skill-formula" class="font-semibold">Fórmula</label>
                 <textarea id="skill-formula" class="input-field mt-1" placeholder="Ej: (FUE)d(6)" rows="2">${skill?.formula || ''}</textarea>
@@ -1900,13 +1941,16 @@ function openSkillForm(skill = null, index = -1) {
 }
 
 function saveSkill(index) {
-    const isEditing = index !== -1;
+    const isEditing = index !== undefined && index !== -1;
     const newSkill = {
         name: document.getElementById('skill-name').value,
         description: document.getElementById('skill-description').value,
         type: document.getElementById('skill-type').value,
         costPA: parseInt(document.getElementById('skill-cost-pa').value) || 0,
         costMP: parseInt(document.getElementById('skill-cost-mp').value) || 0,
+        costHP: parseInt((document.getElementById('skill-cost-hp') && document.getElementById('skill-cost-hp').value) || 0) || 0,
+        costMovement: parseInt((document.getElementById('skill-cost-movement') && document.getElementById('skill-cost-movement').value) || 0) || 0,
+        costResources: (document.getElementById('skill-cost-resources') && document.getElementById('skill-cost-resources').value) || '',
         formula: document.getElementById('skill-formula').value,
         rarity: isEditing ? character.inventory.skills[index].rarity : 'Común',
         isDamageFormulaActive: isEditing ? character.inventory.skills[index].isDamageFormulaActive : false,
@@ -1941,7 +1985,9 @@ function renderSkillCard(skill, index) {
                 <p class="font-bold">${skill.name} <span class="text-sm font-normal">(Nvl ${skill.level || 0})</span></p>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">${skill.description || 'Sin descripción.'}</p>
                 <select class="input-field item-rarity-select mt-2 text-sm" onchange="changeRarity('skills', ${index}, this.value)">${rarityOptions}</select>
-                <p class="text-sm mt-2">Coste: ${skill.costPA} PA / ${skill.costMP} MP</p>
+                <p class="text-sm mt-2">Coste: ${skill.costPA} PA / ${skill.costMP} MP ${skill.costHP ? '/ ' + skill.costHP + ' HP' : ''} ${skill.costMovement ? '/ ' + skill.costMovement + ' mv' : ''}</p>
+                ${skill.costResources ? `<p class="text-sm mt-1">Recursos: ${skill.costResources}</p>` : ''}
+                <p class="text-sm mt-1">Niveles: ${skill.upgrades || 0} ${skill.upgrades && skill.upgrades>0 ? `<button class="btn btn-secondary text-xs ml-2" onclick="reduceSkillLevel(${index})">Reducir Nivel</button>` : ''}</p>
                 <p class="text-sm font-mono bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded mt-1 inline-block">${skill.formula || 'Sin fórmula'}</p>
                 ${damageSwitch}
             </div>
@@ -1997,7 +2043,7 @@ function openTechniqueForm(tech = null, index = -1) {
 }
 
 function saveTechnique(index) {
-    const isEditing = index !== -1;
+    const isEditing = index !== undefined && index !== -1;
     const newTech = {
         name: document.getElementById('tech-name').value,
         description: document.getElementById('tech-description').value,
@@ -2133,7 +2179,7 @@ function addEffectRow() {
 }
 
 function saveItem(index) {
-    const isEditing = index !== -1;
+    const isEditing = index !== undefined && index !== -1;
     const effects = [];
     document.querySelectorAll('#structured-effects-container > div').forEach(row => {
         const type = row.querySelector('.effect-type-select').value;
@@ -2258,7 +2304,7 @@ function openPetForm(pet = null, index = -1) {
 }
 
 function savePet(index) {
-    const isEditing = index !== -1;
+    const isEditing = index !== undefined && index !== -1;
     const petData = isEditing ? character.inventory.pets[index] : {};
     petData.name = document.getElementById('pet-name').value || 'Mascota sin nombre';
     petData.type = document.getElementById('pet-type').value || 'Desconocido';
@@ -2362,7 +2408,45 @@ function renderPetCard(pet, index) {
             card.querySelector(`#pet-tab-content-${index}-${tabName}`).classList.remove('hidden');
         });
     });
+    // Quick access button to manage pet's companion skills
+    const skillsBtn = document.createElement('button');
+    skillsBtn.className = 'btn btn-primary mt-2 text-xs';
+    skillsBtn.textContent = 'Habilidades de Compañero';
+    skillsBtn.addEventListener('click', () => openPetSkillsMenu(index));
+    card.appendChild(skillsBtn);
     return card;
+}
+
+function openPetSkillsMenu(petIndex) {
+    const pet = character.inventory.pets[petIndex];
+    if (!pet) return;
+    let skillsHtml = '';
+    if (pet.skills && pet.skills.length > 0) {
+        skillsHtml = pet.skills.map((s, i) => `
+            <div class="flex justify-between items-center p-2 border-b">
+                <div>
+                    <div class="font-semibold">${s.name}</div>
+                    <div class="text-xs text-gray-500">PA: ${s.costPA || 0} / MP: ${s.costMP || 0}</div>
+                </div>
+                <div class="flex gap-2">
+                    <button class="btn btn-secondary text-xs" onclick="openPetSkillForm(${petIndex}, character.inventory.pets[${petIndex}].skills[${i}], ${i})">Editar</button>
+                    <button class="btn btn-danger text-xs" onclick="(function(){ deletePetSkill(${petIndex}, ${i}); closeModal(2); })()">Borrar</button>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        skillsHtml = '<p class="text-sm text-gray-500 p-2">Sin habilidades.</p>';
+    }
+
+    const content = `
+        <h3 class="text-2xl font-bold mb-4">Habilidades de ${pet.name}</h3>
+        <div class="modal-scrollable-content">${skillsHtml}</div>
+        <div class="flex justify-end gap-2 mt-4">
+            <button class="btn btn-secondary" onclick="closeModal(2)">Cerrar</button>
+            <button class="btn btn-primary" onclick="openPetSkillForm(${petIndex})">Añadir Habilidad</button>
+        </div>
+    `;
+    openModal(content, 2);
 }
 
 function updatePetStat(petIndex, stat, value) {
@@ -2420,14 +2504,26 @@ function deletePetSkill(petIndex, skillIndex) {
 
 // --- Borrado genérico ---
 function deleteItem(type, index) {
+    const item = character.inventory[type] && character.inventory[type][index];
+    if (!item) return;
+    const itemName = item.name || (item.type || type) || 'Elemento';
     openModal(`
         <h3 class="text-xl font-bold mb-4">Confirmar Eliminación</h3>
-        <p>¿Seguro que quieres borrar este elemento? Esta acción no se puede deshacer.</p>
+        <p>¿Seguro que quieres borrar <strong>${itemName}</strong>? Esta acción no se puede deshacer.</p>
         <div class="flex justify-end mt-6 space-x-2">
             <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
             <button class="btn btn-danger" id="confirm-delete-btn">Eliminar</button>
         </div>`);
     document.getElementById('confirm-delete-btn').onclick = () => {
+        // If deleting a skill, refund total PH spent on its upgrades
+        if (type === 'skills') {
+            const upgrades = item.upgrades || 0;
+            if (upgrades > 0) {
+                const refund = calculateTotalPHSpentForUpgrades(upgrades);
+                character.skillPoints = (character.skillPoints || 0) + refund;
+                showNotification('PH Recuperado', `Has recuperado ${refund} PH al eliminar ${itemName}.`);
+            }
+        }
         character.inventory[type].splice(index, 1);
         closeModal();
         saveAndRefresh();
@@ -2718,7 +2814,22 @@ function useAbility(type, index) {
     const ability = character.inventory[type][index];
     if (!ability.formula) { showNotification('Error', 'Esta habilidad no tiene fórmula.'); return; }
     if (character.combat.currentActions < ability.costPA) { showNotification('Error', 'No tienes suficientes Puntos de Acción.'); return; }
-    if (character.stats.mana.current < ability.costMP) { showNotification('Error', 'No tienes suficientes Místyculas.'); return; }
+    if (character.stats.mana.current < (ability.costMP || 0)) { showNotification('Error', 'No tienes suficientes Místyculas.'); return; }
+    if ((ability.costHP || 0) > 0 && character.stats.health.current <= (ability.costHP || 0)) { showNotification('Error', 'No tienes suficiente Vida para usar esta habilidad.'); return; }
+    if ((ability.costMovement || 0) > 0 && character.stats.movement.current < (ability.costMovement || 0)) { showNotification('Error', 'No tienes suficiente movimiento disponible.'); return; }
+    // Check resource costs (format: key:amount,key2:amount2)
+    if (ability.costResources && ability.costResources.trim() !== '') {
+        const parts = ability.costResources.split(',').map(p => p.trim()).filter(Boolean);
+        for (const part of parts) {
+            const [rkey, ramt] = part.split(':').map(s => s.trim());
+            const amt = parseInt(ramt) || 0;
+            const resIndex = character.resources.findIndex(r => r.key === rkey || r.name === rkey);
+            if (resIndex === -1 || character.resources[resIndex].current < amt) {
+                showNotification('Error', `No tienes suficientes recursos: ${rkey}`);
+                return;
+            }
+        }
+    }
     
     const result = safeEvaluateFormula(ability.formula, { 
         abilityLevel: ability.level, 
@@ -2728,8 +2839,22 @@ function useAbility(type, index) {
     if (result.error) {
         showNotification('Error de Fórmula', `No se pudo usar la habilidad.\nError: ${result.error}`);
     } else {
-        character.stats.mana.current -= ability.costMP;
-        useAction(ability.costPA, ability.name); // Usar la función centralizada
+        // Deduct costs
+        character.stats.mana.current -= (ability.costMP || 0);
+        if (ability.costHP) character.stats.health.current = Math.max(0, character.stats.health.current - ability.costHP);
+        if (ability.costMovement) character.stats.movement.current = Math.max(0, character.stats.movement.current - ability.costMovement);
+        if (ability.costResources && ability.costResources.trim() !== '') {
+            const parts = ability.costResources.split(',').map(p => p.trim()).filter(Boolean);
+            for (const part of parts) {
+                const [rkey, ramt] = part.split(':').map(s => s.trim());
+                const amt = parseInt(ramt) || 0;
+                const resIndex = character.resources.findIndex(r => r.key === rkey || r.name === rkey);
+                if (resIndex !== -1) {
+                    character.resources[resIndex].current = Math.max(0, character.resources[resIndex].current - amt);
+                }
+            }
+        }
+        useAction((ability.costPA || 0), ability.name); // Usar la función centralizada
         
         // Sincronizar acciones después de usar la habilidad
         character.stats.actions.current = character.combat.currentActions;
@@ -3210,266 +3335,7 @@ function saveAttributeEdit(key) {
 }
 
 function openCombatMode() {
-    const modal = document.getElementById('modal-secondary');
-    const modalContent = document.getElementById('modal-secondary-content');
-    
-    // Generar HTML del modo combate - Layout ancho de 3 columnas
-    let combatHTML = `
-        <div class="combat-header">
-            <h2>⚔️ MODO DE COMBATE</h2>
-            <button class="btn btn-secondary w-14 h-14 flex items-center justify-center text-2xl" onclick="closeModalSecondary()">✕</button>
-        </div>
-        
-        <div class="combat-grid-compact">
-            <!-- COLUMNA IZQUIERDA: MASCOTAS -->
-            <div class="combat-col-left space-y-4">
-                <div class="combat-section h-full">
-                    <div class="combat-section-title">🐾 Mascotas</div>
-                    <div class="space-y-2 max-h-96 overflow-y-auto">
-    `;
-    
-    if (character.inventory.pets.length > 0) {
-        character.inventory.pets.forEach((pet, idx) => {
-            combatHTML += `
-                <div class="p-3 rounded-lg bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500">
-                    <p class="font-bold text-orange-700 dark:text-orange-400 text-sm">${pet.name}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">${pet.description || ''}</p>
-                    <div class="flex gap-1">
-                        <button class="item-action-btn btn btn-primary flex-1" onclick="showNotification('Mascota', '${pet.name} está listo para el combate!')">Usar</button>
-                        <button class="item-action-btn btn btn-secondary flex-1" onclick="showNotification('Info', '${pet.name} - ${pet.description || 'Sin descripción'}')">Info</button>
-                    </div>
-                </div>
-            `;
-        });
-    } else {
-        combatHTML += '<p class="text-xs text-gray-500 italic text-center py-4">Sin mascotas</p>';
-    }
-    
-    combatHTML += `
-                    </div>
-                </div>
-            </div>
-            
-            <!-- COLUMNA CENTRAL: ESTADÍSTICAS Y HABILIDADES -->
-            <div class="combat-col-center space-y-4">
-                <!-- ESTADÍSTICAS VITALES -->
-                <div class="combat-section">
-                    <div class="combat-section-title">⚡ Vitales</div>
-                    <div class="space-y-2">
-                        <div class="combat-stat-item vital-health cursor-pointer hover:shadow-lg transition-all" onclick="editVitalCombat('health')" title="Click para editar">
-                            <span class="combat-stat-label">Vida</span>
-                            <span class="combat-stat-value">${character.stats.health.current}/${character.stats.health.max}</span>
-                        </div>
-                        <div class="combat-stat-item vital-mana cursor-pointer hover:shadow-lg transition-all" onclick="editVitalCombat('mana')" title="Click para editar">
-                            <span class="combat-stat-label">Místyculas</span>
-                            <span class="combat-stat-value">${character.stats.mana.current}/${character.stats.mana.max}</span>
-                        </div>
-                        <div class="combat-stat-item vital-armor cursor-pointer hover:shadow-lg transition-all" onclick="editVitalCombat('armor')" title="Click para editar">
-                            <span class="combat-stat-label">Armadura</span>
-                            <span class="combat-stat-value">${character.stats.armor.current}</span>
-                        </div>
-                        <div class="combat-stat-item vital-actions cursor-pointer hover:shadow-lg transition-all" onclick="editVitalCombat('actions')" title="Click para editar">
-                            <span class="combat-stat-label">Acciones</span>
-                            <span class="combat-stat-value">${character.combat.currentActions}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- ATRIBUTOS -->
-                <div class="combat-section">
-                    <div class="combat-section-title">💪 Atributos</div>
-                    <div class="grid grid-cols-2 gap-2">
-    `;
-    
-    for (const key in character.attributes) {
-        const attr = character.attributes[key];
-        const mod = getModifier(attr.value);
-        combatHTML += `
-            <div class="p-3 rounded-lg bg-gray-50 dark:bg-gray-800 border-l-4 border-blue-500 text-center cursor-pointer hover:shadow-lg transition-all" onclick="rollAttributeCheckCombat('${key}')">
-                <p class="text-xs font-bold text-gray-600 dark:text-gray-400">${attr.name}</p>
-                <p class="text-2xl font-bold text-blue-600">${attr.value}</p>
-                <p class="text-xs text-blue-500 font-bold">${mod >= 0 ? '+' : ''}${mod}</p>
-                <p class="text-xs text-gray-500 mt-1">🎲 Click para tirada</p>
-            </div>
-        `;
-    }
-    
-    combatHTML += `
-                    </div>
-                </div>
-                
-                <!-- ACCIONES DE COMBATE -->
-                <div class="combat-section">
-                    <div class="combat-section-title">⚔️ Acciones</div>
-                    <div class="space-y-2">
-                        <button class="w-full p-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold transition-all" onclick="useCombatAction('Menor', 1)">A. Menor (1)</button>
-                        <button class="w-full p-2 rounded-lg bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold transition-all" onclick="useCombatAction('Objeto', 1)">A. Objeto (1)</button>
-                        <button class="w-full p-2 rounded-lg bg-red-500 hover:bg-red-600 text-white text-sm font-bold transition-all" onclick="useCombatAction('Compleja', 2)">A. Compleja (2)</button>
-                        <button class="w-full p-2 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-bold transition-all" onclick="useCombatAction('Reacción', 3)">Reacción (3)</button>
-                        <button class="w-full p-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-bold transition-all" onclick="useCombatAction('Bonus', 1)">A. Bonus (+1)</button>
-                        <button class="w-full p-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold transition-all" onclick="useCombatAction('Legendaria', 20)">Acción Legendaria (20)</button>
-                        <button class="w-full p-2 rounded-lg bg-gray-600 hover:bg-gray-700 text-white text-sm font-bold transition-all" onclick="endTurn()">Finalizar Turno</button>
-                    </div>
-                </div>
-                
-                <!-- HABILIDADES -->
-                <div class="combat-section">
-                    <div class="combat-section-title">🎯 Habilidades</div>
-                    <div class="space-y-2 max-h-40 overflow-y-auto">
-    `;
-    
-    if (character.inventory.skills.length > 0) {
-        character.inventory.skills.forEach((skill, index) => {
-            combatHTML += `
-                <div class="p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500">
-                    <div class="flex justify-between items-start gap-2">
-                        <div class="flex-1 min-w-0">
-                            <p class="font-bold text-green-700 dark:text-green-400 text-sm">${skill.name}</p>
-                            <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">${skill.description || ''}</p>
-                            <p class="text-xs text-green-600 dark:text-green-300 mt-1">💚 PA: ${skill.costPA} | 💙 MP: ${skill.costMP}</p>
-                        </div>
-                        <button class="item-action-btn btn btn-primary whitespace-nowrap text-xs" onclick="useAbility('skills', ${index})">Usar</button>
-                    </div>
-                </div>
-            `;
-        });
-    } else {
-        combatHTML += '<p class="text-xs text-gray-500 italic">Sin habilidades</p>';
-    }
-    
-    combatHTML += `
-                    </div>
-                </div>
-            </div>
-            
-            <!-- COLUMNA DERECHA: TÉCNICAS Y EQUIPO -->
-            <div class="combat-col-right space-y-4">
-                <!-- TÉCNICAS/HECHIZOS -->
-                <div class="combat-section">
-                    <div class="combat-section-title">✨ Técnicas/Hechizos</div>
-                    <div class="space-y-2 max-h-40 overflow-y-auto">
-    `;
-    
-    if (character.inventory.techniques.length > 0) {
-        character.inventory.techniques.forEach((tech, index) => {
-            combatHTML += `
-                <div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border-l-4 border-purple-500">
-                    <div class="flex justify-between items-start gap-2">
-                        <div class="flex-1 min-w-0">
-                            <p class="font-bold text-purple-700 dark:text-purple-400 text-sm">${tech.name}</p>
-                            <p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-1">${tech.description || ''}</p>
-                            <p class="text-xs text-purple-600 dark:text-purple-300 mt-1">💚 PA: ${tech.costPA} | 💙 MP: ${tech.costMP}</p>
-                        </div>
-                        <button class="item-action-btn btn btn-primary whitespace-nowrap text-xs" onclick="useAbility('techniques', ${index})">Usar</button>
-                    </div>
-                </div>
-            `;
-        });
-    } else {
-        combatHTML += '<p class="text-xs text-gray-500 italic">Sin técnicas</p>';
-    }
-    
-    combatHTML += `
-                    </div>
-                </div>
-                
-                <!-- EQUIPAMIENTO -->
-                <div class="combat-section">
-                    <div class="combat-section-title">🛡️ Equipo</div>
-                    <div class="space-y-1.5 max-h-40 overflow-y-auto">
-    `;
-    
-    character.equipment.forEach((slot, idx) => {
-        if (slot.item) {
-            combatHTML += `
-                <div class="p-2 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500">
-                    <p class="font-semibold text-yellow-700 dark:text-yellow-400 text-xs">${slot.slotName}</p>
-                    <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">${slot.item.name}</p>
-                    <div class="flex gap-1">
-                        <button class="item-action-btn btn btn-secondary flex-1 text-xs" onclick="useEquippedItem(${idx})">Usar</button>
-                        <button class="item-action-btn btn btn-danger flex-1 text-xs" onclick="unequipItem(${idx})">Desequipar</button>
-                    </div>
-                </div>
-            `;
-        } else {
-            combatHTML += `
-                <div class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 border-l-4 border-gray-300 opacity-50">
-                    <p class="font-semibold text-gray-400 text-xs">${slot.slotName}</p>
-                    <p class="text-xs text-gray-500">Vacío</p>
-                </div>
-            `;
-        }
-    });
-    
-    combatHTML += `
-                    </div>
-                </div>
-                
-                <!-- OBJETOS -->
-                <div class="combat-section">
-                    <div class="combat-section-title">🎁 Objetos</div>
-                    <div class="space-y-1.5 max-h-40 overflow-y-auto">
-    `;
-    
-    if (character.inventory.items.length > 0) {
-        character.inventory.items.forEach((item, index) => {
-            combatHTML += `
-                <div class="p-2 rounded-lg bg-cyan-50 dark:bg-cyan-900/20 border-l-4 border-cyan-500">
-                    <div class="flex items-start gap-2">
-                        <div class="flex-1 min-w-0">
-                            <p class="font-bold text-cyan-700 dark:text-cyan-400 text-xs">${item.name}</p>
-                            <p class="text-xs text-gray-600">x${item.quantity || 1}</p>
-                        </div>
-                        <div class="flex gap-1 flex-shrink-0">
-                            <button class="item-action-btn btn btn-primary text-xs whitespace-nowrap" onclick="equipItemFromInventory(${index})">Equipar</button>
-                            <button class="item-action-btn btn btn-secondary text-xs whitespace-nowrap" onclick="useItemEffect(${index})">Usar</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-    } else {
-        combatHTML += '<p class="text-xs text-gray-500 italic">Sin objetos</p>';
-    }
-    
-    combatHTML += `
-                    </div>
-                </div>
-                
-                <!-- ESTADOS ACTIVOS -->
-                <div class="combat-section">
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="combat-section-title">🔴 Estados</div>
-                        <button class="btn btn-primary text-xs px-2 py-1" onclick="openStatusEffectForm()">+ Añadir</button>
-                    </div>
-                    <div class="space-y-1.5 max-h-40 overflow-y-auto">
-    `;
-    
-    if (character.statusEffects.length > 0) {
-        character.statusEffects.forEach(status => {
-            const itemClass = status.type === 'Buff' ? 'bg-green-100 dark:bg-green-900/30 border-green-500' : 
-                            status.type === 'Debuff' ? 'bg-red-100 dark:bg-red-900/30 border-red-500' : 
-                            'bg-gray-100 dark:bg-gray-800 border-gray-500';
-            combatHTML += `
-                <div class="p-2 rounded-lg ${itemClass} border-l-4 text-xs">
-                    <p class="font-semibold">${status.name}</p>
-                    <p class="text-xs opacity-75">${status.duration}${status.durationType.charAt(0)}</p>
-                </div>
-            `;
-        });
-    } else {
-        combatHTML += '<p class="text-xs text-gray-500 italic">Sin estados</p>';
-    }
-    
-    combatHTML += `
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    modalContent.innerHTML = combatHTML;
-    modal.classList.add('active');
+    showNotification('Modo de Combate Eliminado', 'El modo de combate separado ha sido eliminado. Todas las acciones se usan desde la vista principal.');
 }
 
 function unequipItem(slotIndex) {
@@ -3646,7 +3512,7 @@ function addLinkedEffect() {
     };
     tempLinkedEffects.push(newEffect);
     renderLinkedEffectsList();
-    closeModal(2);
+    closeModal(3);
 }
 
 function removeLinkedEffect(index) {
@@ -3655,7 +3521,7 @@ function removeLinkedEffect(index) {
 }
 
 function saveStatusEffect(index) {
-    const isEditing = index !== -1;
+    const isEditing = index !== undefined && index !== -1;
     const name = document.getElementById('status-name').value;
     if (!name) {
         showNotification("Error", "El estado debe tener un nombre.");
@@ -3795,6 +3661,63 @@ function setResource(index, value) {
     saveAndRefresh();
 }
 
+// Favores UI
+function renderFavoresUI() {
+    if (!character.favores) character.favores = { current: 0, max: 10, notes: '' };
+    let container = document.getElementById('favores-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'favores-container';
+        container.innerHTML = `<div>Favores: <span class="count">0</span> / <span class="max">0</span></div><div class="mt-2"><textarea id="favores-notes" rows="3" class="input-field" placeholder="Notas de favores/deudas..."></textarea></div>`;
+        document.body.appendChild(container);
+        document.getElementById('favores-notes').addEventListener('blur', (e) => {
+            character.favores.notes = e.target.value;
+            saveCharacterToLocalStorage();
+        });
+    }
+    container.querySelector('.count').textContent = character.favores.current || 0;
+    container.querySelector('.max').textContent = character.favores.max || 10;
+    if (character.favores.notes) document.getElementById('favores-notes').value = character.favores.notes;
+}
+
+// Simple interactive map module
+function renderMap() {
+    if (!character.map) character.map = { avatar: { x: 0, y: 0 }, gridSize: 10 };
+    let container = document.getElementById('map-container');
+    if (!container) {
+        // Try to place under header main container if available
+        const main = document.querySelector('.max-w-7xl');
+        container = document.createElement('div');
+        container.id = 'map-container';
+        container.className = 'card p-4 mt-4';
+        container.innerHTML = `<h3 class="card-title">Mapa</h3><div id="map-grid" class="mt-2"></div><p id="map-info" class="text-xs mt-2"></p>`;
+        if (main && main.parentNode) main.parentNode.insertBefore(container, main.nextSibling);
+        else document.body.appendChild(container);
+    }
+    const grid = document.getElementById('map-grid');
+    grid.innerHTML = '';
+    const size = character.map.gridSize || 10;
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            const cell = document.createElement('div');
+            cell.className = 'map-cell';
+            cell.dataset.x = x; cell.dataset.y = y;
+            if (character.map.avatar.x === x && character.map.avatar.y === y) cell.classList.add('avatar');
+            cell.addEventListener('click', () => {
+                const prev = {...character.map.avatar};
+                character.map.avatar.x = x; character.map.avatar.y = y;
+                renderMap();
+                const dx = Math.abs(prev.x - x);
+                const dy = Math.abs(prev.y - y);
+                const dist = Math.sqrt(dx*dx + dy*dy).toFixed(2);
+                document.getElementById('map-info').textContent = `Avatar: (${x}, ${y}) — Distancia desde anterior: ${dist}`;
+                saveCharacterToLocalStorage();
+            });
+            grid.appendChild(cell);
+        }
+    }
+}
+
 
 // ===================================================================================
 // INICIALIZACIÓN
@@ -3804,6 +3727,9 @@ function initializeCharacter(isImport = false) {
         const loadedCharacter = loadCharacterFromLocalStorage();
         character = loadedCharacter ? loadedCharacter : getDefaultCharacter();
     }
+    // Ensure new structures exist for newer versions
+    if (!character.favores) character.favores = { current: 0, max: 10, notes: '' };
+    if (!character.map) character.map = { avatar: { x: 0, y: 0 }, gridSize: 10 };
     // Re-sync spirit relation bonuses on any load
     for (const key in character.spiritRelations) {
         const relationValue = character.spiritRelations[key]?.relation || 0;
