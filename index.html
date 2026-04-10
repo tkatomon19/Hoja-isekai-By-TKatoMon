@@ -1240,6 +1240,9 @@ function calculateDerivedStats() {
     character.stats.health.current = Math.min(tempHealth, character.stats.health.max);
     character.stats.mana.current = Math.min(tempMana, character.stats.mana.max);
     
+    // Asignar los atributos temporales bonificados de vuelta a character
+    character.attributes = JSON.parse(JSON.stringify(tempAttributes));
+    
     // Restaurar PA, ajustando al nuevo máximo
     character.combat.currentActions = Math.min(character.combat.currentActions, character.stats.actions.current);
 }
@@ -1268,10 +1271,30 @@ function updateUI() {
 
     // Aplicar bonos de equipo y estados para la visualización
     character.equipment.forEach(slot => {
-        if (slot.item) slot.item.effects.forEach(effect => {
-            const [type, effectKey, value] = effect.split(':');
-            if (type === 'attr' && finalAttributes[effectKey]) finalAttributes[effectKey].value += parseFloat(value);
-        });
+        if (slot.item) {
+            // Aplicar bonificaciones de equipo
+            let equipBonus = {};
+            if (slot.item.equipmentBonus) {
+                if (typeof slot.item.equipmentBonus === 'string') {
+                    try { equipBonus = JSON.parse(slot.item.equipmentBonus); } catch(e) { equipBonus = {}; }
+                } else {
+                    equipBonus = slot.item.equipmentBonus;
+                }
+            }
+            for (const [key, value] of Object.entries(equipBonus)) {
+                if (finalAttributes[key]) {
+                    finalAttributes[key].value += value;
+                }
+            }
+            
+            // Aplicar efectos antiguos (si existen)
+            if (slot.item.effects && Array.isArray(slot.item.effects)) {
+                slot.item.effects.forEach(effect => {
+                    const [type, effectKey, value] = effect.split(':');
+                    if (type === 'attr' && finalAttributes[effectKey]) finalAttributes[effectKey].value += parseFloat(value);
+                });
+            }
+        }
     });
     character.statusEffects.forEach(status => {
         status.linkedEffects.forEach(effect => {
@@ -2149,32 +2172,37 @@ function openInventoryForm(type = 'skills', item = null, index = -1) {
     if (item && item.formulas && typeof item.formulas === 'string') {
         try { 
             const parsed = JSON.parse(item.formulas);
-            formulas = Array.isArray(parsed) ? parsed.map(f => {
-                return typeof f === 'string' ? {titulo: '', formula: f, activa: false} : f;
+            formulas = Array.isArray(parsed) ? parsed.map((f, idx) => {
+                return typeof f === 'string' ? {titulo: '', formula: f, editando: idx === 0} : {...f, editando: f.editando || idx === 0};
             }) : [];
         } catch(e) { formulas = []; }
     } else if (item && item.formulas) {
-        formulas = Array.isArray(item.formulas) ? item.formulas : [];
+        formulas = Array.isArray(item.formulas) ? item.formulas.map((f, idx) => ({...f, editando: f.editando || idx === 0})) : [];
     }
     if (!formulas.length && item && item.formula) {
-        formulas = [{titulo: '', formula: item.formula, activa: true}];
+        formulas = [{titulo: '', formula: item.formula, editando: true}];
     }
     
     const formulasHtml = formulas.map((f, i) => {
-        const formula = typeof f === 'string' ? {titulo: '', formula: f} : f;
+        const formula = typeof f === 'string' ? {titulo: '', formula: f, editando: false} : f;
         let result = '-';
         try {
             result = safeEvaluateFormula(formula.formula, character);
         } catch (e) { result = 'ERR'; }
         
         return `
-        <div class="mb-3 p-4 border-l-4 border-blue-500 bg-gradient-to-r from-blue-50 to-transparent dark:from-blue-900/30 dark:to-transparent rounded-lg shadow-md" id="formula-row-${i}">
+        <div class="mb-3 p-4 border-l-4 ${formula.editando ? 'border-blue-600' : 'border-gray-300 dark:border-gray-600'} bg-gradient-to-r ${formula.editando ? 'from-blue-100 to-blue-50 dark:from-blue-900/50 dark:to-blue-900/20' : 'from-gray-50 to-transparent dark:from-gray-800 dark:to-transparent'} rounded-lg shadow-md transition-all" id="formula-row-${i}">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                <div class="md:col-span-3">
+                <div class="md:col-span-1 flex items-center justify-center">
+                    <label class="flex items-center cursor-pointer" title="Selecciona esta fórmula para editarla con los botones">
+                        <input type="checkbox" class="formula-check w-5 h-5 cursor-pointer accent-blue-500" ${formula.editando ? 'checked' : ''} onchange="setActiveFormula('formula-row-${i}')">
+                    </label>
+                </div>
+                <div class="md:col-span-2">
                     <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Título</label>
                     <input type="text" class="input-field formula-title text-sm w-full" placeholder="Ej: Daño Crítico" value="${formula.titulo || ''}">
                 </div>
-                <div class="md:col-span-7">
+                <div class="md:col-span-6">
                     <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Fórmula</label>
                     <textarea class="input-field formula-input font-mono text-sm w-full" placeholder="Ej: (FUE)d6 + (Mod.MET) + 2" rows="2" onblur="updateFormulaResult('formula-row-${i}')" oninput="updateFormulaResult('formula-row-${i}')">${formula.formula}</textarea>
                 </div>
@@ -2182,8 +2210,10 @@ function openInventoryForm(type = 'skills', item = null, index = -1) {
                     <div class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Resultado</div>
                     <div class="text-center px-3 py-2 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 rounded-lg formula-result font-bold text-lg text-green-700 dark:text-green-300 border-2 border-green-300 dark:border-green-700 w-full">${result}</div>
                 </div>
+                <div class="md:col-span-1">
+                    <button class="btn btn-danger text-xs w-full" onclick="document.getElementById('formula-row-${i}').remove()">✕</button>
+                </div>
             </div>
-            <button class="btn btn-danger text-xs mt-3 w-full" onclick="document.getElementById('formula-row-${i}').remove()">🗑️ Eliminar Fórmula</button>
         </div>\n    `}).join('');
     
     const costsHtml = costs.map((cost, i) => `
@@ -3660,12 +3690,43 @@ function safeEvaluateFormula(baseFormula, options = {}) {
 
 function useAbility(type, index) {
     const ability = character.inventory[type][index];
-    if (!ability.formula) { showNotification('Error', 'Esta habilidad no tiene fórmula.'); return; }
-    if (character.combat.currentActions < ability.costPA) { showNotification('Error', 'No tienes suficientes Puntos de Acción.'); return; }
-    if (character.stats.mana.current < (ability.costMP || 0)) { showNotification('Error', 'No tienes suficientes Místyculas.'); return; }
-    if ((ability.costHP || 0) > 0 && character.stats.health.current <= (ability.costHP || 0)) { showNotification('Error', 'No tienes suficiente Vida para usar esta habilidad.'); return; }
-    if ((ability.costMovement || 0) > 0 && character.stats.movement.current < (ability.costMovement || 0)) { showNotification('Error', 'No tienes suficiente movimiento disponible.'); return; }
-    // Check resource costs (format: key:amount,key2:amount2)
+    
+    // Obtener fórmulas (pueden ser múltiples)
+    let formulas = [];
+    if (ability.formulas && typeof ability.formulas === 'string') {
+        try {
+            formulas = JSON.parse(ability.formulas);
+        } catch(e) { formulas = []; }
+    } else if (ability.formulas && Array.isArray(ability.formulas)) {
+        formulas = ability.formulas;
+    } else if (ability.formula) {
+        formulas = [{titulo: '', formula: ability.formula}];
+    }
+    
+    if (!formulas.length) { 
+        showNotification('Error', 'Esta habilidad no tiene fórmula.'); 
+        return; 
+    }
+    
+    // Validar costos
+    if (character.combat.currentActions < (ability.costPA || 0)) { 
+        showNotification('Error', 'No tienes suficientes Puntos de Acción.'); 
+        return; 
+    }
+    if (character.stats.mana.current < (ability.costMP || 0)) { 
+        showNotification('Error', 'No tienes suficientes Místyculas.'); 
+        return; 
+    }
+    if ((ability.costHP || 0) > 0 && character.stats.health.current <= (ability.costHP || 0)) { 
+        showNotification('Error', 'No tienes suficiente Vida para usar esta habilidad.'); 
+        return; 
+    }
+    if ((ability.costMovement || 0) > 0 && character.stats.movement.current < (ability.costMovement || 0)) { 
+        showNotification('Error', 'No tienes suficiente movimiento disponible.'); 
+        return; 
+    }
+    
+    // Check resource costs
     if (ability.costResources && ability.costResources.trim() !== '') {
         const parts = ability.costResources.split(',').map(p => p.trim()).filter(Boolean);
         for (const part of parts) {
@@ -3679,48 +3740,104 @@ function useAbility(type, index) {
         }
     }
     
-    const result = safeEvaluateFormula(ability.formula, { 
-        abilityLevel: ability.level, 
-        isEmpowered: ability.isDamageFormulaActive 
-    });
-
-    if (result.error) {
-        showNotification('Error de Fórmula', `No se pudo usar la habilidad.\nError: ${result.error}`);
-    } else {
-        // Deduct costs
-        character.stats.mana.current -= (ability.costMP || 0);
-        if (ability.costHP) character.stats.health.current = Math.max(0, character.stats.health.current - ability.costHP);
-        if (ability.costMovement) character.stats.movement.current = Math.max(0, character.stats.movement.current - ability.costMovement);
-        if (ability.costResources && ability.costResources.trim() !== '') {
-            const parts = ability.costResources.split(',').map(p => p.trim()).filter(Boolean);
-            for (const part of parts) {
-                const [rkey, ramt] = part.split(':').map(s => s.trim());
-                const amt = parseInt(ramt) || 0;
-                const resIndex = character.resources.findIndex(r => r.key === rkey || r.name === rkey);
-                if (resIndex !== -1) {
-                    character.resources[resIndex].current = Math.max(0, character.resources[resIndex].current - amt);
-                }
+    // Evaluar TODAS las fórmulas
+    const results = [];
+    for (const f of formulas) {
+        const formula = typeof f === 'string' ? {titulo: '', formula: f} : f;
+        const result = safeEvaluateFormula(formula.formula, { 
+            abilityLevel: ability.level, 
+            isEmpowered: ability.isDamageFormulaActive 
+        });
+        
+        if (!result.error) {
+            results.push({
+                titulo: formula.titulo || 'Efecto',
+                total: Math.round(result.total) || 0,
+                rolls: String(result.rolls) || 'N/A'
+            });
+        }
+    }
+    
+    if (results.length === 0) {
+        showNotification('Error de Fórmula', 'No se pudieron calcular las fórmulas.');
+        return;
+    }
+    
+    // Deduct costs
+    character.stats.mana.current -= (ability.costMP || 0);
+    if (ability.costHP) character.stats.health.current = Math.max(0, character.stats.health.current - ability.costHP);
+    if (ability.costMovement) character.stats.movement.current = Math.max(0, character.stats.movement.current - ability.costMovement);
+    if (ability.costResources && ability.costResources.trim() !== '') {
+        const parts = ability.costResources.split(',').map(p => p.trim()).filter(Boolean);
+        for (const part of parts) {
+            const [rkey, ramt] = part.split(':').map(s => s.trim());
+            const amt = parseInt(ramt) || 0;
+            const resIndex = character.resources.findIndex(r => r.key === rkey || r.name === rkey);
+            if (resIndex !== -1) {
+                character.resources[resIndex].current = Math.max(0, character.resources[resIndex].current - amt);
             }
         }
-        useAction((ability.costPA || 0), ability.name); // Usar la función centralizada
-        
-        // Sincronizar acciones después de usar la habilidad
-        character.stats.actions.current = character.combat.currentActions;
-        
-        showNotification(`Resultado de ${ability.name}`, `Total: ${result.total}\nDetalle: ${result.rolls}`);
-        
-        // Actualizar vitales en el modo combate
-        refreshCombatVitals();
     }
+    useAction((ability.costPA || 0), ability.name);
+    
+    // Sincronizar acciones después de usar la habilidad
+    character.stats.actions.current = character.combat.currentActions;
+    
+    // Mostrar TODOS los resultados
+    const resultsHtml = results.map(r => `<strong>${r.titulo}:</strong> ${r.total} (${r.rolls})`).join('<br>');
+    showNotification(`Resultado de ${ability.name}`, resultsHtml);
+    
+    // Actualizar vitales en el modo combate
+    refreshCombatVitals();
+    
     saveAndRefresh();
 }
 
 function useItemEffect(itemIndex) {
     const item = character.inventory.items[itemIndex];
-    if (!item || !item.damageFormula) { showNotification('Error', 'Este objeto no tiene un efecto usable.'); return; }
-    const result = safeEvaluateFormula(item.damageFormula, {});
-    if (result.error) showNotification('Error de Fórmula', `No se pudo usar el objeto.\nError: ${result.error}`);
-    else showNotification(`Efecto de ${item.name}`, `Total: ${result.total}\nDetalle: ${result.rolls}`);
+    if (!item) { showNotification('Error', 'Objeto no encontrado.'); return; }
+    
+    // Obtener fórmulas del item
+    let formulas = [];
+    if (item.formulas && typeof item.formulas === 'string') {
+        try {
+            formulas = JSON.parse(item.formulas);
+        } catch(e) { formulas = []; }
+    } else if (item.formulas && Array.isArray(item.formulas)) {
+        formulas = item.formulas;
+    } else if (item.damageFormula) {
+        formulas = [{titulo: '', formula: item.damageFormula}];
+    }
+    
+    if (!formulas.length) { 
+        showNotification('Error', 'Este objeto no tiene fórmulas usables.'); 
+        return; 
+    }
+    
+    // Evaluar TODAS las fórmulas
+    const results = [];
+    for (const f of formulas) {
+        const formula = typeof f === 'string' ? {titulo: '', formula: f} : f;
+        const result = safeEvaluateFormula(formula.formula, {});
+        
+        if (!result.error) {
+            results.push({
+                titulo: formula.titulo || 'Efecto',
+                total: Math.round(result.total) || 0,
+                rolls: String(result.rolls) || 'N/A'
+            });
+        }
+    }
+    
+    if (results.length === 0) {
+        showNotification('Error de Fórmula', 'No se pudieron calcular las fórmulas del objeto.');
+        return;
+    }
+    
+    // Mostrar TODOS los resultados
+    const resultsHtml = results.map(r => `<strong>${r.titulo}:</strong> ${r.total} (${r.rolls})`).join('<br>');
+    showNotification(`Efecto de ${item.name}`, resultsHtml);
+    
     saveAndRefresh();
 }
 
