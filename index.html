@@ -774,7 +774,8 @@ function createNewInventoryItem(type) {
                 type: 'otro',  // Valor predeterminado para objetos
                 equipped: false,
                 slot: '',
-                linkedEffects: JSON.stringify([])
+                effects: [],
+                damageFormula: ''
             };
         case 'pets':
             return {
@@ -962,6 +963,24 @@ function loadCharacterFromLocalStorage() {
                 });
             }
         });
+
+        // Migración: Convertir linkedEffects a effects para items
+        if (migratedData.inventory && migratedData.inventory.items) {
+            migratedData.inventory.items.forEach(item => {
+                // Si tiene linkedEffects pero no effects, inicializar effects como array vacío
+                if (item.linkedEffects && !item.effects) {
+                    item.effects = [];
+                }
+                // Si no tiene damageFormula pero tiene formula, usar eso
+                if (!item.damageFormula && item.formula) {
+                    item.damageFormula = item.formula;
+                }
+                // Asegurar que effects existe
+                if (!item.effects) {
+                    item.effects = [];
+                }
+            });
+        }
 
         return migratedData;
     } catch (error) {
@@ -2072,7 +2091,7 @@ const INVENTORY_CONFIG = {
         ],
         costTypes: [],
         hasFormulas: true,
-        hasEffects: true,
+        hasEffects: false,
         saveFn: (item, index) => {
             character.inventory.items[index === -1 ? character.inventory.items.length - 1 : index] = item;
         }
@@ -2366,31 +2385,6 @@ function saveInventoryItem(type, index) {
             });
         }
         
-        // 3.5 RECOPILAR EFECTOS
-        const linkedEffects = [];
-        const effectsContainer = document.getElementById('item-effects-container');
-        if (effectsContainer) {
-            effectsContainer.querySelectorAll('[id^="effect-row"]').forEach(row => {
-                const targetEl = row.querySelector('.effect-target');
-                const attributeEl = row.querySelector('.effect-attribute');
-                const modificationEl = row.querySelector('.effect-modification');
-                const valueEl = row.querySelector('.effect-value');
-                const applyOnEl = row.querySelector('.effect-applyOn');
-                const conditionEl = row.querySelector('.effect-condition');
-                
-                if (attributeEl && attributeEl.value) {
-                    linkedEffects.push({
-                        target: targetEl?.value || 'self',
-                        attribute: attributeEl.value,
-                        modification: modificationEl?.value || 'fijo',
-                        value: parseFloat(valueEl?.value) || 0,
-                        applyOn: applyOnEl?.value || 'continuo',
-                        condition: conditionEl?.value || ''
-                    });
-                }
-            });
-        }
-        
         // 4. CONVERTIR COSTOS A FORMATO LEGACY (compatibilidad hacia atrás)
         let costPA = 0, costMP = 0, costHP = 0, costMovement = 0, costResources = '';
         costs.forEach(cost => {
@@ -2418,7 +2412,6 @@ function saveInventoryItem(type, index) {
                 description: document.getElementById('item-description')?.value || '',
                 costs: JSON.stringify(costs),
                 formulas: JSON.stringify(formulas),
-                linkedEffects: JSON.stringify(linkedEffects),
                 // Actualizar campos legacy
                 costPA: costPA,
                 costMP: costMP,
@@ -2426,6 +2419,8 @@ function saveInventoryItem(type, index) {
                 costMovement: costMovement,
                 costResources: costResources,
                 formula: activeFormula?.formula || '',
+                damageFormula: activeFormula?.formula || '',
+                effects: [],
                 lastModified: new Date().toISOString()
             };
         } else {
@@ -2438,7 +2433,8 @@ function saveInventoryItem(type, index) {
                 description: document.getElementById('item-description')?.value || '',
                 costs: JSON.stringify(costs),
                 formulas: JSON.stringify(formulas),
-                linkedEffects: JSON.stringify(linkedEffects),
+                damageFormula: activeFormula?.formula || '',
+                effects: [],
                 // Campos legacy
                 costPA: costPA,
                 costMP: costMP,
