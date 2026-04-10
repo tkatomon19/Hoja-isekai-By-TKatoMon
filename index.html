@@ -2333,7 +2333,7 @@ function saveInventoryItem(type, index) {
         const costs = [];
         const costsContainer = document.getElementById('item-costs-container');
         if (costsContainer) {
-            costsContainer.querySelectorAll('> div').forEach(row => {
+            Array.from(costsContainer.children).forEach(row => {
                 const typeEl = row.querySelector('.cost-type');
                 const valueEl = row.querySelector('.cost-value');
                 if (typeEl && valueEl && valueEl.value) {
