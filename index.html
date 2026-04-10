@@ -3673,12 +3673,36 @@ function safeEvaluateFormula(baseFormula, options = {}) {
         let processedFormula = ` ${combinedFormula.trim()} `;
         
         const finalAttributes = JSON.parse(JSON.stringify(character.attributes));
+        
+        // Aplicar bonificadores de equipo (nuevo sistema: equipmentBonus)
         character.equipment.forEach(slot => {
-            if (slot.item) slot.item.effects.forEach(effect => {
+            if (slot.item) {
+                let equipBonus = {};
+                if (slot.item.equipmentBonus) {
+                    if (typeof slot.item.equipmentBonus === 'string') {
+                        try { equipBonus = JSON.parse(slot.item.equipmentBonus); } catch(e) { equipBonus = {}; }
+                    } else {
+                        equipBonus = slot.item.equipmentBonus;
+                    }
+                }
+                // Aplicar bonificaciones a atributos
+                for (const [key, value] of Object.entries(equipBonus)) {
+                    if (finalAttributes[key]) {
+                        finalAttributes[key].value += value;
+                    }
+                }
+            }
+        });
+        
+        // Aplicar efectos antiguos (compatibilidad)
+        character.equipment.forEach(slot => {
+            if (slot.item && slot.item.effects) slot.item.effects.forEach(effect => {
                 const [type, key, value] = effect.split(':');
                 if (type === 'attr' && finalAttributes[key]) finalAttributes[key].value += parseFloat(value) || 0;
             });
         });
+        
+        // Aplicar status effects continuos
         character.statusEffects.forEach(status => {
             status.linkedEffects.forEach(effect => {
                 if (effect.applyOn === 'continuo' && effect.target === 'self' && effect.attribute.startsWith('attributes.')) {
