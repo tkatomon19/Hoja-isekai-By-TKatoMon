@@ -2729,7 +2729,7 @@ function updateFormulaResult(rowId) {
     }
     
     try {
-        const result = safeEvaluateFormula(formulaInput.value, character);
+        const result = safeEvaluateFormula(formulaInput.value);
         // Extract numeric value from result object
         const resultValue = typeof result === 'object' ? (result.total || '-') : result;
         resultEl.textContent = String(resultValue).substring(0, 20);
@@ -2969,58 +2969,10 @@ function insertAdvancedDice(textareaId) {
     closeModal();
 }
 
-function safeEvaluateFormula(formula, characterData) {
-    if (!formula || !characterData) return 0;
-    
-    try {
-        let expr = formula;
-        
-        // 1. Reemplazar atributos
-        expr = expr.replace(/\(FUE\)/g, characterData.attributes.FUE?.value || 10);
-        expr = expr.replace(/\(AGI\)/g, characterData.attributes.AGI?.value || 10);
-        expr = expr.replace(/\(MET\)/g, characterData.attributes.MET?.value || 10);
-        expr = expr.replace(/\(INT\)/g, characterData.attributes.INT?.value || 10);
-        expr = expr.replace(/\(APM\)/g, characterData.attributes.APM?.value || 10);
-        
-        // 2. Reemplazar modificadores
-        const getMod = (val) => Math.floor((val - 10) / 2);
-        expr = expr.replace(/\(Mod\.FUE\)/g, getMod(characterData.attributes.FUE?.value || 10));
-        expr = expr.replace(/\(Mod\.AGI\)/g, getMod(characterData.attributes.AGI?.value || 10));
-        expr = expr.replace(/\(Mod\.MET\)/g, getMod(characterData.attributes.MET?.value || 10));
-        expr = expr.replace(/\(Mod\.INT\)/g, getMod(characterData.attributes.INT?.value || 10));
-        expr = expr.replace(/\(Mod\.APM\)/g, getMod(characterData.attributes.APM?.value || 10));
-        
-        // 3. Reemplazar estadísticas
-        expr = expr.replace(/\(Nivel\)/g, characterData.stats.level.current);
-        expr = expr.replace(/\(Vida\)/g, characterData.stats.health.current);
-        expr = expr.replace(/\(Armadura\)/g, characterData.stats.armor.current);
-        expr = expr.replace(/\(Mistycals\)/g, characterData.stats.mana.current);
-        expr = expr.replace(/\(Acciones\)/g, characterData.stats.actions.current);
-        expr = expr.replace(/\(Movimiento\)/g, characterData.stats.movement.current);
-        expr = expr.replace(/\(SalvacionMagia\)/g, characterData.stats.magicSave.current);
-        expr = expr.replace(/\(Carga\)/g, characterData.stats.load.current);
-        expr = expr.replace(/\(Resistencia\)/g, characterData.stats.resistance.current);
-        expr = expr.replace(/\(Sabiduria\)/g, characterData.stats.wisdom.current);
-        
-        // 4. Evaluar dados: buscar patrón NdM o (.)d(.)
-        expr = expr.replace(/(\d+)d(\d+)/g, (match, qty, sides) => {
-            let total = 0;
-            for (let i = 0; i < parseInt(qty); i++) {
-                total += Math.floor(Math.random() * parseInt(sides)) + 1;
-            }
-            return total;
-        });
-        
-        // 5. Evaluación final matemática segura
-        const result = Function('"use strict"; return (' + expr + ')')();
-        return Math.floor(result);
-    } catch (error) {
-        console.error('Error evaluating formula:', error);
-        return 0;
-    }
-}
 
-// Función antigua removida - usar openInventoryForm('skills') en su lugar
+
+// Función consolidada de evaluación de fórmulas (eliminada versión antigua)
+// Usar la definición en línea 3656 que incluye bonificadores de equipo
 
 function renderSkillCard(skill, index) {
     const card = document.createElement('div');
