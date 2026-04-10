@@ -1904,6 +1904,37 @@ function reduceTechniqueLevel(index) {
     showNotification('PH Recuperado', `Has recuperado ${refund} PH al reducir el nivel de ${tech.name}.`);
 }
 
+function reduceStat(type, keyOrIndex) {
+    let item;
+    if (type === 'skill') item = character.inventory.skills[keyOrIndex];
+    else if (type === 'technique') item = character.inventory.techniques[keyOrIndex];
+    else if (type === 'attribute') item = character.attributes[keyOrIndex];
+    
+    if (!item) return;
+    if (!item.upgrades || item.upgrades <= 0) {
+        showNotification('Reducir', 'No hay niveles para reducir.');
+        return;
+    }
+    
+    const lastUpgradeIndex = item.upgrades - 1;
+    const refund = getUpgradeCost(lastUpgradeIndex);
+    item.upgrades = Math.max(0, item.upgrades - 1);
+    
+    if (type === 'attribute') item.value = Math.max(0, item.value - 1);
+    else item.level = Math.max(0, (item.level || 0) - 1);
+    
+    character.skillPoints = (character.skillPoints || 0) + refund;
+    saveAndRefresh();
+    
+    const itemName = item.name || keyOrIndex;
+    showNotification('PH Recuperado', `Has recuperado ${refund} PH al reducir ${itemName}.`);
+    openSpendSkillPointsModal();
+}
+
+function reduceAttribute(attributeKey) {
+    reduceStat('attribute', attributeKey);
+}
+
 function openSpendSkillPointsModal() {
     const generateUpgradeRow = (item, type, index) => {
         const cost = getUpgradeCost(item.upgrades);
@@ -1917,11 +1948,30 @@ function openSpendSkillPointsModal() {
                     <p class="font-semibold">${name} ${levelInfo} <span class="text-xs text-gray-500 dark:text-gray-400">(${item.upgrades}/${upgradeLimit})</span></p>
                     <p class="text-xs text-gray-600 dark:text-gray-400">Coste: ${isFinite(cost) ? `${cost} PH` : 'MAX'}</p>
                 </div>
-                <button class="btn btn-primary" onclick="upgradeStat('${type}', '${index}')" ${character.skillPoints < cost || item.upgrades >= upgradeLimit ? 'disabled' : ''}>+1</button>
+                <div class="flex space-x-2">
+                    <button class="btn btn-warning" onclick="reduceStat('${type}', '${index}')" ${item.upgrades <= 0 ? 'disabled' : ''}>${String.fromCharCode(8722)}1</button>
+                    <button class="btn btn-primary" onclick="upgradeStat('${type}', '${index}')" ${character.skillPoints < cost || item.upgrades >= upgradeLimit ? 'disabled' : ''}>+1</button>
+                </div>
             </div>`;
     };
 
-    const attributesHtml = Object.keys(character.attributes).map(key => generateUpgradeRow(character.attributes[key], 'attribute', key)).join('');
+    const attributesHtml = Object.keys(character.attributes).map(key => {
+        const attr = character.attributes[key];
+        const cost = getUpgradeCost(attr.upgrades);
+        const name = key.charAt(0).toUpperCase() + key.slice(1);
+        const upgradeLimit = 10;
+        return `
+            <div class="flex justify-between items-center p-2 border-b border-gray-200 dark:border-gray-700">
+                <div>
+                    <p class="font-semibold">${name} (${attr.value}) <span class="text-xs text-gray-500 dark:text-gray-400">(${attr.upgrades}/${upgradeLimit})</span></p>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">Coste: ${isFinite(cost) ? `${cost} PH` : 'MAX'}</p>
+                </div>
+                <div class="flex space-x-2">
+                    <button class="btn btn-warning" onclick="reduceAttribute('${key}')" ${attr.upgrades <= 0 ? 'disabled' : ''}>−1</button>
+                    <button class="btn btn-primary" onclick="upgradeStat('attribute', '${key}')" ${character.skillPoints < cost || attr.upgrades >= upgradeLimit ? 'disabled' : ''}> +1</button>
+                </div>
+            </div>`;
+    }).join('');
     const skillsHtml = character.inventory.skills.map((skill, i) => generateUpgradeRow(skill, 'skill', i)).join('') || '<p class="text-xs text-gray-500 dark:text-gray-400 p-2">No hay habilidades para mejorar.</p>';
     const techniquesHtml = character.inventory.techniques.map((tech, i) => generateUpgradeRow(tech, 'technique', i)).join('') || '<p class="text-xs text-gray-500 dark:text-gray-400 p-2">No hay técnicas/hechizos para mejorar.</p>';
 
@@ -3407,7 +3457,7 @@ function deleteItem(type, index) {
             <button class="btn btn-danger" id="confirm-delete-btn">Eliminar</button>
         </div>`);
     document.getElementById('confirm-delete-btn').onclick = () => {
-        if (type === 'skills') {
+        if (type === 'skills' || type === 'techniques') {
             const upgrades = item.upgrades || 0;
             if (upgrades > 0) {
                 const refund = calculateTotalPHSpentForUpgrades(upgrades);
