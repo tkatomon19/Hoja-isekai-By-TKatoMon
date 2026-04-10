@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hoja de Personaje - Isekai Delivery Service v6.11 Premium</title>
+    <title>Hoja de Personaje - Isekai Delivery Service v6 Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -102,6 +102,62 @@
             padding: 0.75rem;
         }
         
+        /* Estilos para sliders */
+        input[type="range"].slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"].slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a855f7, #d946ef);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.5);
+            transition: all 0.2s ease;
+        }
+        input[type="range"].slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.7);
+        }
+        input[type="range"].slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #a855f7, #d946ef);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(168, 85, 247, 0.5);
+            transition: all 0.2s ease;
+        }
+        input[type="range"].slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.7);
+        }
+        input[type="range"].slider::-webkit-slider-runnable-track {
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #d8b4fe, #e879f9);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        input[type="range"].slider::-moz-range-track {
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #d8b4fe, #e879f9);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+        .theme-dark input[type="range"].slider::-webkit-slider-runnable-track {
+            background: linear-gradient(90deg, #7c3aed, #6d28d9);
+        }
+        .theme-dark input[type="range"].slider::-moz-range-track {
+            background: linear-gradient(90deg, #7c3aed, #6d28d9);
+        }
+        
         /* Estilos para botones de atributos */
         .stat-block .btn-primary {
             transition: all 0.3s ease;
@@ -175,11 +231,13 @@
         
         .modal-content {
             background: var(--card-bg); color: var(--text-color); padding: 2rem; border-radius: 1rem;
-            width: 90%; max-width: 600px; transform: scale(0.95);
+            width: 90%; max-width: 750px; transform: scale(0.95);
             transition: transform 0.3s, background-color 0.3s; display: flex; flex-direction: column;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
             position: relative;
             z-index: 1;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         #modal-secondary-content.modal-content {
@@ -230,8 +288,8 @@
 
             /* Map container */
             #map-container { border: 1px dashed rgba(99,102,241,0.25); padding: 1rem; border-radius: 0.5rem; background: linear-gradient(180deg, rgba(249,250,251,0.6), rgba(255,255,255,0.25)); margin-top: 1rem; }
-            #map-grid { display: grid; grid-template-columns: repeat(10, 30px); gap: 3px; padding: 0.75rem; background: #fafbfc; border-radius: 0.375rem; }
-            .map-cell { width: 30px; height: 30px; background: #e0e7ff; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer; border-radius:4px; border: 1px solid #c7d2fe; transition: all 0.2s ease; }
+            #map-grid { display: grid; grid-template-columns: repeat(10, 40px); gap: 2px; padding: 0.75rem; background: #fafbfc; border-radius: 0.375rem; }
+            .map-cell { width: 40px; height: 40px; background: #e0e7ff; display:flex; align-items:center; justify-content:center; font-size:10px; cursor:pointer; border: 1px solid #c7d2fe; transition: all 0.2s ease; }
             .map-cell:hover { background: #ddd6fe; box-shadow: inset 0 0 4px rgba(99,102,241,0.2); }
             .map-cell.avatar { background: #4f46e5; color:white; font-weight:700; border-color: #3730a3; box-shadow: 0 0 8px rgba(79,70,229,0.4); }
         
@@ -489,7 +547,7 @@
         <!-- Header Section -->
         <div class="mb-8 pb-6 border-b-2 border-gray-300 dark:border-gray-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex-1">
-                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-black-900 dark:text-black tracking-tight">Hoja de Personaje v6.11 Premium</h1>
+                <h1 class="text-4xl md:text-5xl font-bold mb-2 text-black-900 dark:text-black tracking-tight">Hoja de Personaje v6 Premium</h1>
                 <p class="text-lg text-gray-600 dark:text-gray-400">Los cambios se guardan automáticamente en tu navegador</p>
             </div>
             <!-- Modo Combate eliminado: acciones integradas en la vista principal -->
@@ -618,7 +676,7 @@
                 <!-- Estados -->
                 <div class="card p-7">
                     <h2 class="card-title">Estados</h2>
-                    <button id="add-status-effect-btn" class="btn btn-primary w-full mb-4">Añadir Estado</button>
+                    <button id="add-status-effect-btn" class="btn btn-primary w-full mb-4">+ Añadir Estado</button>
                     <div id="status-effects-list" class="space-y-3"></div>
                 </div>
             </div>
@@ -730,10 +788,8 @@ const ELEMENTS_CONFIG = {
     oscuridad: { name: 'Oscuridad', emoji: '🌙', color: 'bg-slate-900 dark:bg-slate-600' }
 };
 function createNewInventoryItem(type) {
-    // Generar ID único usando timestamp
     const uniqueId = `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    // Estructura base común para todos los tipos
     const baseItem = {
         id: uniqueId,
         name: '',
@@ -745,7 +801,6 @@ function createNewInventoryItem(type) {
         isDamageFormulaActive: false,
         costs: JSON.stringify([]),
         formulas: JSON.stringify([]),
-        // Campos legacy para compatibilidad
         costPA: 0,
         costMP: 0,
         costHP: 0,
@@ -756,7 +811,6 @@ function createNewInventoryItem(type) {
         lastModified: new Date().toISOString()
     };
     
-    // Configuración específica según el tipo
     switch(type) {
         case 'skills':
             return {
@@ -792,8 +846,6 @@ function createNewInventoryItem(type) {
 }
 function validateInventoryItem(item, type) {
     const errors = [];
-    
-    // Validaciones comunes
     if (!item.name || item.name.trim() === '') {
         errors.push('El nombre es obligatorio');
     }
@@ -801,8 +853,6 @@ function validateInventoryItem(item, type) {
     if (item.name && item.name.length > 100) {
         errors.push('El nombre no puede exceder 100 caracteres');
     }
-    
-    // Validar costos
     if (item.costs) {
         try {
             const costs = typeof item.costs === 'string' ? JSON.parse(item.costs) : item.costs;
@@ -813,8 +863,6 @@ function validateInventoryItem(item, type) {
             errors.push('Error al procesar los costos');
         }
     }
-    
-    // Validar fórmulas
     if (item.formulas) {
         try {
             const formulas = typeof item.formulas === 'string' ? JSON.parse(item.formulas) : item.formulas;
@@ -924,7 +972,6 @@ function loadCharacterFromLocalStorage() {
     try {
         const parsedData = JSON.parse(data);
         const defaultChar = getDefaultCharacter();
-        // Migración robusta
         let migratedData = { ...defaultChar, ...parsedData };
         migratedData.identity = { ...defaultChar.identity, ...parsedData.identity };
         migratedData.stats = { ...defaultChar.stats, ...parsedData.stats };
@@ -948,14 +995,12 @@ function loadCharacterFromLocalStorage() {
             }
         }
 
-        // Asegurar que las nuevas propiedades existan
         if (!migratedData.fusionElements) migratedData.fusionElements = [];
         if (!migratedData.skillPoints) migratedData.skillPoints = 0;
         if (!migratedData.spiritRelations) migratedData.spiritRelations = defaultChar.spiritRelations;
         if (!migratedData.statusEffects) migratedData.statusEffects = [];
         if (!migratedData.resources) migratedData.resources = [];
         
-        // CORRECCIÓN: Asegurar que las habilidades/técnicas antiguas sin nivel se inicialicen en 0.
         ['skills', 'techniques'].forEach(type => {
             if (migratedData.inventory[type]) {
                 migratedData.inventory[type].forEach(item => {
@@ -965,22 +1010,17 @@ function loadCharacterFromLocalStorage() {
             }
         });
 
-        // Migración: Convertir linkedEffects a effects para items
         if (migratedData.inventory && migratedData.inventory.items) {
             migratedData.inventory.items.forEach(item => {
-                // Si tiene linkedEffects pero no effects, inicializar effects como array vacío
                 if (item.linkedEffects && !item.effects) {
                     item.effects = [];
                 }
-                // Si no tiene damageFormula pero tiene formula, usar eso
                 if (!item.damageFormula && item.formula) {
                     item.damageFormula = item.formula;
                 }
-                // Asegurar que effects existe
                 if (!item.effects) {
                     item.effects = [];
                 }
-                // Asegurar que equipmentBonus existe
                 if (!item.equipmentBonus) {
                     item.equipmentBonus = JSON.stringify({});
                 }
@@ -1090,18 +1130,14 @@ function getModifier(attributeValue) {
 function calculateDerivedStats() {
     if (!character) return;
 
-    // Guardar valores actuales para no perderlos
     const tempHealth = character.stats.health.current;
     const tempMana = character.stats.mana.current;
 
-    // Crear copias temporales para calcular bonificaciones
     const tempAttributes = JSON.parse(JSON.stringify(character.attributes));
     const tempStats = JSON.parse(JSON.stringify(character.stats));
 
-    // 1. Aplicar bonificaciones de equipo a los atributos y estadísticas temporales
     character.equipment.forEach(slot => {
         if (slot.item) {
-            // Aplicar bonificaciones de equipo (nuevo sistema)
             let equipBonus = {};
             if (slot.item.equipmentBonus) {
                 if (typeof slot.item.equipmentBonus === 'string') {
@@ -1111,7 +1147,6 @@ function calculateDerivedStats() {
                 }
             }
             
-            // Aplicar bonificaciones a atributos y estadísticas
             for (const [key, value] of Object.entries(equipBonus)) {
                 if (tempAttributes[key]) {
                     tempAttributes[key].value += value;
@@ -1120,7 +1155,6 @@ function calculateDerivedStats() {
                 }
             }
             
-            // Aplicar efectos antiguos (si existen)
             if (slot.item.effects && Array.isArray(slot.item.effects)) {
                 slot.item.effects.forEach(effect => {
                     const [type, key, value] = effect.split(':');
@@ -1132,7 +1166,6 @@ function calculateDerivedStats() {
         }
     });
 
-    // 2. Aplicar bonificaciones de estados (continuos) a los atributos temporales
     character.statusEffects.forEach(status => {
         status.linkedEffects.forEach(effect => {
             if (effect.applyOn === 'continuo' && effect.target === 'self') {
@@ -1148,7 +1181,6 @@ function calculateDerivedStats() {
         });
     });
 
-    // Calcular modificadores con atributos ya bonificados
     const mods = {
         FUE: getModifier(tempAttributes.FUE.value), AGI: getModifier(tempAttributes.AGI.value),
         MET: getModifier(tempAttributes.MET.value), INT: getModifier(tempAttributes.INT.value),
@@ -1156,20 +1188,16 @@ function calculateDerivedStats() {
     };
     const level = character.stats.level.current;
 
-    // 3. Calcular estadísticas base derivadas
     let maxHealth = tempStats.health.base + (mods.MET * level);
-    // CORRECCIÓN: Usar el valor base del personaje en lugar de un número fijo.
     let armor = tempStats.armor.base + mods.AGI + mods.MET;
     let maxMana = tempStats.mana.base * Math.max(1, mods.INT) * Math.max(1, mods.APM);
     let actions = tempStats.actions.base + mods.AGI + level;
     let movement = tempStats.movement.base + (mods.AGI * 5);
-    // CORRECCIÓN: Usar el valor base del personaje en lugar de un número fijo.
     let magicSave = tempStats.magicSave.base + mods.APM + mods.MET;
     let load = tempStats.load.base + (mods.FUE * 2);
     let wisdom = level + mods.INT;
     let resistance = level + mods.MET;
     
-    // 4. Aplicar bonificaciones de equipo a las estadísticas
     character.equipment.forEach(slot => {
         if (slot.item) {
             slot.item.effects.forEach(effect => {
@@ -1189,7 +1217,6 @@ function calculateDerivedStats() {
         }
     });
 
-    // 5. Aplicar bonificaciones de estados (continuos) a las estadísticas
     character.statusEffects.forEach(status => {
         status.linkedEffects.forEach(effect => {
             if (effect.applyOn === 'continuo' && effect.target === 'self') {
@@ -1200,7 +1227,6 @@ function calculateDerivedStats() {
                     else if (keys[1] === 'mana') statToModify = 'maxMana';
                     else statToModify = keys[1];
 
-                    // Objeto para mapear nombres de variables locales
                     const statMap = { maxHealth, armor, maxMana, actions, movement, magicSave, load, wisdom, resistance };
 
                     if (statMap.hasOwnProperty(statToModify)) {
@@ -1209,7 +1235,6 @@ function calculateDerivedStats() {
                         } else { // Porcentaje
                             statMap[statToModify] *= (1 + effect.value / 100);
                         }
-                        // Reasignar el valor modificado a la variable local
                         if (statToModify === 'maxHealth') maxHealth = statMap.maxHealth;
                         if (statToModify === 'maxMana') maxMana = statMap.maxMana;
                         if (statToModify === 'armor') armor = statMap.armor;
@@ -1225,7 +1250,6 @@ function calculateDerivedStats() {
         });
     });
 
-    // 6. Asignar los valores finales al objeto `character`
     character.stats.health.max = Math.round(maxHealth);
     character.stats.mana.max = Math.round(maxMana);
     character.stats.armor.current = Math.round(armor);
@@ -1236,14 +1260,9 @@ function calculateDerivedStats() {
     character.stats.wisdom.current = Math.round(wisdom);
     character.stats.resistance.current = Math.round(resistance);
     
-    // Restaurar vida/maná actuales, ajustando al nuevo máximo
     character.stats.health.current = Math.min(tempHealth, character.stats.health.max);
     character.stats.mana.current = Math.min(tempMana, character.stats.mana.max);
     
-    // Asignar los atributos temporales bonificados de vuelta a character
-    character.attributes = JSON.parse(JSON.stringify(tempAttributes));
-    
-    // Restaurar PA, ajustando al nuevo máximo
     character.combat.currentActions = Math.min(character.combat.currentActions, character.stats.actions.current);
 }
 
@@ -1269,10 +1288,8 @@ function updateUI() {
     let baseAttributes = JSON.parse(JSON.stringify(character.attributes));
     let finalAttributes = JSON.parse(JSON.stringify(character.attributes));
 
-    // Aplicar bonos de equipo y estados para la visualización
     character.equipment.forEach(slot => {
         if (slot.item) {
-            // Aplicar bonificaciones de equipo
             let equipBonus = {};
             if (slot.item.equipmentBonus) {
                 if (typeof slot.item.equipmentBonus === 'string') {
@@ -1287,7 +1304,6 @@ function updateUI() {
                 }
             }
             
-            // Aplicar efectos antiguos (si existen)
             if (slot.item.effects && Array.isArray(slot.item.effects)) {
                 slot.item.effects.forEach(effect => {
                     const [type, effectKey, value] = effect.split(':');
@@ -1340,7 +1356,6 @@ function updateUI() {
         attributesContainer.appendChild(div);
     }
     
-    // XP, Level & Skill Points
     document.getElementById('skill-points-display').textContent = character.skillPoints;
     const xpNeeded = getXpForNextLevel();
     document.getElementById('level-display').textContent = character.stats.level.current;
@@ -1466,13 +1481,11 @@ function addEventListeners() {
         }
     });
 
-    // Identity fields
     ['char-name', 'char-race', 'char-notes', 'char-personality', 'char-titles', 'char-spirits', 'char-size'].forEach(id => {
         const input = document.getElementById(id);
         if(input) input.onblur = saveCharacterToLocalStorage;
     });
 
-    // Spirit Relations listeners
     for (const key in character.spiritRelations) {
         const relationInput = document.getElementById(`relation-${key}`);
         if (relationInput) {
@@ -1582,19 +1595,48 @@ function showNotification(title, message) {
 }
 
 function rollAttributeCheckCombat(key) {
-    const attr = character.attributes[key];
-    if (!attr) return;
+    const finalAttributes = JSON.parse(JSON.stringify(character.attributes));
     
+    character.equipment.forEach(slot => {
+        if (slot.item) {
+            let equipBonus = {};
+            if (slot.item.equipmentBonus) {
+                if (typeof slot.item.equipmentBonus === 'string') {
+                    try { equipBonus = JSON.parse(slot.item.equipmentBonus); } catch(e) { equipBonus = {}; }
+                } else {
+                    equipBonus = slot.item.equipmentBonus;
+                }
+            }
+            for (const [bkey, value] of Object.entries(equipBonus)) {
+                if (finalAttributes[bkey]) {
+                    finalAttributes[bkey].value += value;
+                }
+            }
+        }
+    });
+    
+    character.statusEffects.forEach(status => {
+        status.linkedEffects.forEach(effect => {
+            if (effect.applyOn === 'continuo' && effect.target === 'self' && effect.attribute.startsWith('attributes.')) {
+                const attrKey = effect.attribute.split('.')[1];
+                if (finalAttributes[attrKey]) {
+                    if (effect.modification === 'fijo') finalAttributes[attrKey].value += effect.value || 0;
+                    else finalAttributes[attrKey].value *= (1 + (effect.value || 0) / 100);
+                }
+            }
+        });
+    });
+    
+    const mod = getModifier(finalAttributes[key].value);
     const d20 = Math.floor(Math.random() * 20) + 1;
-    const mod = getModifier(attr.value);
     const total = d20 + mod;
     
-    const message = `<strong>${attr.name}:</strong><br>
+    const message = `<strong>${finalAttributes[key].name}:</strong><br>
         🎲 D20: ${d20}<br>
         Modificador: ${mod >= 0 ? '+' : ''}${mod}<br>
         <strong>Total: ${total}</strong>`;
     
-    showNotification(`Tirada de ${attr.name}`, message);
+    showNotification(`Tirada de ${finalAttributes[key].name}`, message);
 }
 
 function useCombatAction(actionName, cost) {
@@ -1636,7 +1678,6 @@ function refreshCombatEquipment() {
     const equipmentContainer = document.querySelector('.combat-col-right');
     if (!equipmentContainer) return;
     
-    // Encontrar la sección de equipo
     const equipmentSections = equipmentContainer.querySelectorAll('.combat-section');
     const equipmentSection = Array.from(equipmentSections).find(section => 
         section.querySelector('.combat-section-title')?.textContent.includes('Equipo')
@@ -1644,7 +1685,6 @@ function refreshCombatEquipment() {
     
     if (!equipmentSection) return;
     
-    // Reconstruir el equipo
     let equipHTML = '<div class="space-y-1.5 max-h-40 overflow-y-auto">';
     
     character.equipment.forEach((slot, idx) => {
@@ -1671,7 +1711,6 @@ function refreshCombatEquipment() {
     
     equipHTML += '</div>';
     
-    // Reemplazar el contenido
     const equipContentDiv = equipmentSection.querySelector('.space-y-1\\.5');
     if (equipContentDiv) {
         equipContentDiv.outerHTML = equipHTML;
@@ -1755,7 +1794,6 @@ function saveVitalEdit(vitalType) {
     character.stats[vitalType].current = Math.min(newCurrent, newMax);
     character.stats[vitalType].max = newMax;
     
-    // Sincronizar en combat mode también
     if (vitalType === 'actions') {
         character.combat.currentActions = character.stats.actions.current;
     }
@@ -1763,7 +1801,6 @@ function saveVitalEdit(vitalType) {
     saveAndRefresh();
     closeModal(1); // Solo cerrar modal de edición, NO el modo combate
     
-    // Actualizar solo los vitales en el HTML del modo combate sin cerrar la ventana
     refreshCombatVitals();
 }
 
@@ -1792,7 +1829,6 @@ function equipItemFromInventory(itemIndex) {
     const item = character.inventory.items[itemIndex];
     if (!item) return;
     
-    // Buscar un slot vacío o crear uno nuevo
     let equipped = false;
     for (let i = 0; i < character.equipment.length; i++) {
         if (!character.equipment[i].item) {
@@ -2078,7 +2114,6 @@ function askSpiritFavor(elementKey) {
     const favorResult = getFavorInfoByRoll(roll); // Determine favor type from the raw roll regardless of outcome
 
     if (totalRoll < relationThreshold) {
-        // The favor is granted, but as a lesser favor because the relationship helped.
         showNotification(`Petición a ${elementName} - Favor Reforzado`, 
             `Tirada: ${roll} ${bonusString} (Bono) = ${totalRoll}\n\nAunque la tirada fue menor que tu relación (${relationThreshold}), tu vínculo con el espíritu reforzó la petición.\n\n**Se concede un ${favorResult.name}.**`
         );
@@ -2087,7 +2122,6 @@ function askSpiritFavor(elementKey) {
             `Tirada: ${roll} ${bonusString} (Bono) = ${totalRoll} (Supera o iguala ${relationThreshold})\n\nResultado: ${favorResult.name}\n${favorResult.description}`
         );
     }
-    // No change to relation value in either case.
     saveCharacterToLocalStorage(); // Save just in case.
 };
 
@@ -2184,41 +2218,29 @@ function openInventoryForm(type = 'skills', item = null, index = -1) {
     }
     
     const formulasHtml = formulas.map((f, i) => {
-        const formula = typeof f === 'string' ? {titulo: '', formula: f, editando: false} : f;
-        let result = '-';
-        try {
-            result = safeEvaluateFormula(formula.formula, character);
-        } catch (e) { result = 'ERR'; }
+        const formula = typeof f === 'string' ? {titulo: '', formula: f, editando: false, isWeaponBoosted: false} : f;
         
-        const isWeapon = item?.type === 'arma' ? '⚔️' : '';
-        const weaponBadge = isWeapon ? `<span class="inline-block px-2 py-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded text-xs font-bold ml-2">⚔️ Arma</span>` : '';
+        const weaponBoostBtnClass = formula.isWeaponBoosted ? 'formula-weapon-active bg-orange-500 hover:bg-orange-600' : 'bg-gray-400 hover:bg-gray-500';
+        const weaponBoostBtnIcon = formula.isWeaponBoosted ? '⚔️ ON' : '⚔️ OFF';
         
         return `
-        <div class="mb-4 p-4 border-l-4 ${formula.editando ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'} rounded-lg shadow-md hover:shadow-lg transition-all" id="formula-row-${i}">
+        <div class="mb-4 p-4 border-l-4 ${formula.editando ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800'} rounded-lg shadow-md hover:shadow-lg transition-all" id="formula-row-${i}">
             <div class="flex items-start justify-between mb-3">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
                     <label class="flex items-center cursor-pointer" title="Selecciona para editar">
-                        <input type="checkbox" class="formula-check w-4 h-4 cursor-pointer accent-blue-500 rounded" ${formula.editando ? 'checked' : ''} onchange="setActiveFormula('formula-row-${i}')">
+                        <input type="checkbox" class="formula-check w-4 h-4 cursor-pointer accent-indigo-500 rounded" ${formula.editando ? 'checked' : ''} onchange="setActiveFormula('formula-row-${i}')">
                     </label>
-                    <div>
-                        <input type="text" class="input-field formula-title font-bold text-sm w-32" placeholder="Título" value="${formula.titulo || ''}">
-                    </div>
-                    ${weaponBadge}
+                    <input type="text" class="input-field formula-title font-bold text-sm w-40" placeholder="Nombre" value="${formula.titulo || ''}">
                 </div>
-                <button class="btn btn-danger text-xs px-3 py-1" onclick="document.getElementById('formula-row-${i}').remove()">✕</button>
+                <div class="flex gap-2">
+                    <button class="btn weapon-boost-btn text-xs px-3 py-2 font-semibold ${weaponBoostBtnClass} text-white transition-all rounded-md" title="Toggle: Potencia con Arma" onclick="toggleFormulaWeaponBoost('formula-row-${i}')">${weaponBoostBtnIcon}</button>
+                    <button class="btn btn-danger text-xs px-3 py-1" onclick="document.getElementById('formula-row-${i}').remove()">✕</button>
+                </div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div class="md:col-span-2">
-                    <label class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Fórmula</label>
-                    <textarea class="input-field formula-input font-mono text-xs w-full bg-gray-50 dark:bg-gray-700" placeholder="Ej: (FUE)d6 + (Mod.MET)" rows="2" onblur="updateFormulaResult('formula-row-${i}')" oninput="updateFormulaResult('formula-row-${i}')">${formula.formula}</textarea>
-                </div>
-                <div>
-                    <label class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">📊 Resultado</label>
-                    <div class="text-center px-3 py-3 bg-gradient-to-br from-green-400 to-emerald-500 dark:from-green-600 dark:to-emerald-700 rounded-lg formula-result font-bold text-lg text-white border-2 border-green-300 dark:border-green-700 shadow-md">
-                        ${String(result).substring(0, 20)}
-                    </div>
-                </div>
+            <div class="w-full">
+                <label class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Fórmula</label>
+                <textarea class="input-field formula-input font-mono text-sm w-full bg-white-50 dark:bg-white-701 border-2 border-black-200 dark:border-black-700" placeholder="Ej: (FUE)d6 + (Mod.MET)" rows="2" onblur="updateFormulaResult('formula-row-${i}')" oninput="updateFormulaResult('formula-row-${i}')">${formula.formula}</textarea>
             </div>
         </div>\n    `}).join('');
     
@@ -2249,14 +2271,19 @@ function openInventoryForm(type = 'skills', item = null, index = -1) {
     ` : '';
     
     const formulasSection = config.hasFormulas ? `
-        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-800 p-5 rounded-lg shadow-sm">
-            <div class="flex items-center gap-2 mb-4">
-                <span class="text-xl">⚡</span>
-                <h3 class="font-bold text-lg text-blue-900 dark:text-blue-300">Fórmulas & Resultados</h3>
+        <div class="bg-gradient-to-br from-white-50 to-blue-50 dark:from-grey-900/20 dark:to-blue-900/20 border-2 border-blue-300 dark:border-black-600 p-5 rounded-lg">
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-white-200 dark:border-white-700">
+                <span class="text-2xl">⚡</span>
+                <h3 class="font-bold text-lg text-black-900 dark:text-black-100">Fórmulas</h3>
             </div>
-            <div id="formula-builder-container" class="mb-4 p-3 bg-white dark:bg-gray-800 rounded border border-blue-200 dark:border-blue-700"></div>
-            <div id="item-formulas-container" class="space-y-2 mb-4">${formulasHtml || '<p class="text-center py-4 text-gray-500 dark:text-gray-400 text-sm italic">Sin fórmulas - Haz clic en el botón de abajo para crear una</p>'}</div>
-            <button class="btn btn-primary w-full text-white font-bold py-3 rounded-lg bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-600 hover:via-blue-700 hover:to-indigo-700 shadow-lg transform hover:scale-105 transition-all" onclick="addInventoryFormulaRow()">✨ Agregar Nueva Fórmula</button>
+            
+            <div id="formula-builder-container" class="mb-4 p-3 bg-white dark:bg-white-800 rounded border border-black-200 dark:border-black-700"></div>
+            
+            <div id="item-formulas-container" class="space-y-3 mb-4">
+                ${formulasHtml || '<p class="text-center py-4 text-gray-500 dark:text-gray-400 text-sm italic">Sin fórmulas</p>'}
+            </div>
+            
+            <button class="btn w-full text-white font-bold py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 transition-all" onclick="addInventoryFormulaRow()">+ Agregar Fórmula</button>
         </div>
     ` : '';
     
@@ -2300,7 +2327,6 @@ function openInventoryForm(type = 'skills', item = null, index = -1) {
         </div>
     ` : '';
     
-    // Cargar bonificaciones de equipo si existen
     let equipmentBonus = {};
     if (item && item.equipmentBonus && typeof item.equipmentBonus === 'string') {
         try { equipmentBonus = JSON.parse(item.equipmentBonus); } catch(e) { equipmentBonus = {}; }
@@ -2391,21 +2417,34 @@ function addInventoryCostRow(containerId, inventoryLabel) {
 
 function addInventoryFormulaRow() {
     const container = document.getElementById('item-formulas-container');
+    if (!container) return;
+    
     const id = 'formula-' + Date.now();
     const row = document.createElement('div');
-    row.className = 'grid grid-cols-12 gap-2 items-end mb-3 p-4 border-2 border-blue-300 dark:border-blue-600 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 shadow-md hover:shadow-lg transition-all';
+    row.className = 'p-4 border-l-4 border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg shadow-md hover:shadow-lg transition-all mb-3';
     row.id = id;
     
     row.innerHTML = `
-        <label class="col-span-1 cursor-pointer flex items-center justify-center h-full" title="Marcar como fórmula activa">
-            <input type="checkbox" class="formula-check w-6 h-6 cursor-pointer accent-blue-600 rounded" onchange="setActiveFormula('${id}')">
-        </label>
-        <input type="text" class="input-field col-span-2 formula-title text-sm font-semibold placeholder-blue-400" placeholder="Daño">
-        <textarea class="input-field col-span-7 formula-input font-mono text-sm border-blue-200 dark:border-blue-700 focus:ring-blue-500" placeholder="Ej: (FUE)d6 + (Mod.MET)" rows="2"></textarea>
-        <div class="col-span-1 text-xs font-bold font-mono text-center p-2 bg-gradient-to-br from-blue-400 to-blue-600 text-white rounded-md formula-result shadow-sm">-</div>
-        <button class="btn btn-danger text-xs col-span-1 h-fit hover:scale-110 transition-transform" onclick="document.getElementById('${id}').remove()" title="Eliminar fórmula">✕</button>
+        <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <label class="flex items-center cursor-pointer" title="Selecciona para editar">
+                    <input type="checkbox" class="formula-check w-4 h-4 cursor-pointer accent-indigo-600 rounded" onchange="setActiveFormula('${id}')">
+                </label>
+                <input type="text" class="input-field formula-title font-bold text-sm w-40" placeholder="Nombre">
+            </div>
+            <div class="flex gap-2">
+                <button class="btn text-xs px-3 py-2 font-semibold bg-gray-400 hover:bg-gray-500 text-white transition-all rounded-md weapon-boost-btn" title="Toggle: Potencia con Arma" onclick="toggleFormulaWeaponBoost('${id}')">⚔️ OFF</button>
+                <button class="btn btn-danger text-xs px-3 py-1" onclick="document.getElementById('${id}').remove()" title="Eliminar fórmula">✕</button>
+            </div>
+        </div>
+        
+        <div class="w-full">
+            <label class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1 block">Fórmula</label>
+            <textarea class="input-field formula-input font-mono text-sm w-full bg-white-50 dark:bg-white-700 border-2 border-black-200 dark:border-blue-700" placeholder="Ej: (FUE)d6 + (Mod.MET)" rows="2"></textarea>
+        </div>
     `;
-    container.insertBefore(row, container.lastElementChild);
+    
+    container.appendChild(row);
     
     const textarea = row.querySelector('textarea');
     const checkbox = row.querySelector('.formula-check');
@@ -2437,8 +2476,6 @@ function addEquipmentBonusRow() {
 }
 
 function updateBonusKey(selectElement, oldKey) {
-    // Esta función puede usarse si necesitas hacer algo cuando cambia la clave
-    // Por ahora, solo actualiza el valor del select
 }
 
 function addInventoryEffectRow() {
@@ -2475,14 +2512,12 @@ function saveInventoryItem(type, index) {
     const config = INVENTORY_CONFIG[type];
     
     try {
-        // 1. OBTENER NOMBRE Y VALIDAR
         const nameInput = document.getElementById('item-name');
         if (!nameInput || !nameInput.value.trim()) {
             showNotification('Error', 'El nombre es obligatorio');
             return;
         }
         
-        // 2. RECOPILAR COSTOS
         const costs = [];
         const costsContainer = document.getElementById('item-costs-container');
         if (costsContainer) {
@@ -2498,7 +2533,6 @@ function saveInventoryItem(type, index) {
             });
         }
         
-        // 3. RECOPILAR FÓRMULAS CON ESTRUCTURA COMPLETA
         const formulas = [];
         const formulasContainer = document.getElementById('item-formulas-container');
         if (formulasContainer) {
@@ -2507,17 +2541,19 @@ function saveInventoryItem(type, index) {
                 
                 const titleEl = row.querySelector('.formula-title');
                 const formulaEl = row.querySelector('.formula-input');
+                const weaponBoostBtn = row.querySelector('button[title*="Potenciable"]');
+                const isWeaponBoosted = weaponBoostBtn ? weaponBoostBtn.classList.contains('formula-weapon-active') : false;
                 
                 if (formulaEl && formulaEl.value.trim()) {
                     formulas.push({
                         titulo: titleEl?.value || '',
-                        formula: formulaEl.value.trim()
+                        formula: formulaEl.value.trim(),
+                        isWeaponBoosted: isWeaponBoosted || false
                     });
                 }
             });
         }
         
-        // 4. CONVERTIR COSTOS A FORMATO LEGACY (compatibilidad hacia atrás)
         let costPA = 0, costMP = 0, costHP = 0, costMovement = 0, costResources = '';
         costs.forEach(cost => {
             switch(cost.type) {
@@ -2529,10 +2565,8 @@ function saveInventoryItem(type, index) {
             }
         });
         
-        // 5. OBTENER PRIMERA FÓRMULA PARA COMPATIBILIDAD (damageFormula)
         const firstFormula = formulas[0] || null;
         
-        // 5.5 RECOPILAR BONIFICACIONES DE EQUIPO (Si es un objeto)
         const equipmentBonus = {};
         const bonusContainer = document.getElementById('equipment-bonus-container');
         if (bonusContainer && type === 'items') {
@@ -2545,11 +2579,9 @@ function saveInventoryItem(type, index) {
             });
         }
         
-        // 6. CREAR O ACTUALIZAR ITEM
         let newItem;
         
         if (isEditing) {
-            // EDICIÓN: Preservar datos existentes y actualizar solo lo necesario
             newItem = {
                 ...character.inventory[type][index],  // Preservar datos existentes
                 name: nameInput.value.trim(),
@@ -2558,7 +2590,6 @@ function saveInventoryItem(type, index) {
                 costs: JSON.stringify(costs),
                 formulas: JSON.stringify(formulas),
                 equipmentBonus: JSON.stringify(equipmentBonus),
-                // Actualizar campos legacy
                 costPA: costPA,
                 costMP: costMP,
                 costHP: costHP,
@@ -2570,7 +2601,6 @@ function saveInventoryItem(type, index) {
                 lastModified: new Date().toISOString()
             };
         } else {
-            // CREACIÓN: Usar valores predeterminados robustos
             const defaultItem = createNewInventoryItem(type);
             newItem = {
                 ...defaultItem,  // Usar template con todos los campos inicializados
@@ -2582,7 +2612,6 @@ function saveInventoryItem(type, index) {
                 equipmentBonus: JSON.stringify(equipmentBonus),
                 damageFormula: firstFormula?.formula || '',
                 effects: [],
-                // Campos legacy
                 costPA: costPA,
                 costMP: costMP,
                 costHP: costHP,
@@ -2592,31 +2621,25 @@ function saveInventoryItem(type, index) {
             };
         }
         
-        // 7. VALIDAR ANTES DE GUARDAR
         const validation = validateInventoryItem(newItem, type);
         if (!validation.valid) {
             showNotification('Error de Validación', validation.errors.join('\n'));
             return;
         }
         
-        // 8. GUARDAR EN EL ARRAY CORRECTO
         if (index === -1) {
-            // Nuevo item: agregar al final
             character.inventory[type].push(newItem);
             console.log(`✓ ${config.label} "${newItem.name}" creado y agregado al inventario`);
         } else {
-            // Editar: reemplazar en el índice
             character.inventory[type][index] = newItem;
             console.log(`✓ ${config.label} "${newItem.name}" actualizado en el inventario`);
         }
         
-        // 9. CERRAR MODAL Y REFRESCAR
         closeModal();
         saveCharacterToLocalStorage();
         updateUI();
         renderInventory();
         
-        // Mostrar notificación de éxito
         setTimeout(() => {
             showNotification(
                 '¡Éxito!',
@@ -2675,25 +2698,41 @@ function addFormulaRow() {
 }
 
 function setActiveFormula(rowId) {
-    // El contenedor del nuevo sistema
     let container = document.getElementById('item-formulas-container');
     
-    // Fallback al sistema antiguo si es necesario
     if (!container) {
         container = document.getElementById('formulas-container');
     }
     
     if (!container) return;
     
-    // Desactivar todos los checkboxes
     const allCheckboxes = container.querySelectorAll('.formula-check');
     allCheckboxes.forEach(cb => cb.checked = false);
     
-    // Activar solo el seleccionado
     const row = document.getElementById(rowId);
     if (row) {
         const checkbox = row.querySelector('.formula-check');
         if (checkbox) checkbox.checked = true;
+    }
+}
+
+function toggleFormulaWeaponBoost(rowId) {
+    const row = document.getElementById(rowId);
+    if (!row) return;
+    
+    const boostBtn = row.querySelector('.weapon-boost-btn');
+    if (!boostBtn) return;
+    
+    const isActive = boostBtn.classList.contains('formula-weapon-active');
+    
+    if (isActive) {
+        boostBtn.classList.remove('formula-weapon-active', 'bg-orange-500', 'hover:bg-orange-600');
+        boostBtn.classList.add('bg-gray-400', 'hover:bg-gray-500');
+        boostBtn.textContent = '⚔️ OFF';
+    } else {
+        boostBtn.classList.add('formula-weapon-active', 'bg-orange-500', 'hover:bg-orange-600');
+        boostBtn.classList.remove('bg-gray-400', 'hover:bg-gray-500');
+        boostBtn.textContent = '⚔️ ON';
     }
 }
 
@@ -2824,14 +2863,12 @@ function renderFormulaBuilder(containerId, textareaId) {
 function addToFormula(text, textareaId) {
     let textarea = null;
     
-    // PRIORIDAD 1: Si hay UNA Y SOLO UNA fórmula con checkbox marcado, agregar ALLÍ
     const checkedCheckbox = document.querySelector('.formula-check:checked');
     if (checkedCheckbox) {
         const checkedRow = checkedCheckbox.closest('[id^="formula-row"], [id^="formula-"]');
         if (checkedRow) {
             textarea = checkedRow.querySelector('textarea.formula-input');
             if (textarea) {
-                // Agregar al textarea marcado
                 const start = textarea.selectionStart;
                 const end = textarea.selectionEnd;
                 const before = textarea.value.substring(0, start);
@@ -2845,7 +2882,6 @@ function addToFormula(text, textareaId) {
         }
     }
     
-    // PRIORIDAD 2: Si no hay marcada, buscar en item-formulas-container (nuevo sistema)
     if (!textarea) {
         const container = document.getElementById('item-formulas-container');
         if (container) {
@@ -2856,7 +2892,6 @@ function addToFormula(text, textareaId) {
         }
     }
     
-    // PRIORIDAD 3: Fallback a formulas-container (sistema antiguo)
     if (!textarea) {
         const container = document.getElementById('formulas-container');
         if (container) {
@@ -2927,14 +2962,12 @@ function safeEvaluateFormula(formula, characterData) {
     try {
         let expr = formula;
         
-        // 1. Reemplazar atributos
         expr = expr.replace(/\(FUE\)/g, characterData.attributes.FUE?.value || 10);
         expr = expr.replace(/\(AGI\)/g, characterData.attributes.AGI?.value || 10);
         expr = expr.replace(/\(MET\)/g, characterData.attributes.MET?.value || 10);
         expr = expr.replace(/\(INT\)/g, characterData.attributes.INT?.value || 10);
         expr = expr.replace(/\(APM\)/g, characterData.attributes.APM?.value || 10);
         
-        // 2. Reemplazar modificadores
         const getMod = (val) => Math.floor((val - 10) / 2);
         expr = expr.replace(/\(Mod\.FUE\)/g, getMod(characterData.attributes.FUE?.value || 10));
         expr = expr.replace(/\(Mod\.AGI\)/g, getMod(characterData.attributes.AGI?.value || 10));
@@ -2942,7 +2975,6 @@ function safeEvaluateFormula(formula, characterData) {
         expr = expr.replace(/\(Mod\.INT\)/g, getMod(characterData.attributes.INT?.value || 10));
         expr = expr.replace(/\(Mod\.APM\)/g, getMod(characterData.attributes.APM?.value || 10));
         
-        // 3. Reemplazar estadísticas
         expr = expr.replace(/\(Nivel\)/g, characterData.stats.level.current);
         expr = expr.replace(/\(Vida\)/g, characterData.stats.health.current);
         expr = expr.replace(/\(Armadura\)/g, characterData.stats.armor.current);
@@ -2954,7 +2986,6 @@ function safeEvaluateFormula(formula, characterData) {
         expr = expr.replace(/\(Resistencia\)/g, characterData.stats.resistance.current);
         expr = expr.replace(/\(Sabiduria\)/g, characterData.stats.wisdom.current);
         
-        // 4. Evaluar dados: buscar patrón NdM o (.)d(.)
         expr = expr.replace(/(\d+)d(\d+)/g, (match, qty, sides) => {
             let total = 0;
             for (let i = 0; i < parseInt(qty); i++) {
@@ -2963,7 +2994,6 @@ function safeEvaluateFormula(formula, characterData) {
             return total;
         });
         
-        // 5. Evaluación final matemática segura
         const result = Function('"use strict"; return (' + expr + ')')();
         return Math.floor(result);
     } catch (error) {
@@ -2972,7 +3002,6 @@ function safeEvaluateFormula(formula, characterData) {
     }
 }
 
-// Función antigua removida - usar openInventoryForm('skills') en su lugar
 
 function renderSkillCard(skill, index) {
     const card = document.createElement('div');
@@ -2980,14 +3009,12 @@ function renderSkillCard(skill, index) {
     card.dataset.rarity = skill.rarity || 'Común';
     const rarityOptions = RARITIES.map(r => `<option value="${r}" ${skill.rarity === r ? 'selected' : ''}>${r}</option>`).join('');
     
-    // Parse costs
     let costs = [];
     if (skill.costs && typeof skill.costs === 'string') {
         try { costs = JSON.parse(skill.costs); } catch(e) { }
     }
     const costsHtml = costs.map(c => `${c.value} ${c.type}`).join(' / ') || 'Sin costes';
     
-    // Parse formulas
     let formulas = [];
     if (skill.formulas && typeof skill.formulas === 'string') {
         try { 
@@ -3043,7 +3070,6 @@ function toggleAbilityDamage(index, type) {
     saveCharacterToLocalStorage();
 }
 
-// Función antigua removida - usar openInventoryForm('techniques', ...) en su lugar
 
 function renderTechniqueCard(tech, index) {
     const card = document.createElement('div');
@@ -3051,14 +3077,12 @@ function renderTechniqueCard(tech, index) {
     card.dataset.rarity = tech.rarity || 'Común';
     const rarityOptions = RARITIES.map(r => `<option value="${r}" ${tech.rarity === r ? 'selected' : ''}>${r}</option>`).join('');
     
-    // Parse costs
     let costs = [];
     if (tech.costs && typeof tech.costs === 'string') {
         try { costs = JSON.parse(tech.costs); } catch(e) { }
     }
     const costsHtml = costs.map(c => `${c.value} ${c.type}`).join(' / ') || 'Sin costes';
     
-    // Parse formulas
     let formulas = [];
     if (tech.formulas && typeof tech.formulas === 'string') {
         try { formulas = JSON.parse(tech.formulas); } catch(e) { }
@@ -3102,7 +3126,6 @@ function renderTechniqueCard(tech, index) {
 }
 
 
-// Función antigua removida - usar openInventoryForm('items', ...) en su lugar
 
 function renderItemCard(item, index) {
     const card = document.createElement('div');
@@ -3129,7 +3152,6 @@ function renderItemCard(item, index) {
     return card;
 }
 
-// --- Mascotas ---
 function calculatePetStats(pet) {
     if (!pet.attributes) return pet;
     const mods = {
@@ -3246,7 +3268,6 @@ function openPetForm(pet = null, index = -1) {
     `;
     openModal(content);
     
-    // Tab switching
     document.getElementById('pet-modal-tabs').addEventListener('click', (e) => {
         if (e.target.dataset.petTab) {
             const tab = e.target.dataset.petTab;
@@ -3257,7 +3278,6 @@ function openPetForm(pet = null, index = -1) {
         }
     });
     
-    // Image upload
     document.getElementById('pet-image-upload')?.addEventListener('change', function(event) {
         if (event.target.files?.[0]) {
             const reader = new FileReader();
@@ -3387,7 +3407,6 @@ function deleteItem(type, index) {
             <button class="btn btn-danger" id="confirm-delete-btn">Eliminar</button>
         </div>`);
     document.getElementById('confirm-delete-btn').onclick = () => {
-        // If deleting a skill, refund total PH spent on its upgrades
         if (type === 'skills') {
             const upgrades = item.upgrades || 0;
             if (upgrades > 0) {
@@ -3643,7 +3662,6 @@ function safeEvaluateFormula(baseFormula, options = {}) {
             });
         });
 
-        // Step 1: Replace all variables with their FINAL numeric values
         for (const key in finalAttributes) {
             const attr = finalAttributes[key];
             const mod = getModifier(attr.value);
@@ -3655,7 +3673,6 @@ function safeEvaluateFormula(baseFormula, options = {}) {
         }
         processedFormula = processedFormula.replace(new RegExp(`\\(NivelHab\\)`, 'gi'), abilityLevel);
 
-        // Step 2: Iteratively resolve dice rolls.
         let diceRollsText = [];
         const diceRegex = /(\d+)\s*d\s*(\d+)/;
 
@@ -3682,7 +3699,6 @@ function safeEvaluateFormula(baseFormula, options = {}) {
             iterations++;
         }
 
-        // Step 3: Evaluate the final mathematical expression
         const finalResult = new Function(`return ${processedFormula}`)();
         
         return { total: finalResult, rolls: diceRollsText.join('; ') || 'N/A', error: null };
@@ -3697,7 +3713,6 @@ function safeEvaluateFormula(baseFormula, options = {}) {
 function useAbility(type, index) {
     const ability = character.inventory[type][index];
     
-    // Obtener fórmulas (pueden ser múltiples)
     let formulas = [];
     if (ability.formulas && typeof ability.formulas === 'string') {
         try {
@@ -3714,7 +3729,6 @@ function useAbility(type, index) {
         return; 
     }
     
-    // Validar costos
     if (character.combat.currentActions < (ability.costPA || 0)) { 
         showNotification('Error', 'No tienes suficientes Puntos de Acción.'); 
         return; 
@@ -3729,10 +3743,9 @@ function useAbility(type, index) {
     }
     if ((ability.costMovement || 0) > 0 && character.stats.movement.current < (ability.costMovement || 0)) { 
         showNotification('Error', 'No tienes suficiente movimiento disponible.'); 
-        return; 
+        return;
     }
     
-    // Check resource costs
     if (ability.costResources && ability.costResources.trim() !== '') {
         const parts = ability.costResources.split(',').map(p => p.trim()).filter(Boolean);
         for (const part of parts) {
@@ -3746,7 +3759,6 @@ function useAbility(type, index) {
         }
     }
     
-    // Evaluar TODAS las fórmulas
     const results = [];
     for (const f of formulas) {
         const formula = typeof f === 'string' ? {titulo: '', formula: f} : f;
@@ -3769,7 +3781,6 @@ function useAbility(type, index) {
         return;
     }
     
-    // Deduct costs
     character.stats.mana.current -= (ability.costMP || 0);
     if (ability.costHP) character.stats.health.current = Math.max(0, character.stats.health.current - ability.costHP);
     if (ability.costMovement) character.stats.movement.current = Math.max(0, character.stats.movement.current - ability.costMovement);
@@ -3786,14 +3797,11 @@ function useAbility(type, index) {
     }
     useAction((ability.costPA || 0), ability.name);
     
-    // Sincronizar acciones después de usar la habilidad
     character.stats.actions.current = character.combat.currentActions;
     
-    // Mostrar TODOS los resultados
     const resultsHtml = results.map(r => `<strong>${r.titulo}:</strong> ${r.total} (${r.rolls})`).join('<br>');
     showNotification(`Resultado de ${ability.name}`, resultsHtml);
     
-    // Actualizar vitales en el modo combate
     refreshCombatVitals();
     
     saveAndRefresh();
@@ -3803,7 +3811,6 @@ function useItemEffect(itemIndex) {
     const item = character.inventory.items[itemIndex];
     if (!item) { showNotification('Error', 'Objeto no encontrado.'); return; }
     
-    // Obtener fórmulas del item
     let formulas = [];
     if (item.formulas && typeof item.formulas === 'string') {
         try {
@@ -3820,7 +3827,6 @@ function useItemEffect(itemIndex) {
         return; 
     }
     
-    // Evaluar TODAS las fórmulas
     const results = [];
     for (const f of formulas) {
         const formula = typeof f === 'string' ? {titulo: '', formula: f} : f;
@@ -3840,7 +3846,6 @@ function useItemEffect(itemIndex) {
         return;
     }
     
-    // Mostrar TODOS los resultados
     const resultsHtml = results.map(r => `<strong>${r.titulo}:</strong> ${r.total} (${r.rolls})`).join('<br>');
     showNotification(`Efecto de ${item.name}`, resultsHtml);
     
@@ -3871,11 +3876,9 @@ function useAction(cost, type) {
         message = `Has ganado ${-cost} PA. Total: ${character.combat.currentActions} PA.`;
     } else if (character.combat.currentActions >= cost) {
         character.combat.currentActions -= cost;
-        // Sincronizar con stats
         character.stats.actions.current = character.combat.currentActions;
         message = `Usaste una Acción ${type}. Te quedan ${character.combat.currentActions} PA.`;
 
-        // Procesar efectos de estado que se activan con acciones
         const { summary, effectsToKeep } = processStatusEffectsByTrigger('accion');
         triggeredEffectsSummary = summary;
         character.statusEffects = effectsToKeep;
@@ -3950,12 +3953,30 @@ function processStatusEffectsByTrigger(triggerType) {
 
 function rollAttributeCheck(attributeKey) {
     const finalAttributes = JSON.parse(JSON.stringify(character.attributes));
+    
     character.equipment.forEach(slot => {
-        if (slot.item) slot.item.effects.forEach(effect => {
-            const [type, effectKey, value] = effect.split(':');
-            if (type === 'attr' && finalAttributes[effectKey]) finalAttributes[effectKey].value += parseFloat(value) || 0;
-        });
+        if (slot.item) {
+            let equipBonus = {};
+            if (slot.item.equipmentBonus) {
+                if (typeof slot.item.equipmentBonus === 'string') {
+                    try { equipBonus = JSON.parse(slot.item.equipmentBonus); } catch(e) { equipBonus = {}; }
+                } else {
+                    equipBonus = slot.item.equipmentBonus;
+                }
+            }
+            for (const [key, value] of Object.entries(equipBonus)) {
+                if (finalAttributes[key]) {
+                    finalAttributes[key].value += value;
+                }
+            }
+            
+            slot.item.effects.forEach(effect => {
+                const [type, effectKey, value] = effect.split(':');
+                if (type === 'attr' && finalAttributes[effectKey]) finalAttributes[effectKey].value += parseFloat(value) || 0;
+            });
+        }
     });
+    
     character.statusEffects.forEach(status => {
         status.linkedEffects.forEach(effect => {
             if (effect.applyOn === 'continuo' && effect.target === 'self' && effect.attribute.startsWith('attributes.')) {
@@ -3967,6 +3988,7 @@ function rollAttributeCheck(attributeKey) {
             }
         });
     });
+    
     const modifier = getModifier(finalAttributes[attributeKey].value);
     const roll = Math.floor(Math.random() * 20) + 1;
     const total = roll + modifier;
@@ -4299,7 +4321,7 @@ function openCombatMode() {
 }
 
 function openMapModal() {
-    if (!character.map) character.map = { avatar: { x: 0, y: 0 }, gridSize: 10, backgroundImage: '', markers: [] };
+    if (!character.map) character.map = { avatar: { x: 0, y: 0 }, gridSize: 20, backgroundImage: '', markers: [] };
     if (!character.map.markers) character.map.markers = [];
     if (!Array.isArray(character.map.markers)) character.map.markers = [];
     
@@ -4317,79 +4339,82 @@ function openMapModal() {
         </div>
     `).join('');
     
-    const gridSize = Math.max(5, Math.min(20, character.map.gridSize || 10));
+    const gridSize = Math.max(20, Math.min(50, character.map.gridSize || 20));
     const content = `
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-2xl font-bold">Mapa del Mundo</h3>
-            <div class="flex gap-2">
-                <label class="btn btn-secondary text-xs cursor-pointer">
-                    📤 Subir Fondo
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-lg font-bold">🗺️ Mapa del Mundo</h3>
+            <div class="flex gap-1">
+                <label class="btn btn-secondary text-xs cursor-pointer py-2 px-3">
+                    📤 Subir
                     <input type="file" id="map-bg-upload" accept="image/*" style="display:none;">
                 </label>
-                <button class="btn btn-danger text-xs" onclick="clearMapBackground()">Limpiar</button>
+                <button class="btn btn-danger text-xs py-2 px-3" onclick="clearMapBackground()">Limpiar</button>
             </div>
         </div>
-        
-        <div class="grid grid-cols-5 gap-3 mb-4 bg-gray-50 dark:bg-gray-800 p-3 rounded">
-            <div>
-                <label class="text-xs font-semibold block mb-1">Tamaño Grid</label>
-                <input type="number" id="map-size" class="input-field text-sm" min="5" max="20" value="${gridSize}" onchange="updateMapSize(parseInt(this.value))">
-            </div>
-            <div>
-                <label class="text-xs font-semibold block mb-1">Avatar X</label>
-                <input type="number" id="avatar-x" class="input-field text-sm" value="${character.map.avatar.x || 0}" min="0" max="${gridSize - 1}">
-            </div>
-            <div>
-                <label class="text-xs font-semibold block mb-1">Avatar Y</label>
-                <input type="number" id="avatar-y" class="input-field text-sm" value="${character.map.avatar.y || 0}" min="0" max="${gridSize - 1}">
-            </div>
-            <div>
-                <label class="text-xs font-semibold block mb-1">Modo</label>
-                <select id="map-mode" class="input-field text-xs">
-                    <option value="avatar">Avatar</option>
-                    <option value="marker">Marcador</option>
-                </select>
-            </div>
-            <div>
-                <label class="text-xs font-semibold block mb-1">Tipo Marcador</label>
-                <select id="marker-type" class="input-field text-xs">
-                    ${markerTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
-                </select>
+        <!-- CONTROLES PRINCIPALES -->
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded-lg p-3 mb-2 border border-blue-200 dark:border-blue-700">
+            <h4 class="font-bold text-sm mb-2 text-blue-900 dark:text-blue-100">🗺️ Configuración</h4>
+            <div class="grid grid-cols-4 gap-2">
+                <div>
+                    <label class="text-xs font-semibold block mb-1 text-blue-800 dark:text-blue-200">Tamaño Grid</label>
+                    <input type="number" id="map-size" class="input-field text-sm" min="20" max="50" value="${gridSize}" onchange="updateMapSize(parseInt(this.value))">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold block mb-1 text-blue-800 dark:text-blue-200">Avatar X</label>
+                    <input type="number" id="avatar-x" class="input-field text-sm" value="${character.map.avatar.x || 0}" min="0" max="${gridSize - 1}">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold block mb-1 text-blue-800 dark:text-blue-200">Avatar Y</label>
+                    <input type="number" id="avatar-y" class="input-field text-sm" value="${character.map.avatar.y || 0}" min="0" max="${gridSize - 1}">
+                </div>
+                <div>
+                    <label class="text-xs font-semibold block mb-1 text-blue-800 dark:text-blue-200">Modo</label>
+                    <select id="map-mode" class="input-field text-xs py-2" onchange="updateMapModeControls()">
+                        <option value="avatar">👤 Avatar</option>
+                        <option value="marker">📍 Marcador</option>
+                    </select>
+                </div>
             </div>
         </div>
-        
-        <div id="map-modal-container" style="position: relative; background-image: ${mapBg}; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; padding: 0.75rem; border-radius: 0.5rem; border: 2px solid #d1d5db; aspect-ratio: 1; max-height: 450px; overflow: hidden;">
+
+        <!-- CONTROL DE MARCADOR -->
+        <div id="marker-control" style="display: none;" class="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900 dark:to-amber-800 rounded-lg p-2 mb-2 border border-amber-200 dark:border-amber-700">
+            <h4 class="font-bold text-sm mb-1 text-amber-900 dark:text-amber-100">📍 Marcador</h4>
+            <select id="marker-type" class="input-field text-xs w-full">
+                ${markerTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
+            </select>
+        </div>
+
+
+        <!-- MAPA GRID -->
+        <div id="map-modal-container" style="position: relative; background-image: ${mapBg}; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; padding: 0.75rem; border-radius: 0.5rem; border: 2px solid #d1d5db; aspect-ratio: 1; min-height: 550px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             <div id="map-grid-modal" style="display: grid; grid-template-columns: repeat(${gridSize}, 1fr); gap: 1px; width: 100%; height: 100%; background: rgba(0,0,0,0.02);"></div>
         </div>
         
-        <p id="map-info-modal" class="text-xs mt-2 font-mono text-gray-600 dark:text-gray-400 text-center">Haz clic en una celda para interactuar</p>
+        <!-- INFO DEL MAPA -->
+        <p id="map-info-modal" class="text-xs mt-2 font-mono text-gray-700 dark:text-gray-300 text-center bg-gray-100 dark:bg-gray-700 p-1 rounded">📍 Cada celda = 5 pies</p>
         
-        <div class="grid grid-cols-2 gap-3 mt-4">
-            <div>
-                <h4 class="font-semibold text-sm mb-2 flex items-center gap-2">
-                    📍 Marcadores
-                    <span class="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">${character.map.markers.length}</span>
-                </h4>
-                <div class="bg-gray-100 dark:bg-gray-800 rounded max-h-40 overflow-y-auto border">
-                    ${markerRows && markerRows.trim() ? markerRows : '<p class="text-xs text-gray-500 p-3 text-center">Sin marcadores (haz clic en modo Marcador)</p>'}
+        <!-- ESTADÍSTICAS COMPACTAS -->
+        <div class="grid grid-cols-3 gap-2 mt-2">
+            <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900 dark:to-green-800 rounded p-2 border border-green-200 dark:border-green-700">
+                <h5 class="font-semibold text-xs text-green-900 dark:text-green-100 mb-1">📊 Información</h5>
+                <div class="text-xs space-y-0 text-green-800 dark:text-green-200">
+                    <p><strong>Grid:</strong> ${gridSize}×${gridSize}</p>
+                    <p><strong>Total:</strong> ${gridSize * 5}×${gridSize * 5} pies</p>
                 </div>
             </div>
-            <div>
-                <h4 class="font-semibold text-sm mb-2">🎨 Leyenda</h4>
-                <div class="space-y-1.5 text-xs bg-gray-50 dark:bg-gray-800 p-2 rounded border">
-                    ${markerTypes.map(t => `
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 rounded" style="background-color: ${markerColors[t]}"></div>
-                            <span class="font-medium">${t}</span>
-                        </div>
-                    `).join('')}
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded p-2 border border-blue-200 dark:border-blue-700">
+                <h5 class="font-semibold text-xs text-blue-900 dark:text-blue-100 mb-1">🎮 Modos</h5>
+                <div class="text-xs space-y-0 text-blue-800 dark:text-blue-200">
+                    <p>👤 Avatar • 📍 Marcador</p>
                 </div>
             </div>
         </div>
         
-        <div class="flex justify-end gap-2 mt-6 pt-4 border-t dark:border-gray-600">
-            <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
-            <button class="btn btn-primary" onclick="saveMapState()">Guardar Mapa</button>
+        <!-- BOTONES DE ACCIÓN -->
+        <div class="flex justify-end gap-2 mt-3 pt-2 border-t border-gray-300 dark:border-gray-600">
+            <button class="btn btn-secondary" onclick="closeModal()">❌ Cerrar</button>
+            <button class="btn btn-primary" onclick="saveMapState()">💾 Guardar Mapa</button>
         </div>
     `;
     openModal(content);
@@ -4406,6 +4431,8 @@ function openMapModal() {
             reader.readAsDataURL(e.target.files[0]);
         }
     });
+    
+
 }
 
 function renderMapModalGrid() {
@@ -4413,7 +4440,7 @@ function renderMapModalGrid() {
     if (!grid) return;
     
     grid.innerHTML = '';
-    const size = Math.max(5, Math.min(20, character.map.gridSize || 10));
+    const size = Math.max(20, Math.min(50, character.map.gridSize || 20));
     const mode = document.getElementById('map-mode')?.value || 'avatar';
     const markerType = document.getElementById('marker-type')?.value || 'Aliado';
     const markerColors = { 'Aliado': '#10b981', 'Enemigo': '#ef4444', 'Punto de Interés': '#f59e0b', 'Trampa': '#8b5cf6' };
@@ -4440,7 +4467,8 @@ function renderMapModalGrid() {
             const marker = character.map.markers.find(m => m.x === x && m.y === y);
             const isAvatar = character.map.avatar.x === x && character.map.avatar.y === y;
             
-            // Render avatar
+
+            
             if (isAvatar) {
                 cell.style.backgroundColor = 'rgba(59, 130, 246, 0.7)';
                 cell.style.color = 'white';
@@ -4448,7 +4476,6 @@ function renderMapModalGrid() {
                 cell.textContent = '①';
                 cell.setAttribute('title', `Avatar en (${x}, ${y})`);
             } 
-            // Render marker
             else if (marker) {
                 cell.style.backgroundColor = markerColors[marker.type] || '#6b7280';
                 cell.style.color = 'white';
@@ -4457,7 +4484,6 @@ function renderMapModalGrid() {
                 cell.setAttribute('title', `${marker.type}: ${marker.name || '(sin nombre)'}`);
             }
             
-            // Hover effects
             cell.addEventListener('mouseover', () => {
                 if (!isAvatar && !marker) {
                     cell.style.backgroundColor = 'rgba(150, 150, 150, 0.5)';
@@ -4472,29 +4498,24 @@ function renderMapModalGrid() {
                 }
             });
             
-            // Click handler
             cell.addEventListener('click', () => {
                 const mapInfo = document.getElementById('map-info-modal');
                 const mode = document.getElementById('map-mode')?.value || 'avatar';
                 
                 if (mode === 'marker') {
-                    // Marker mode
                     const markerType = document.getElementById('marker-type')?.value || 'Aliado';
                     const existingIdx = character.map.markers.findIndex(m => m.x === x && m.y === y);
                     
                     if (existingIdx >= 0) {
-                        // Remove existing marker
                         character.map.markers.splice(existingIdx, 1);
                         mapInfo.textContent = `✓ Marcador eliminado en (${x}, ${y})`;
                     } else {
-                        // Add new marker
                         character.map.markers.push({ x, y, type: markerType, name: '' });
                         mapInfo.textContent = `✓ ${markerType} agregado en (${x}, ${y})`;
                     }
                     saveCharacterToLocalStorage();
                     renderMapModalGrid();
                 } else {
-                    // Avatar mode
                     const prev = { ...character.map.avatar };
                     character.map.avatar.x = x;
                     character.map.avatar.y = y;
@@ -4502,8 +4523,9 @@ function renderMapModalGrid() {
                     document.getElementById('avatar-x').value = x;
                     document.getElementById('avatar-y').value = y;
                     
-                    const dist = Math.sqrt(Math.pow(prev.x - x, 2) + Math.pow(prev.y - y, 2)).toFixed(1);
-                    mapInfo.textContent = `✓ Avatar movido a (${x}, ${y}) — Distancia: ${dist} celdas`;
+                    const distCells = Math.sqrt(Math.pow(prev.x - x, 2) + Math.pow(prev.y - y, 2)).toFixed(1);
+                    const distFeet = (distCells * 5).toFixed(1);
+                    mapInfo.textContent = `✓ Avatar movido a (${x}, ${y}) — Distancia: ${distFeet} pies`;
                     
                     renderMapModalGrid();
                 }
@@ -4518,16 +4540,13 @@ function updateMapSize(newSize) {
     newSize = Math.max(5, Math.min(20, parseInt(newSize) || 10));
     character.map.gridSize = newSize;
     
-    // Validar que el avatar esté dentro del nuevo grid
     if (character.map.avatar.x >= newSize) character.map.avatar.x = newSize - 1;
     if (character.map.avatar.y >= newSize) character.map.avatar.y = newSize - 1;
     
-    // Eliminar marcadores fuera del nuevo grid
     character.map.markers = character.map.markers.filter(m => m.x < newSize && m.y < newSize);
     
     renderMapModalGrid();
     
-    // Actualizar los inputs max
     document.getElementById('avatar-x').max = newSize - 1;
     document.getElementById('avatar-y').max = newSize - 1;
     
@@ -4538,6 +4557,60 @@ function clearMapBackground() {
     character.map.backgroundImage = '';
     document.getElementById('map-modal-container').style.backgroundImage = 'none';
     saveCharacterToLocalStorage();
+}
+
+function updateMapModeControls() {
+    const mode = document.getElementById('map-mode').value;
+    document.getElementById('marker-control').style.display = mode === 'marker' ? 'block' : 'none';
+    document.getElementById('regla-control').style.display = mode === 'regla' ? 'block' : 'none';
+}
+
+function updateReglaControls() {
+    const tipo = document.getElementById('regla-type').value;
+    const dirControl = document.getElementById('regla-direccion-control');
+    const orientControl = document.getElementById('regla-orientacion-control');
+    const lineaParams = document.getElementById('regla-linea-params');
+    const otrosParams = document.getElementById('regla-otros-params');
+    
+    if (tipo === 'linea') {
+        orientControl.style.display = 'block';
+        dirControl.style.display = 'none';
+        lineaParams.style.display = 'block';
+        otrosParams.style.display = 'none';
+    } else if (['plus', 'minus', 'parentesis', 'mayor'].includes(tipo)) {
+        orientControl.style.display = 'none';
+        dirControl.style.display = 'block';
+        lineaParams.style.display = 'block';
+        otrosParams.style.display = 'none';
+    } else if (['cono', 'cadena', 'aura', 'luna', 'medialuna'].includes(tipo)) {
+        orientControl.style.display = 'none';
+        dirControl.style.display = 'block';
+        lineaParams.style.display = 'none';
+        otrosParams.style.display = 'block';
+    } else {
+        orientControl.style.display = 'none';
+        dirControl.style.display = 'none';
+        lineaParams.style.display = 'none';
+        otrosParams.style.display = 'none';
+    }
+    
+    renderMapModalGrid();
+}
+
+function setReglaDirection(dir) {
+    const dirButtons = document.querySelectorAll('button[onclick^="setReglaDirection"]');
+    dirButtons.forEach(btn => {
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-secondary');
+        
+        const match = btn.getAttribute('onclick').match(/'([^']+)'/);
+        if (match && match[1] === dir) {
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-primary');
+        }
+    });
+    
+    renderMapModalGrid();
 }
 
 function saveMapState() {
@@ -4552,7 +4625,6 @@ function saveMapState() {
     character.map.avatar.x = x;
     character.map.avatar.y = y;
     
-    // Actualizar inputs si fueron ajustados
     document.getElementById('avatar-x').value = x;
     document.getElementById('avatar-y').value = y;
     
@@ -4561,9 +4633,57 @@ function saveMapState() {
     closeModal();
 }
 
+function limpiarTodasLasReglas_REMOVED() {
+    if (!character.map.reglas || character.map.reglas.length === 0) {
+        showNotification('Sin Reglas', 'No hay reglas para limpiar');
+        return;
+    }
+    
+    const confirmDelete = confirm(`¿Eliminar TODAS las ${character.map.reglas.length} reglas?`);
+    if (confirmDelete) {
+        character.map.reglas = [];
+        saveCharacterToLocalStorage();
+        renderMapModalGrid();
+        
+        reglaDeleteModeActive = false;
+        const deleteBtn = document.getElementById('toggle-eliminar-regla');
+        const deleteText = document.getElementById('toggle-eliminar-text');
+        const deleteOptions = document.getElementById('eliminar-options');
+        if (deleteBtn) {
+            deleteBtn.classList.remove('btn-danger');
+            deleteBtn.classList.add('btn-secondary');
+            deleteText.textContent = '⭕ Eliminar: OFF';
+            deleteOptions.style.display = 'none';
+        }
+        
+        showNotification('✓ Reglas Eliminadas', 'Se han borrado todas las reglas del mapa.');
+    }
+}
+
+function eliminarRegla_REMOVED(indice) {
+    if (character.map.reglas && indice >= 0 && indice < character.map.reglas.length) {
+        const reglaEliminada = character.map.reglas[indice];
+        character.map.reglas.splice(indice, 1);
+        saveCharacterToLocalStorage();
+        renderMapModalGrid();
+        showNotification('✓ Regla Eliminada', `${reglaEliminada.tipo} en (${reglaEliminada.x}, ${reglaEliminada.y})`);
+    }
+}
+
+// renderReglasList removed - regla system eliminated
+
 function unequipItem(slotIndex) {
     if (character.equipment[slotIndex].item) {
-        // Agregar el item al inventario
+        const itemName = character.equipment[slotIndex].item.name;
+        let equipBonus = {};
+        if (character.equipment[slotIndex].item.equipmentBonus) {
+            if (typeof character.equipment[slotIndex].item.equipmentBonus === 'string') {
+                try { equipBonus = JSON.parse(character.equipment[slotIndex].item.equipmentBonus); } catch(e) { equipBonus = {}; }
+            } else {
+                equipBonus = character.equipment[slotIndex].item.equipmentBonus;
+            }
+        }
+        
         const item = character.equipment[slotIndex].item;
         const existingItem = character.inventory.items.find(i => i.name === item.name);
         
@@ -4574,10 +4694,19 @@ function unequipItem(slotIndex) {
         }
         
         character.equipment[slotIndex].item = null;
+        
+        calculateDerivedStats();
+        updateUI();
+        saveCharacterToLocalStorage();
+        
         closeModalSecondary();
-        saveAndRefresh();
         refreshCombatEquipment();
-        showNotification('Desequipado', `${item.name} ha sido movido al inventario`);
+        
+        let bonusText = '';
+        if (Object.keys(equipBonus).length > 0) {
+            bonusText = ' (se retiran bonuses: ' + Object.entries(equipBonus).map(([k, v]) => `${k}: ${v > 0 ? '+' : ''}${v}`).join(', ') + ')';
+        }
+        showNotification('Desequipado', `${itemName} ha sido movido al inventario${bonusText}`);
     }
 }
 
@@ -4589,21 +4718,28 @@ function openStatusEffectForm(status = null, index = -1) {
     const isEditing = status !== null;
     tempLinkedEffects = isEditing ? JSON.parse(JSON.stringify(status.linkedEffects)) : [];
     
-    const predefinedButtons = predefinedStatusEffects.map(effect => `<button class="btn btn-secondary w-full mb-2" onclick="loadPredefinedStatus('${effect.name}')">${effect.name}</button>`).join('');
+    const predefinedRows = predefinedStatusEffects.map((effect, i) => `
+        <div class="flex items-center justify-between gap-2 p-2 bg-green-50 dark:bg-green-700 rounded">
+            <button class="btn btn-secondary flex-1 text-sm py-1 text-left" onclick="loadPredefinedStatus('${effect.name}')">${effect.name}</button>
+            <button class="btn btn-danger text-xs px-2 py-1" title="Eliminar predefinido" onclick="removePredefinedStatus(${i})">-</button>
+        </div>
+    `).join('');
 
     const content = `
         <h3 class="text-2xl font-bold mb-4">${isEditing ? 'Editar' : 'Crear'} Estado</h3>
         <div class="modal-scrollable-content"><div class="space-y-4">
-            <div class="pt-4 border-t dark:border-gray-600">
-                <h4 class="font-semibold mb-2">Estados Predefinidos</h4>
-                <div class="grid grid-cols-2 gap-2">${predefinedButtons}</div>
+            <div class="bg-white-50 dark:bg-white-900/30 p-3 rounded border border-blue-200 dark:border-blue-700">
+                <h4 class="font-semibold mb-2 text-sm">Predefinidos</h4>
+                <div class="space-y-2">
+                    ${predefinedRows || '<p class="text-xs text-gray-500">Sin predefinidos (crea uno nuevo)</p>'}
+                </div>
             </div>
             <div>
-                <label for="status-name" class="block text-sm font-medium">Nombre del Estado</label>
+                <label for="status-name" class="block text-sm font-medium">Nombre</label>
                 <input id="status-name" class="input-field mt-1" placeholder="Ej: Furia, Envenenado" value="${status?.name || ''}">
             </div>
             <div>
-                 <label for="status-description" class="block text-sm font-medium">Descripción</label>
+                <label for="status-description" class="block text-sm font-medium">Descripción</label>
                 <textarea id="status-description" class="input-field mt-1" placeholder="¿Qué hace este estado?" rows="2">${status?.description || ''}</textarea>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t dark:border-gray-700">
@@ -4621,7 +4757,7 @@ function openStatusEffectForm(status = null, index = -1) {
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label for="status-duration-type" class="block text-sm font-medium">Tipo de Duración</label>
+                    <label for="status-duration-type" class="block text-sm font-medium">Duración</label>
                     <select id="status-duration-type" class="input-field mt-1">
                         <option value="Rondas" ${status?.durationType === 'Rondas' ? 'selected' : ''}>Rondas</option>
                         <option value="Acciones" ${status?.durationType === 'Acciones' ? 'selected' : ''}>Acciones</option>
@@ -4629,19 +4765,21 @@ function openStatusEffectForm(status = null, index = -1) {
                     </select>
                 </div>
                 <div>
-                    <label for="status-duration" class="block text-sm font-medium">Duración</label>
-                    <input type="number" id="status-duration" class="input-field mt-1" placeholder="1" value="${status?.duration || 1}">
+                    <input type="number" id="status-duration" class="input-field mt-5" placeholder="1" value="${status?.duration || 1}">
                 </div>
             </div>
             <div class="pt-4 border-t dark:border-gray-700">
-                <h4 class="font-semibold mb-2 text-center">Efectos Vinculados</h4>
-                <div id="linked-effects-list" class="space-y-2 bg-gray-100 dark:bg-gray-800 p-2 rounded min-h-[4rem]"></div>
-                <button class="btn btn-secondary text-sm w-full mt-2" onclick="openLinkedEffectForm()">Añadir Efecto Vinculado</button>
+                <h4 class="font-semibold mb-2">Efectos Vinculados</h4>
+                <div id="linked-effects-list" class="space-y-2 bg-gray-100 dark:bg-gray-800 p-2 rounded min-h-[4rem] mb-2"></div>
+                <button class="btn btn-secondary text-sm w-full" onclick="openLinkedEffectForm()">+ Agregar Efecto</button>
             </div>
         </div></div>
-        <div class="flex justify-end mt-6 pt-4 border-t dark:border-gray-600">
-            <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-            <button class="btn btn-primary" onclick="saveStatusEffect(${index})">${isEditing ? 'Guardar Cambios' : 'Crear Estado'}</button>
+        <div class="flex justify-between gap-2 mt-6 pt-4 border-t dark:border-gray-600">
+            <button class="btn btn-secondary" onclick="savePredefinedStatus()">💾 Guardar como Predefinido</button>
+            <div class="flex gap-2">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveStatusEffect(${index})">${isEditing ? 'Guardar Cambios' : 'Crear Estado'}</button>
+            </div>
         </div>
     `;
     openModal(content);
@@ -4660,6 +4798,41 @@ function loadPredefinedStatus(name) {
         tempLinkedEffects = JSON.parse(JSON.stringify(predefined.linkedEffects));
         renderLinkedEffectsList();
     }
+}
+
+function savePredefinedStatus() {
+    const name = document.getElementById('status-name').value.trim();
+    if (!name) {
+        showNotification('Error', 'El nombre del estado es obligatorio');
+        return;
+    }
+    
+    const exists = predefinedStatusEffects.find(effect => effect.name === name);
+    if (exists) {
+        showNotification('Error', 'Este nombre ya existe en los predefinidos');
+        return;
+    }
+    
+    const newPredefined = {
+        name: name,
+        description: document.getElementById('status-description').value,
+        type: document.getElementById('status-type').value,
+        isStackable: document.getElementById('status-isStackable').checked,
+        durationType: document.getElementById('status-duration-type').value,
+        duration: parseInt(document.getElementById('status-duration').value) || 1,
+        linkedEffects: JSON.parse(JSON.stringify(tempLinkedEffects))
+    };
+    
+    predefinedStatusEffects.push(newPredefined);
+    showNotification('Guardado', `"${name}" se guardó como predefinido`);
+    openStatusEffectForm();
+}
+
+function removePredefinedStatus(index) {
+    const name = predefinedStatusEffects[index].name;
+    predefinedStatusEffects.splice(index, 1);
+    showNotification('Eliminado', `"${name}" fue removido de predefinidos`);
+    openStatusEffectForm();
 }
 
 function renderLinkedEffectsList() {
@@ -4891,9 +5064,8 @@ function updateFavoresMax(value) {
     saveCharacterToLocalStorage();
 }
 
-// Favores UI - deprecated, now integrated in renderSpiritAmulet
+    // Favores UI - deprecated, now integrated in renderSpiritAmulet
 function renderFavoresUI() {
-    // Deprecated: Favores now rendered as part of renderSpiritAmulet()
 }
 
 function initializeCharacter(isImport = false) {
@@ -4901,7 +5073,6 @@ function initializeCharacter(isImport = false) {
         const loadedCharacter = loadCharacterFromLocalStorage();
         character = loadedCharacter ? loadedCharacter : getDefaultCharacter();
     }
-    // Ensure new structures exist for newer versions
     if (!character.favores) character.favores = { current: 0, max: 10, notes: '' };
     if (!character.map) character.map = { avatar: { x: 0, y: 0 }, gridSize: 10 };
     // Re-sync spirit relation bonuses on any load
